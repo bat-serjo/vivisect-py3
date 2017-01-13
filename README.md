@@ -1,3 +1,28 @@
+###This is a spin-off of the official vivisect project.  
+The idea is to port the project to python3 and improve it on the way.  
+In order to achieve this the commit rules will be very liberal.  
+Think of this as a playground, a place to test any ideas.
+
+Here are the rules of the game:
+- Anyone can get commit access to this repo. 
+In order to do so one must supply one meaningful patch or bug fix. 
+Then contact any of the admins and ask for such access. Original contributors to the project
+are more than welcome and only have to ask for the access nothing more.
+- The master branch does not have to be rock solid, as a matter of fact it will 
+probably often be broken. The idea is all contributors to work together on it.
+When a working state (or some kind of milestone) gets reached a tag will be made.
+Consider the tags to be stable and usable.
+- How to commit. If you have a small patch or even a big one that merges fine and 
+does not break anything just push it on the master. If you want to do something really wild
+that will break things for a long time you have two options: 
+    - Work in a branch (your branch your rules) there you can team up with other contributors etc.
+     Once you get to a working point you can suggest a merge in master.
+    - Discuss what you want to do with everybody and if it is agreed to do it we will start doing it
+    in the master branch and everybody should work in that direction.
+
+
+
+
 # Vivisect / Vdb / Vtrace
 
 Now all as one project! ( made sense once vivisect went public )
