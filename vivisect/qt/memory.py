@@ -22,14 +22,6 @@ from envi.threads import firethread
 from vqt.main import *
 from vivisect.const import *
 
-# FIXME HACK where do these really live?
-qt_horizontal = 1
-qt_vertical = 2
-
-
-def cmpoffset(x, y):
-    return cmp(x[0], y[0])
-
 
 class VivCanvasBase(vq_hotkey.HotKeyMixin, e_mem_canvas.VQMemoryCanvas):
     def __init__(self, *args, **kwargs):
@@ -256,9 +248,9 @@ class VQVivMemoryCanvas(VivCanvasBase):
     def wheelEvent(self, event):
         frame = self.page().mainFrame()
 
-        sbcur = frame.scrollBarValue(qt_vertical)
-        sbmin = frame.scrollBarMinimum(qt_vertical)
-        sbmax = frame.scrollBarMaximum(qt_vertical)
+        sbcur = frame.scrollBarValue(QtCore.Qt.Vertical)
+        sbmin = frame.scrollBarMinimum(QtCore.Qt.Vertical)
+        sbmax = frame.scrollBarMaximum(QtCore.Qt.Vertical)
 
         if sbcur == sbmax:
 
