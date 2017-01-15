@@ -117,18 +117,18 @@ class ArmWorkspaceEmulator(v_i_emulator.WorkspaceEmulator, e_arm.ArmEmulator):
                     if op.iflags & envi.IF_RET:
                         vg_path.setNodeProp(self.curpath, 'cleanret', True)
                         break
-                except envi.UnsupportedInstruction, e:
+                except envi.UnsupportedInstruction as e:
                     if self.strictops:
                         break
                     else:
-                        print 'runFunction continuing after unsupported instruction: 0x%08x %s' % (e.op.va, e.op.mnem)
+                        print('runFunction continuing after unsupported instruction: 0x%08x %s' % (e.op.va, e.op.mnem))
                         self.setProgramCounter(e.op.va+ e.op.size)
-                except Exception, e:
-                    #traceback.print_exc()
-                    if self.emumon != None:
+                except Exception as e:
+                    # traceback.print_exc()
+                    if self.emumon is not None:
                         self.emumon.logAnomaly(self, starteip, str(e))
 
-                    break # If we exc during execution, this branch is dead.
+                    break  # If we exc during execution, this branch is dead.
           #except:
           #    sys.excepthook(*sys.exc_info())
 

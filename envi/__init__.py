@@ -1384,7 +1384,7 @@ def getArchModules(default=ARCH_DEFAULT):
     archs.append(e_amd64.Amd64Module())
     archs.append(e_arm.ArmModule())
     archs.append(e_thumb16.Thumb16Module())
-    archs.append(e_thumb16.Thumb2Module())
+    archs.append(e_thumb16.ThumbModule())
     archs.append(e_msp430.Msp430Module())
     archs.append(e_h8.H8Module())
 

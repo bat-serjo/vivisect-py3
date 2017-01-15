@@ -247,22 +247,22 @@ def branch_misc(va, val, val2): # bl and misc control
                     return None, 'sub', opers, IF_S, 0
 
                 return None, 'eret', tuple(), IF_RET, 0    # should this have some other flag?
-            print "TEST ME: branch_misc subsection 3"
+            print("TEST ME: branch_misc subsection 3")
 ##### FIXME!  THIS NEEDS TO ALSO HIT MSR BELOW....
-            #raise InvalidInstruction(
+            # raise InvalidInstruction(
             #    mesg="branch_misc subsection 3",
             #    bytez=struct.pack("<H", val)+struct.pack("<H", val2), va=va-4)
 
             # xx0xxxxx and others
             if op == 0b0111000:
-                print "HIT"
+                print("HIT")
                 tmp = op2 & 3
 
                 Rn = val & 0xf
                 mask = (val2>>8) & 0xf
                 if tmp == 0:
                     R = PSR_APSR
-                    #raise Exception("FIXME:  MSR(register) p A8-498")
+                    # raise Exception("FIXME:  MSR(register) p A8-498")
 
                 else:
                     R = (val >> 4) & 1
@@ -1904,6 +1904,7 @@ class ThumbDisasm:
         op = ThumbOpcode(va, opcode, mnem, 0xe, oplen, olist, flags, simdflags)
         #print hex(va), oplen, len(op), op.size
         return op
+
 
 class Thumb16Disasm ( ThumbDisasm ):
     _tree = ttree

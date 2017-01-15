@@ -46,26 +46,26 @@ class AnalysisMonitor(viv_monitor.AnalysisMonitor):
                     or (hasattr(oper, 'base_reg') and oper.base_reg == self.reg):
                 # second operand has the register we're interested in for this function
                 tgt = op.getOperValue(0, emu)
-                if tgt == None:
-                    print "0x%x: %s   tgt == None!" % (op.va, op)
+                if tgt is None:
+                    print("0x%x: %s   tgt == None!" % (op.va, op))
                     return
 
                 self.tracker[op.va] = tgt
-                #print("%x  %s" % (op.va, self.vw.reprVa(tgt)))
+                # print("%x  %s" % (op.va, self.vw.reprVa(tgt)))
 
 
 def analyzeFunction(vw, fva, prepend=False):
-    '''
+    """
     this analysis module will identify thunk_reg functions, which place the .GOT pointer
-    into some register which is then accessed later.  
+    into some register which is then accessed later.
     doing so allows for position-independent code.
 
-    store funcva in "thunk_reg" VaSet in case we identify multiples (not likely) or misidentify 
+    store funcva in "thunk_reg" VaSet in case we identify multiples (not likely) or misidentify
     something.
 
     then store the module base in metadata as "PIE_GOT", accessible by other analysis modules.
     then store the register used in this function in function metadata as "PIE_reg"
-    '''
+    """
     got = None
     for segva, segsz, segnm, segimg in vw.getSegments():
         if segnm == '.got':
@@ -73,7 +73,7 @@ def analyzeFunction(vw, fva, prepend=False):
             break
 
     # if we don't have a segment named ".got" we fail.
-    if got == None: 
+    if got is None:
         return
 
     # roll through the first few opcodes looking for one to load a register with .got's address
@@ -94,12 +94,12 @@ def analyzeFunction(vw, fva, prepend=False):
             reg = op.opers[0].reg
             vw.setVaSetRow('thunk_reg', (fva, reg))
 
-            if vw.getFunctionMeta(fva, 'PIE_reg') == None:
+            if vw.getFunctionMeta(fva, 'PIE_reg') is None:
                 vw.setFunctionMeta(fva, 'PIE_reg', reg)
                 vw.setComment(op.va, 'Position Indendent Code Register Set: %s' % \
-                        vw.arch._arch_reg.getRegisterName(reg))
+                              vw.arch._arch_reg.getRegisterName(reg))
 
-            if vw.getMeta('PIE_GOT') == None:
+            if vw.getMeta('PIE_GOT') is None:
                 vw.setMeta('PIE_GOT', got)
             break
 
@@ -125,27 +125,28 @@ def analyzeFunction(vw, fva, prepend=False):
     items.sort()
     for va, tgt in items:
         # if we already have xrefs, don't make more...
-        if vw.getLocation(tgt) == None:
+        if vw.getLocation(tgt) is None:
             vw.followPointer(tgt)
 
         nogo = False
-        for xfr,xto,xtype,xflag in vw.getXrefsFrom(va):
+        for xfr, xto, xtype, xflag in vw.getXrefsFrom(va):
             if xto == tgt:
                 nogo = True
+
         if not nogo:
-            #vw.vprint("PIE XREF: 0x%x -> 0x%x" % (va, tgt))
+            # vw.vprint("PIE XREF: 0x%x -> 0x%x" % (va, tgt))
             try:
                 vw.addXref(va, tgt, REF_DATA, 0)
             except:
                 sys.excepthook(*sys.exc_info())
-            ## FIXME: force analysis of the xref.  very likely string for current example code.
+            # FIXME: force analysis of the xref.  very likely string for current example code.
 
         # set comment.  if existing comment, by default, don't... otherwise prepend the info before the existing comment
         curcmt = vw.getComment(va)
         cmt = "0x%x: %s" % (tgt, reprPointer(vw, tgt))
-        if curcmt == None or not len(curcmt):
+        if curcmt is None or not len(curcmt):
             vw.setComment(va, cmt)
-        elif not cmt in curcmt:
+        elif cmt not in curcmt:
             cmt = "0x%x: %s ;\n %s" % (tgt, reprPointer(vw, tgt), curcmt)
             vw.setComment(va, cmt)
 
@@ -153,10 +154,11 @@ def analyzeFunction(vw, fva, prepend=False):
 
     vw.vprint("ANOMS: \n", repr(emumon.emuanom))
 
+
 def analyze(vw):
     # don't want to run this multiple times on the same function... comments get outa hand.
     for fva in vw.getFunctions():
-        #if vw.getFunctionMeta(fva, 'PIE_reg'):
+        # if vw.getFunctionMeta(fva, 'PIE_reg'):
         #    continue
 
         try:
@@ -164,7 +166,7 @@ def analyze(vw):
         except:
             pass
 
-if globals().get('vw') != None:
+if globals().get('vw') is not None:
     vw.vprint("analyzing workspace for thunk_reg")
     analyze(vw)
     vw.vprint("done")

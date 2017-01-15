@@ -1,17 +1,18 @@
 import envi
 import vivisect
 
+
 def analyze(vw):
     for nva, name in vw.getNames():
         if nva & 1 == 0: continue
 
         mmap = vw.getMemoryMap(nva)
-        if mmap == None: continue
+        if mmap is None: continue
         mva, msz, mperms, mname = mmap
 
         loctup = vw.getLocation(nva)
-        if loctup == None:
-            print "DEBUG: name where loctup == None: %x: %s" % (nva, name)
+        if loctup is None:
+            print("DEBUG: name where loctup == None: %x: %s" % (nva, name))
 
         lva, lsz, ltype, ltinfo = loctup
         if ltype != vivisect.LOC_OP: continue
@@ -21,5 +22,5 @@ def analyze(vw):
 
 
 #if globals().get('argv') != None:
-if globals().get('vw') != None:
+if globals().get('vw') is not None:
     analyze(vw)

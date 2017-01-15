@@ -1594,14 +1594,14 @@ class ArmInstructionSet(unittest.TestCase):
                     redoprepr = repr(op).replace(' ','').lower()
                     redgoodop = reprOp.replace(' ','')
                     if redoprepr != redgoodop:
-                        print  bytez,redgoodop
-                        print  bytez,redoprepr
-                        print
+                        print(bytez,redgoodop)
+                        print(bytez,redoprepr)
+                        print()
                         #print out binary representation of opcode for checking
                         num, = struct.unpack("<I", bytez.decode('hex'))
-                        print hex(num)
+                        print(hex(num))
                         bs = bin(num)[2:].zfill(32)
-                        print bs
+                        print(bs)
 
                         badcount += 1
 
@@ -1617,11 +1617,11 @@ class ArmInstructionSet(unittest.TestCase):
                             else:
                                 badcount += 1
                         except envi.UnsupportedInstruction:
-                            print "Instruction not in Emulator - ", repr(op)
+                            print("Instruction not in Emulator - ", repr(op))
                             badcount += 1
                         except Exception as exp:
-                            print "Exception in Emulator for command - ",repr(op)
-                            print "  ",exp
+                            print("Exception in Emulator for command - ",repr(op))
+                            print("  ", exp)
                             badcount += 1
                     else:
                         # if we have a special test lets run it
@@ -1643,8 +1643,8 @@ class ArmInstructionSet(unittest.TestCase):
                                 raise Exception( "FAILED special case test format bad:  Instruction test does not have a 'tests' field: %.8x %s - %s" % (va, bytez, op))
 
 
-        print "Done with assorted instructions test. ", str(goodcount)+" tests passed. ", str(badcount) + " tests failed."
-        print "Total of ", str(goodcount + badcount) + " tests completed."
+        print("Done with assorted instructions test. ", str(goodcount)+" tests passed. ", str(badcount) + " tests failed.")
+        print("Total of ", str(goodcount + badcount) + " tests completed.")
 
         #pending deletion of following comments. Please comment if they need to stay or I will delete in following commit
         #op = vw.arch.archParseOpcode('12c3'.decode('hex'))
@@ -1673,12 +1673,12 @@ class ArmInstructionSet(unittest.TestCase):
             try:
                 # try register first
                 emu.setRegisterByName(tgt, val)
-            except e_reg.InvalidRegisterName, e:
+            except e_reg.InvalidRegisterName as e:
                 # it's not a register
                 if type(tgt) == str and tgt.startswith("PSR_"):
                     # it's a flag
                     emu.setFlag(eval(tgt), val)
-                elif type(tgt) in (long, int):
+                elif type(tgt) in (int):
                     # it's an address
                     #For this couldn't we set a temp value equal to endian and write that? Assuming byte order is issue with this one
                     emu.writeMemValue(tgt, val, 1) # limited to 1-byte writes currently
@@ -1698,7 +1698,7 @@ class ArmInstructionSet(unittest.TestCase):
                     success = 0
                 else:  # should be an else
                     raise Exception("FAILED(reg): %s  !=  0x%x (observed: 0x%x)" % (tgt, val, testval))
-            except e_reg.InvalidRegisterName, e:
+            except e_reg.InvalidRegisterName as e:
                 # it's not a register
                 if type(tgt) == str and tgt.startswith("PSR_"):
                     # it's a flag
@@ -1708,7 +1708,7 @@ class ArmInstructionSet(unittest.TestCase):
                         success = 0
                     else:
                         raise Exception("FAILED(flag): %s  !=  0x%x (observed: 0x%x)" % (tgt, val, testval))
-                elif type(tgt) in (long, int):
+                elif type(tgt) in (int):
                     # it's an address
                     testval = emu.readMemValue(tgt, 1)
                     if testval == val:
@@ -1771,12 +1771,12 @@ def genDPArm():
                 bytez = struct.pack("<I", y)
                 out.append(bytez)
                 op = vw.arch.archParseOpcode(bytez)
-                print "%x %s" % (y, op)
+                print("%x %s" % (y, op))
 
             except:
-                print "%x error" % y
+                print("%x error" % y)
 
-    file('dpArmTest','w').write(''.join(out))
+    open('dpArmTest','w').write(''.join(out))
 
 
 def genMediaInstructionBytes():
@@ -1789,12 +1789,12 @@ def genMediaInstructionBytes():
                 bytez = struct.pack("<I", y)
                 out.append(bytez)
                 op = vw.arch.archParseOpcode(bytez)
-                print "%x %s" % (y, op)
+                print("%x %s" % (y, op))
 
             except:
-                print "%x error" % y
+                print("%x error" % y)
 
-    file('mediaArmTest','w').write(''.join(out))
+    open('mediaArmTest','w').write(''.join(out))
 
 def genAdvSIMD():
     # thumb
@@ -1817,7 +1817,7 @@ def genAdvSIMD():
 
     out = outarm
     out.extend(outthumb)
-    file('advSIMD', 'wb').write(''.join(out))
+    open('advSIMD', 'wb').write(''.join(out))
 
 
 
