@@ -229,7 +229,10 @@ class VivWorkspace(e_mem.MemoryObject, viv_base.VivWorkspaceCore):
         if eclass is None:
             raise Exception("WorkspaceEmulation not supported on %s yet!" % arch)
 
-        return eclass(self, logwrite=logwrite, logread=logread)
+        emu = eclass(self, logwrite=logwrite, logread=logread)
+        emu.setEndian(self.getEndian())
+
+        return emu
 
     def getCachedEmu(self, emuname):
         """
@@ -717,7 +720,7 @@ class VivWorkspace(e_mem.MemoryObject, viv_base.VivWorkspaceCore):
         """
         Add an already created export object.
         """
-        rname = "%s.%s" % (filename, name)
+        rname = "%s.%s_%x" % (filename, name, va)
         if self.vaByName(rname) is not None:
             raise Exception("Duplicate Name: %s" % rname)
         self._fireEvent(VWE_ADDEXPORT, (va, etype, name, filename))

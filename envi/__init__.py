@@ -9,15 +9,15 @@ import platform
 
 # TODO: move into const.py
 # Parsed Opcode Formats
-ARCH_DEFAULT = 0 << 16  # arch 0 is whatever the mem object has as default
-ARCH_I386    = 1 << 16
-ARCH_AMD64   = 2 << 16
-ARCH_ARMV7   = 3 << 16
-ARCH_THUMB16 = 4 << 16
-ARCH_THUMB2  = 5 << 16
-ARCH_MSP430  = 6 << 16
-ARCH_H8      = 7 << 16
-ARCH_MASK    = 0xffff0000  # Masked into IF_FOO and BR_FOO values
+ARCH_DEFAULT     = 0 << 16   # arch 0 is whatever the mem object has as default
+ARCH_I386        = 1 << 16
+ARCH_AMD64       = 2 << 16
+ARCH_ARMV7       = 3 << 16
+ARCH_THUMB16     = 4 << 16
+ARCH_THUMB       = 5 << 16
+ARCH_MSP430      = 6 << 16
+ARCH_H8          = 7 << 16
+ARCH_MASK        = 0xffff0000   # Masked into IF_FOO and BR_FOO values
 
 arch_names = {
     ARCH_DEFAULT:   'default',
@@ -25,7 +25,7 @@ arch_names = {
     ARCH_AMD64:     'amd64',
     ARCH_ARMV7:      'arm',
     ARCH_THUMB16:   'thumb16',
-    ARCH_THUMB2:    'thumb2',
+    ARCH_THUMB:     'thumb2',
     ARCH_MSP430:    'msp430',
     ARCH_H8:        'h8',
 }
@@ -38,7 +38,7 @@ arch_by_name = {
     'armv6l':   ARCH_ARMV7,
     'armv7l':   ARCH_ARMV7,
     'thumb16':  ARCH_THUMB16,
-    'thumb2':   ARCH_THUMB2,
+    'thumb2':   ARCH_THUMB,
     'msp430':   ARCH_MSP430,
     'h8':       ARCH_H8,
 }
@@ -76,10 +76,11 @@ class ArchitectureModule:
     _default_call = None
     _plat_def_calls = {}
 
-    def __init__(self, archname, maxinst=32):
+    def __init__(self, archname, maxinst=32, endian=ENDIAN_LSB):
         self._arch_id = getArchByName(archname)
         self._arch_name = archname
         self._arch_maxinst = maxinst
+        self.setEndian(endian)
 
     def getArchId(self):
         """
@@ -93,6 +94,21 @@ class ArchitectureModule:
         in this module.
         """
         return self._arch_name
+
+    def getEndian(self):
+        '''
+        Every architecture stores numbers either Most-Significant-Byte-first (MSB)
+        or Least-Significant-Byte-first (LSB).  Most modern architectures are
+        LSB, however many legacy systems still use MSB architectures.
+        '''
+        return self._endian
+
+    def setEndian(self, endian):
+        '''
+        Set the architecture endianness.  Subclasses should make sure this is handled
+        correctly in any Disasm object(s)
+        '''
+        self._endian = endian
 
     def archGetBreakInstr(self):
         """
@@ -557,6 +573,7 @@ class Emulator(e_reg.RegisterContext, e_mem.MemoryObject):
 
     def __init__(self, archmod=None):
 
+        self.metadata = {}
         e_mem.MemoryObject.__init__(self, arch=archmod._arch_id)
         e_reg.RegisterContext.__init__(self)
 
@@ -598,6 +615,28 @@ class Emulator(e_reg.RegisterContext, e_mem.MemoryObject):
         if opt not in self._emu_opts:
             raise Exception('Unknown Emu Opt: %s' % opt)
         return self._emu_opts.get(opt)
+
+    def setEndian(self, endian):
+        '''
+        Sets Endianness for the Emulator.
+        '''
+        for arch in self.imem_archs:
+            arch.setEndian(endian)
+
+    def getEndian(self):
+        '''
+        Returns the current Endianness for the emulator
+        '''
+        return self.imem_archs[0].getEndian()
+
+    def getMeta(self, name, default=None):
+        return self.metadata.get(name, default)
+
+    def setMeta(self, name, value):
+        """
+        Set a meta key,value pair for this workspace.
+        """
+        self.metadata[name] = value
 
     def getArchModule(self):
         raise Exception('Emulators *must* implement getArchModule()!')
@@ -1312,7 +1351,7 @@ def getArchModule(name=None):
 
     elif name in ('thumb', 'thumb16', 'thumb2'):
         import envi.archs.thumb16 as e_thumb
-        return e_thumb.Thumb16Module()
+        return e_thumb.ThumbModule()
 
     elif name in ('msp430',):
         import envi.archs.msp430 as e_msp430

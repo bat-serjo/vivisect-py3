@@ -13,6 +13,11 @@ def parseFile(vw, filename):
 def parseBytes(vw, filebytes):
     return _loadMacho(vw, filebytes)
 
+archcalls = {
+    'i386': 'cdecl',
+    'amd64': 'sysvamd64call',
+    'arm': 'armcall',
+}
 
 def _loadMacho(vw, filebytes, filename=None):
     # We fake them to *much* higher than norm so pointer tests do better...
@@ -63,8 +68,7 @@ def _loadMacho(vw, filebytes, filename=None):
     vw.setMeta("Platform", "Darwin")
     vw.setMeta("Format", "macho")
 
-    # FIXME 64bit!
-    vw.setMeta("DefaultCall", "cdecl")
+    vw.setMeta('DefaultCall', archcalls.get(arch,'unknown'))
 
     # Add the file entry
     hash = "unknown hash"
