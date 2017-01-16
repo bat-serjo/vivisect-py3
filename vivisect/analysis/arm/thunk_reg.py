@@ -6,6 +6,7 @@ from vivisect import LOC_STRING, LOC_UNI, REF_DATA
 
 MAX_INIT_OPCODES = 30
 
+
 def reprPointer(vw, va):
     """
     Do your best to create a humon readable name for the
@@ -26,6 +27,7 @@ def reprPointer(vw, va):
     if sym != None:
         ret = sym
     return ret
+
 
 class AnalysisMonitor(viv_monitor.AnalysisMonitor):
 
@@ -122,7 +124,7 @@ def analyzeFunction(vw, fva, prepend=False):
 
     # now roll through tracked references and make xrefs/comments
     items = emumon.tracker.items()
-    items.sort()
+    # items.sort()
     for va, tgt in items:
         # if we already have xrefs, don't make more...
         if vw.getLocation(tgt) is None:

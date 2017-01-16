@@ -10,12 +10,13 @@ from envi.registers import RMETA_NMASK
 
 from vivisect.const import *
 
+
 class AnalysisMonitor(viv_monitor.AnalysisMonitor):
 
     def __init__(self, vw, fva):
         viv_monitor.AnalysisMonitor.__init__(self, vw, fva)
         self.retbytes = None
-        self.badop = vw.arch.archParseOpcode("\x00\x00\x00\x00\x00")
+        self.badop = vw.arch.archParseOpcode(b"\x00\x00\x00\x00\x00")
 
     def prehook(self, emu, op, starteip):
 
@@ -35,13 +36,15 @@ argnames = {
     3: ('r3', 3),
 }
 
+
 def archargname(idx):
     ret = argnames.get(idx)
-    if ret == None:
+    if ret is None:
         name = 'arg%d' % idx
     else:
         name, idx = ret
     return name
+
 
 def buildFunctionApi(vw, fva, emu, emumon):
     argc = 0
@@ -57,17 +60,18 @@ def buildFunctionApi(vw, fva, emu, emumon):
 
     if callconv == 'armcall':
         if emumon.stackmax > 0:
-            targc = (emumon.stackmax / 8) + 6
+            targc = (emumon.stackmax // 8) + 6
             if targc > 40:
                 emumon.logAnomaly(emu, fva, 'Crazy Stack Offset Touched: 0x%.8x' % emumon.stackmax)
             else:
                 argc = targc
 
-        funcargs = [ ('int',archargname(i)) for i in xrange(argc) ]
+        funcargs = [('int', archargname(i)) for i in range(argc)]
 
-    api = ('int',None,callconv,None,funcargs)
+    api = ('int', None, callconv, None, funcargs)
     vw.setFunctionApi(fva, api)
     return api
+
 
 def analyzeFunction(vw, fva):
 
@@ -80,10 +84,10 @@ def analyzeFunction(vw, fva):
     # Do we already have API info in meta?
     # NOTE: do *not* use getFunctionApi here, it will make one!
     api = vw.getFunctionMeta(fva, 'api')
-    if api == None:
+    if api is None:
         api = buildFunctionApi(vw, fva, emu, emumon)
 
-    rettype,retname,callconv,callname,callargs = api
+    rettype, retname, callconv, callname, callargs = api
 
     argc = len(callargs)
     cc = emu.getCallingConvention(callconv)
@@ -92,9 +96,9 @@ def analyzeFunction(vw, fva):
     baseoff = cc.getStackArgOffset(emu, argc)
 
     # Register our stack args as function locals
-    for i in xrange( stcount ):
+    for i in range(stcount):
 
-        vw.setFunctionLocal(fva, baseoff + ( i * 4 ), LSYM_FARG, i+stackidx)
+        vw.setFunctionLocal(fva, baseoff + (i * 4), LSYM_FARG, i+stackidx)
 
     emumon.addAnalysisResults(vw, emu)
 

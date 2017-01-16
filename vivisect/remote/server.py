@@ -20,18 +20,20 @@ viv_port = 0x4074
 viv_s_ip = '224.56.56.56'
 viv_s_port = 26998
 
-timeo_wait  = 10
-timeo_sock  = 30
-timeo_aban  = 120   # 2 minute timeout for abandon
+timeo_wait = 10
+timeo_sock = 30
+timeo_aban = 120  # 2 minute timeout for abandon
 
 # This should *only* rev when they're truly incompatible
 server_version = 20130820
+
 
 class VivServerClient:
     '''
     Implement "glue" methods for the vivisect workspace client to
     talk to the server...
     '''
+
     def __init__(self, vw, server, wsname):
         self.vw = vw
         self.chan = None
@@ -64,8 +66,8 @@ class VivServerClient:
     def waitForEvent(self, chan):
         return self.q.get()
 
-class VivServer:
 
+class VivServer:
     def __init__(self, dirname=""):
         self.path = os.path.abspath(dirname)
 
@@ -92,25 +94,25 @@ class VivServer:
             if chaninfo == None:
                 continue
 
-            wsinfo,queue = chaninfo
+            wsinfo, queue = chaninfo
             if queue.abandoned(timeo_aban):
                 # Remove from our chandict
                 self.chandict.pop(chan, None)
                 # Remove from the workspace clients
                 lock, fpath, pevents, users = wsinfo
                 with lock:
-                    users.pop(chan,None)
+                    users.pop(chan, None)
 
     @e_threads.maintthread(30)
     def _saveWorkspaceThread(self):
         for wsinfo in list(self.wsdict.values()):
-            lock,path,events,users = wsinfo
+            lock, path, events, users = wsinfo
             if events:
                 with lock:
                     wsinfo[2] = []  # start a new events list...
 
                 viv_basicfile.vivEventsAppendFile(path, events)
-                
+
     def _req_wsinfo(self, wsname):
         wsinfo = self.wsdict.get(wsname)
         if wsinfo == None:
@@ -137,7 +139,7 @@ class VivServer:
             os.makedirs(wsdir, 0o750)
 
         viv_basicfile.vivEventsToFile(wspath, events)
-        wsinfo = [ threading.Lock(), wspath, [], {} ]
+        wsinfo = [threading.Lock(), wspath, [], {}]
         self.wsdict[wsname] = wsinfo
 
     def _loadWorkspaces(self):
@@ -151,20 +153,20 @@ class VivServer:
         def checkWorkspaceDir(arg, dirname, filenames):
 
             for filename in filenames:
-                wspath = os.path.join(dirname,filename)
+                wspath = os.path.join(dirname, filename)
                 wsname = os.path.relpath(wspath, self.path)
 
                 if not os.path.isfile(wspath):
                     continue
 
-                if not open(wspath,'rb').read(3) == 'VIV':
+                if not open(wspath, 'rb').read(3) == 'VIV':
                     continue
 
                 wsinfo = self.wsdict.get(wsname)
                 if wsinfo == None:
                     # Initialize the workspace info tuple
                     lock = threading.Lock()
-                    wsinfo = [ lock, wspath, [], {} ]
+                    wsinfo = [lock, wspath, [], {}]
                     print(('loaded: %s' % wsname))
                     self.wsdict[wsname] = wsinfo
 
@@ -181,13 +183,13 @@ class VivServer:
 
     def _fireEvent(self, wsname, event, einfo, local=False, skip=None):
         lock, fpath, pevents, users = self._req_wsinfo(wsname)
-        evtup = (event,einfo)
+        evtup = (event, einfo)
         with lock:
             # Transient events do not get saved
             if not event & VTE_MASK:
                 pevents.append(evtup)
             # SPEED HACK
-            [ q.append(evtup) for (chan,q) in list(users.items()) if chan != skip ]
+            [q.append(evtup) for (chan, q) in list(users.items()) if chan != skip]
 
     def createEventChannel(self, wsname):
         wsinfo = self._req_wsinfo(wsname)
@@ -196,29 +198,32 @@ class VivServer:
         lock, fpath, pevents, users = wsinfo
         with lock:
             events = []
-            events.extend( viv_basicfile.vivEventsFromFile( fpath ) )
+            events.extend(viv_basicfile.vivEventsFromFile(fpath))
             events.extend(pevents)
             # These must reference the same actual list object...
             queue = e_threads.ChunkQueue(items=events)
             users[chan] = queue
-            self.chandict[chan] = [ wsinfo, queue ]
+            self.chandict[chan] = [wsinfo, queue]
 
         return chan
+
 
 def getServerWorkspace(server, wsname):
     vw = vivisect.cli.VivCli()
     cliproxy = VivServerClient(vw, server, wsname)
-    vw.initWorkspaceClient( cliproxy )
+    vw.initWorkspaceClient(cliproxy)
     return vw
 
+
 def connectToServer(hostname):
-    builder = cobra.initSocketBuilder(hostname,viv_port)
+    builder = cobra.initSocketBuilder(hostname, viv_port)
     builder.setTimeout(timeo_sock)
-    server = cobra.CobraProxy("cobra://%s:%d/VivServer" %  (hostname,viv_port), msgpack=True)
+    server = cobra.CobraProxy("cobra://%s:%d/VivServer" % (hostname, viv_port), msgpack=True)
     version = server.getServerVersion()
     if version != server_version:
         raise Exception('Incompatible Server: his ver: %d our ver: %d' % (version, server_version))
     return server
+
 
 def runMainServer(dirname=''):
     s = VivServer(dirname=dirname)
@@ -227,14 +232,16 @@ def runMainServer(dirname=''):
     daemon.shareObject(s, 'VivServer')
     daemon.serve_forever()
 
+
 def usage():
     print('Usage: python -m vivisect.tools.server <vivdir>')
     print('')
     print('NOTE: vivdir is simply a directory full of viv files to share')
     sys.exit(0)
 
+
 if __name__ == '__main__':
-    
+
     parser = optparse.OptionParser(usage='python -m vivisect.remote.server <vivdir>')
     options, argv = parser.parse_args()
 
@@ -247,4 +254,3 @@ if __name__ == '__main__':
 
     print(('Server Starting (port:%d)' % (viv_port,)))
     runMainServer(vivdir)
-

@@ -189,11 +189,11 @@ class ArmEmulator(ArmModule, ArmRegisterContext, envi.Emulator):
         _bytes = self.readMemory(addr, size)
         if _bytes is None:
             return None
-        if len(bytes) != size:
-            raise Exception("Read Gave Wrong Length At 0x%.8x (va: 0x%.8x wanted %d got %d)" % (self.getProgramCounter(),addr, size, len(bytes)))
+        if len(_bytes) != size:
+            raise Exception("Read Gave Wrong Length At 0x%.8x (va: 0x%.8x wanted %d got %d)" % (self.getProgramCounter(),addr, size, len(_bytes)))
 
         endian_fmt = (LSB_FMT, MSB_FMT)[self.getEndian()]
-        return struct.unpack(endian_fmt[size], bytes)[0]
+        return struct.unpack(endian_fmt[size], _bytes)[0]
 
     def writeMemValue(self, addr, value, size):
         endian_fmt = (LSB_FMT, MSB_FMT)[self.getEndian()]
@@ -203,7 +203,7 @@ class ArmEmulator(ArmModule, ArmRegisterContext, envi.Emulator):
 
     def readMemSignedValue(self, addr, size):
         bytes = self.readMemory(addr, size)
-        if bytes == None:
+        if bytes is None:
             return None
         if len(bytes) != size:
             raise Exception("Read Gave Wrong Length At 0x%.8x (va: 0x%.8x wanted %d got %d)" % (self.getProgramCounter(),addr, size, len(bytes)))
@@ -219,12 +219,11 @@ class ArmEmulator(ArmModule, ArmRegisterContext, envi.Emulator):
             x = None
             if op.prefixes >= 0xe or conditionals[op.prefixes](self.getRegister(REG_FLAGS)>>28):
                 meth = self.op_methods.get(op.mnem, None)
-                if meth == None:
+                if meth is None:
                     raise envi.UnsupportedInstruction(self, op)
                 x = meth(op)
 
-
-            if x == None:
+            if x is None:
                 pc = self.getProgramCounter()
                 x = pc+op.size
 
@@ -616,7 +615,7 @@ class ArmEmulator(ArmModule, ArmRegisterContext, envi.Emulator):
         pc = self.getRegister(REG_PC)       # store for later check
 
         if flags & IF_DAIB_I == IF_DAIB_I:
-            for reg in xrange(16):
+            for reg in range(16):
                 if (1<<reg) & regmask:
                     if flags & IF_DAIB_B == IF_DAIB_B:
                         addr += 4
@@ -627,7 +626,7 @@ class ArmEmulator(ArmModule, ArmRegisterContext, envi.Emulator):
                         self.setRegister(reg, regval)
                         addr += 4
         else:
-            for reg in xrange(15, -1, -1):
+            for reg in range(15, -1, -1):
                 if (1<<reg) & regmask:
                     if flags & IF_DAIB_B == IF_DAIB_B:
                         addr -= 4

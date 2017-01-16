@@ -647,7 +647,9 @@ class VivWorkspace(e_mem.MemoryObject, viv_base.VivWorkspaceCore):
         # true, they managed to change things and we should run again...
         for mname in self.amodlist:
             mod = self.amods.get(mname)
-            if self.verbose: self.vprint("Extended Analysis: %s" % mod.__name__)
+            if self.verbose:
+                self.vprint("Extended Analysis: %s" % mod.__name__)
+
             try:
                 mod.analyze(self)
             except Exception as e:

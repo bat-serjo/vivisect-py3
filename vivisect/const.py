@@ -1,5 +1,5 @@
 """
-A place for all vivisect contstants so everybody can import them.
+A place for all vivisect constants so everybody can import them.
 """
 
 # Vivisect workspace events
@@ -93,10 +93,10 @@ REF_CODE   = 1 # A branch/call
 REF_DATA   = 2 # A memory dereference
 REF_PTR    = 3 # A pointer immediate (may be in operand *or* part of LOC_PTR)
 
-#NOTE: The flag values for REF_CODE are the envi.BR_FOO flags
+# NOTE: The flag values for REF_CODE are the envi.BR_FOO flags
 #      which describe opcode branches.
 
-#NOTE: All locations ltypes may not change (backward compat)
+# NOTE: All locations ltypes may not change (backward compat)
 LOC_UNDEF   = 0  # An undefined "non-location"
 LOC_NUMBER  = 1  # A numerical value (non-pointer)
 LOC_STRING  = 2  # A null terminated string

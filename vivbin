@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 
 import os
-import imp
 import sys
 import time
-import inspect
 import cProfile
 import argparse
-import threading
+import importlib
 import traceback
 
 import vivisect
@@ -97,7 +95,7 @@ def main():
                 print("ANALYSIS TIME: %s" % (end - start))
 
         if args.modname is not None:
-            module = imp.load_module("custom_analysis", open(modname, "rb"), modname, ('.py', 'U', 1))
+            module = importlib.import_module(args.modname)
             module.analyze(vw)
 
         print(('stats: %r' % (vw.getStats(),)))

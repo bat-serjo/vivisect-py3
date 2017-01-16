@@ -1,5 +1,5 @@
+import pickle
 import traceback
-import pickle as pickle
 
 import vivisect
 
