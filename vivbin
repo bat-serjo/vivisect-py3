@@ -1,16 +1,13 @@
 #!/usr/bin/env python
 
-import os
 import sys
 import time
 import cProfile
 import argparse
 import importlib
-import traceback
 
-import vivisect
-import vivisect.cli as viv_cli
 import envi.config as e_config
+import vivisect.cli as viv_cli
 import envi.threads as e_threads
 import vivisect.parsers as viv_parsers
 
