@@ -1,3 +1,8 @@
+"""
+Mostly this is a place to scuttle away some of the inner workings
+of a workspace, so the outer facing API is a little cleaner.
+"""
+
 import queue
 import traceback
 import threading
@@ -22,16 +27,11 @@ from envi.threads import firethread
 from vivisect.exc import *
 from vivisect.const import *
 
-"""
-Mostly this is a place to scuttle away some of the inner workings
-of a workspace, so the outer facing API is a little cleaner.
-"""
-
 
 class VivEventCore(object):
-    '''
+    """
     A class to facilitate event monitoring in the viv workspace.
-    '''
+    """
 
     def __init__(self, vw):
         self._ve_vw = vw
@@ -55,7 +55,7 @@ class VivEventCore(object):
             hlist = self._ve_thand
 
         h = hlist[event]
-        if h != None:
+        if h is not None:
             try:
                 h(self._ve_vw, event, edata)
             except Exception as e:
@@ -66,7 +66,7 @@ class VivEventCore(object):
         chanid = self._ve_vw.createEventChannel()
         try:
             etup = self._ve_vw.waitForEvent(chanid)
-            while etup != None:
+            while etup is not None:
                 self._ve_lock.acquire()
                 self._ve_lock.release()
 
@@ -91,10 +91,10 @@ vaset_xlate = {
 
 
 class VivEventDist(VivEventCore):
-    '''
+    """
     Similar to an event core, but does optimized distribution
     to a set of sub eventcore objects (think GUI windows...)
-    '''
+    """
 
     def __init__(self, vw):
         VivEventCore.__init__(self, vw)
@@ -109,29 +109,29 @@ class VivEventDist(VivEventCore):
     def addEventCore(self, core):
         for i in range(VWE_MAX):
             h = core._ve_ehand[i]
-            if h != None:
+            if h is not None:
                 self._ve_subs[i].append(h)
 
         for i in range(VTE_MAX):
             h = core._ve_thand[i]
-            if h != None:
+            if h is not None:
                 self._ve_tsubs[i].append(h)
 
     def delEventCore(self, core):
         for i in range(VWE_MAX):
             h = core._ve_ehand[i]
-            if h != None:
+            if h is not None:
                 self._ve_subs[i].remove(h)
 
         for i in range(VTE_MAX):
             h = core._ve_thand[i]
-            if h != None:
+            if h is not None:
                 self._ve_tsubs[i].remove(h)
 
     def _ve_fireEvent(self, event, edata):
-        '''
+        """
         We don't have events of our own, we just hand them down.
-        '''
+        """
         subs = self._ve_subs
         if event & VTE_MASK:
             event ^= VTE_MASK
@@ -178,10 +178,10 @@ class VivWorkspaceCore(viv_impapi.ImportApi):
         self.vsconsts = vs_const.VSConstResolver()
 
     def _snapInAnalysisModules(self):
-        '''
+        """
         Snap in the analysis modules which are appropriate for the 
         format/architecture/platform of this workspace by calling
-        '''
+        """
         if self._mods_loaded:
             return
 
@@ -189,10 +189,10 @@ class VivWorkspaceCore(viv_impapi.ImportApi):
         self._mods_loaded = True
 
     def _createSaveMark(self):
-        '''
+        """
         Update the index of the most recent saved event to the current
         length of the event list (called after successful save)..
-        '''
+        """
         self._event_saved = len(self._event_list)
 
     def _handleADDLOCATION(self, loc):
@@ -249,7 +249,7 @@ class VivWorkspaceCore(viv_impapi.ImportApi):
         for name, value in list(meta.items()):
             mcbname = "_fmcb_%s" % name.split(':')[0]
             mcb = getattr(self, mcbname, None)
-            if mcb != None:
+            if mcb is not None:
                 mcb(va, name, value)
 
     def _handleDELFUNCTION(self, einfo):
@@ -262,11 +262,11 @@ class VivWorkspaceCore(viv_impapi.ImportApi):
     def _handleSETFUNCMETA(self, einfo):
         funcva, name, value = einfo
         m = self.funcmeta.get(funcva)
-        if m != None:
+        if m is not None:
             m[name] = value
         mcbname = "_fmcb_%s" % name.split(':')[0]
         mcb = getattr(self, mcbname, None)
-        if mcb != None:
+        if mcb is not None:
             mcb(funcva, name, value)
 
     def _handleADDCODEBLOCK(self, einfo):
@@ -425,11 +425,11 @@ class VivWorkspaceCore(viv_impapi.ImportApi):
         self.func_args[fva] = args
 
     def _handleAUTOANALFIN(self, einfo):
-        '''
+        """
         This event is more for the storage subsystem than anything else.  It 
         marks the end of auto analysis.  Any event beyond this is due to the
         end user or analysis modules they've executed.
-        '''
+        """
         pass
 
     def _initEventHandlers(self):
@@ -491,7 +491,7 @@ class VivWorkspaceCore(viv_impapi.ImportApi):
     def _fireEvent(self, event, einfo, local=False, skip=None):
         """
         Fire an event down the hole.  "local" specifies that this is
-        being called on a client (self.server != None) but we got it
+        being called on a client (self.server is not None) but we got it
         from the server in the first place so no need to send it back.
 
         skip is used to tell the server to bypass our channelid when

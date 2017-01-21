@@ -1,5 +1,4 @@
 import os
-import sys
 
 import vstruct.qt as vs_qt
 import envi.expression as e_expr
@@ -13,19 +12,19 @@ import vqt.application as vq_app
 import vivisect.cli as viv_cli
 import vivisect.base as viv_base
 import vivisect.vdbext as viv_vdbext
+import vivisect.remote.share as viv_share
+import vivisect.extensions as viv_extensions
+
 import vivisect.qt.tips as viv_q_tips
 import vivisect.qt.views as viv_q_views
 import vivisect.qt.memory as viv_q_memory
 import vivisect.qt.remote as viv_q_remote
 import vivisect.qt.ustruct as viv_q_ustruct
-import vivisect.extensions as viv_extensions
 import vivisect.qt.funcgraph as viv_q_funcgraph
 import vivisect.qt.funcviews as viv_q_funcviews
 import vivisect.qt.symboliks as viv_q_symboliks
-import vivisect.remote.share as viv_share
-import vivisect.remote.server as viv_server
 
-from PyQt4 import QtCore, QtGui
+
 from vqt.common import *
 from vivisect.const import *
 
