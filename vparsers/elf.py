@@ -1,12 +1,10 @@
 import os
-
 from io import StringIO
 
-import Elf
 import vivisect
-import vivisect.parsers as v_parsers
-
+import vparsers as v_parsers
 from vivisect.const import *
+from vparsers import Elf
 
 
 def parseFile(vw, filename):

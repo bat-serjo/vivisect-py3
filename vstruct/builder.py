@@ -5,8 +5,9 @@ VStruct builder!  Used to serialize structure definitions etc...
 """
 
 import copy
-import types
 import inspect
+import types
+
 import vstruct
 import vstruct.primitives as vs_prim
 
@@ -264,13 +265,9 @@ class VStructBuilder:
 
 if __name__ == '__main__':
     # Parse windows structures from dll symbols...
-    import os
     import sys
-    import platform
 
-    from pprint import pprint
-
-    import PE
+    from vparsers import PE
     import vtrace.platforms.win32 as vt_win32
 
     p = PE.PE(open(sys.argv[1], 'rb'))

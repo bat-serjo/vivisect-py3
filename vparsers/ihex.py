@@ -1,9 +1,6 @@
 import envi
-import vivisect
+import vparsers as v_parsers
 import vstruct.defs.ihex as v_ihex
-import vivisect.parsers as v_parsers
-
-from vivisect.const import *
 
 
 def parseFile(vw, filename):

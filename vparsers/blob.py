@@ -1,7 +1,6 @@
 import envi
-import vivisect
-import vivisect.parsers as v_parsers
-from vivisect.const import *
+import vparsers as v_parsers
+
 
 def parseFd(vw, fd, filename=None):
     fd.seek(0)

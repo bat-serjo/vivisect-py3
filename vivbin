@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 
+import argparse
+import cProfile
+import importlib
 import sys
 import time
-import cProfile
-import argparse
-import importlib
 
 import envi.config as e_config
-import vivisect.cli as viv_cli
 import envi.threads as e_threads
-import vivisect.parsers as viv_parsers
+import vivisect.cli as viv_cli
+import vparsers as viv_parsers
 
 
 def main():

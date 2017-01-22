@@ -1,4 +1,5 @@
 import vivisect.impapi.windows.i386 as v_w_i386
+
 apitypes = dict(v_w_i386.apitypes)
 
 api = {
@@ -14,9 +15,8 @@ i386_omits = set([
     'ntdll.gs_prolog',
 ])
 
-for normname,(rtype,rname,cconv,cname,cargs) in list(v_w_i386.api.items()):
+for normname, (rtype, rname, cconv, cname, cargs) in list(v_w_i386.api.items()):
     if normname in i386_omits:
         continue
 
-    api[normname] = (rtype,rname,'msx64call',cname,cargs)
-
+    api[normname] = (rtype, rname, 'msx64call', cname, cargs)

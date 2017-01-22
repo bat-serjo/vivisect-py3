@@ -4,51 +4,38 @@ Yay!  It's NOT IDA!!!1!!1!one!
 
 """
 
-import os
-import re
-import sys
-import time
-import queue
-import string
-import struct
-import weakref
+import collections
 import hashlib
 import itertools
-import traceback
+import os
+import queue
+import re
+import string
+import sys
 import threading
-import collections
-
+import time
+import traceback
 from binascii import hexlify
-from io import StringIO
-from collections import deque
-from configparser import ConfigParser
 
-import vivisect.contrib  # This should go first
-
-# The envi imports...
-import vdb
 import envi
 import envi.bits as e_bits
-import envi.memory as e_mem
-import envi.config as e_config
 import envi.bytesig as e_bytesig
+import envi.config as e_config
+import envi.memory as e_mem
 import envi.symstore.resolver as e_resolv
 import envi.symstore.symcache as e_symcache
-
+import vivisect.analysis.generic.emucode as v_emucode
+import vivisect.base as viv_base
+import vivisect.codegraph as viv_codegraph
+import vivisect.contrib  # This should go first
+import vivisect.impemu.lookup as viv_imp_lookup
+import vparsers as viv_parsers
 import vstruct
 import vstruct.cparse as vs_cparse
 import vstruct.primitives as vs_prims
-
-import vivisect.base as viv_base
-import vivisect.parsers as viv_parsers
-import vivisect.codegraph as viv_codegraph
-import vivisect.impemu.lookup as viv_imp_lookup
-
-from vivisect.exc import *
 from vivisect.const import *
 from vivisect.defconfig import *
-
-import vivisect.analysis.generic.emucode as v_emucode
+from vivisect.exc import *
 
 
 def guid(size=16):

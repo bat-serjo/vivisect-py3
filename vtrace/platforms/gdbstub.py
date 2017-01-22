@@ -1,23 +1,18 @@
-
 import os
 import re
-import code
-import time
 import socket
 import struct
-import platform
 import tempfile
 import threading
+import time
 
-import PE
-import vdb
 import envi
-import vtrace
-
 import envi.bits as e_bits
 import envi.registers as e_registers
-import vtrace.platforms.base as v_base
 import envi.symstore.resolver as e_resolv
+import vtrace
+import vtrace.platforms.base as v_base
+from vparsers import PE
 
 '''
 VMWare config options...

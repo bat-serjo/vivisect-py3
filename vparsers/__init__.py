@@ -72,7 +72,7 @@ def guessFormatFilename(filename):
 
 
 def getParserModule(fmt):
-    mname = "vivisect.parsers.%s" % fmt
+    mname = "vparsers.%s" % fmt
     mod = sys.modules.get(mname)
     if mod is None:
         __import__(mname)

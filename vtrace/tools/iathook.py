@@ -2,9 +2,9 @@
 Code for hooking import address tables by making them invalid
 pointers and catching the exceptions...
 '''
-import PE
-import vtrace
 import vtrace.watchpoints as vt_watchpoints
+from vparsers import PE
+
 
 class IatHook(vt_watchpoints.Watchpoint):
     '''

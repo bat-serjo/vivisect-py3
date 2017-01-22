@@ -1,20 +1,15 @@
-import os
-import PE
-import vstruct
-import vivisect
-import PE.carve as pe_carve
 import io as StringIO
-import vivisect.parsers as v_parsers
+import os
 
-# Steal symbol parsing from vtrace
-import vtrace
-import vtrace.platforms.win32 as vt_win32
-
-import envi
 import envi.memory as e_mem
 import envi.symstore.symcache as e_symcache
-
+import vivisect
+import vparsers as v_parsers
+import vparsers.PE.carve as pe_carve
+import vstruct
+import vtrace.platforms.win32 as vt_win32
 from vivisect.const import *
+from vparsers import PE
 
 
 # PE Machine field values
@@ -50,7 +45,7 @@ def parseFd(vw, fd, filename=None):
 
 
 arch_names = {
-    PE.IMAGE_FILE_MACHINE_I386: 'i386',
+    PE.IMAGE_FILE_MACHINE_I386:  'i386',
     PE.IMAGE_FILE_MACHINE_AMD64: 'amd64',
 }
 

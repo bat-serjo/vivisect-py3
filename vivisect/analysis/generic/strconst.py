@@ -3,14 +3,14 @@ from vivisect.const import *
 
 
 def analyze(vw):
-    '''
+    """
     Find string constants used in function calls and add them to the
     workspace location set.  The goal is to identify string constants
     for symboliks parsing, where they become string arguments.
 
     Functions and xrefs have already been identified.  Analysis of opcodes
     is closely related to the makeOpcode() logic in vivisect/__init__.py.
-    '''
+    """
 
     for fva in vw.getFunctions():
         for va, size, funcva in vw.getFunctionBlocks(fva):

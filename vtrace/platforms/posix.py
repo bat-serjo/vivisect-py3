@@ -2,21 +2,18 @@
 Posix Signaling Module
 """
 # Copyright (C) 2007 Invisigoth - See LICENSE file for details
-import os
-import sys
-import struct
-import signal
-import platform
-
 import ctypes.util as cutil
+import os
+import signal
+import struct
+import sys
 from ctypes import *
 
-import vtrace
-import vtrace.platforms.base as v_base
-
-import Elf
 import envi.cli as e_cli
 import envi.symstore.resolver as e_resolv
+import vtrace
+import vtrace.platforms.base as v_base
+from vparsers import Elf
 
 libc = None
 

@@ -2,34 +2,28 @@
 Win32 Platform Module
 """
 # Copyright (C) 2007 Invisigoth - See LICENSE file for details
-import os
-import sys
-import struct
 import logging
-import traceback
+import os
 import platform
+import sys
+import traceback
+from ctypes import *
 
-import PE
-
-import vstruct
+import envi
+import envi.archs.i386 as e_i386
+import envi.bits as e_bits
+import envi.memory as e_mem
+import envi.symstore.resolver as e_resolv
+import envi.symstore.symcache as e_symcache
 import vstruct.builder as vs_builder
 import vstruct.defs.win32 as vs_win32
 import vstruct.defs.windows as vs_windows
-
 import vtrace
-import vtrace.archs.i386 as v_i386
 import vtrace.archs.amd64 as v_amd64
+import vtrace.archs.i386 as v_i386
 import vtrace.platforms.base as v_base
+from vparsers import PE
 
-import envi
-import envi.bits as e_bits
-import envi.memory as e_mem
-import envi.archs.i386 as e_i386
-import envi.archs.amd64 as e_amd64
-import envi.symstore.resolver as e_resolv
-import envi.symstore.symcache as e_symcache
-
-from ctypes import *
 #from ctypes.wintypes import *
 
 logger = logging.getLogger(__name__)

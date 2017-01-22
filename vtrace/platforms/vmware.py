@@ -19,18 +19,16 @@ debugStub.listen.guest64.remote = "TRUE" # bind to 0.0.0.0 rather than 127.0.0.1
 debugStub.hideBreakpoints = "TRUE" # Enable breakpoints
 
 '''
-import PE
-import vtrace
-
 import envi.bits as e_bits
 import envi.symstore.resolver as e_resolv
 import envi.symstore.symcache as e_symcache
-
+import vtrace
 import vtrace.archs.i386 as vt_i386
 import vtrace.platforms.base as vt_base
-import vtrace.platforms.win32 as vt_win32
-import vtrace.platforms.winkern as vt_winkern
 import vtrace.platforms.gdbstub as vt_gdbstub
+import vtrace.platforms.winkern as vt_winkern
+from vparsers import PE
+
 
 class VMWareMixin(vt_gdbstub.GdbStubMixin):
 

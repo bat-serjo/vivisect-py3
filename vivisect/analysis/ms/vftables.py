@@ -7,11 +7,12 @@ is defined.
 """
 import vivisect
 
+
 def analyze(vw):
 
     psize = vw.arch.getPointerSize()
 
-    #for lva,lsize,ltype,tinfo in vw.getLocations(vivisect.LOC_POINTER):
+    # for lva,lsize,ltype,tinfo in vw.getLocations(vivisect.LOC_POINTER):
     for lva, pval in vw.findPointers():
         xrto = vw.getXrefsFrom(lva)
         if not xrto:
@@ -24,13 +25,13 @@ def analyze(vw):
         va = lva + psize
         while True:
 
-            if vw.getLocation(va) != None:
+            if vw.getLocation(va) is not None:
                 break
                 
             ptrva = vw.castPointer(va)
-            #FIXME this might make us miss stuff
+            # FIXME this might make us miss stuff
             if not vw.isFunction(ptrva):
-                #print "SKIPPING:",hex(ptrva)
+                # print "SKIPPING:",hex(ptrva)
                 break
 
             count += 1

@@ -1,6 +1,6 @@
 """
 Find all undefined reference targets and attempt to determine
-if they are code by emulation behaviorial analysis.
+if they are code by emulation behavioral analysis.
 
 (This module works best very late in the analysis passes)
 """

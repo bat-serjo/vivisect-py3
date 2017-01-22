@@ -1,8 +1,7 @@
-import os
 import unittest
 
-import PE
 import vivisect.tests.helpers as helpers
+from vparsers import PE
 
 class PETests(unittest.TestCase):
 

@@ -1,20 +1,17 @@
+import getopt
 import os
 import sys
-import getopt
 
-import vtrace
-import vtrace.tools.win32heap as win32heap
-import vtrace.tools.win32aslr as win32_aslr
-import vtrace.tools.iathook as vt_iathook
-import vtrace.tools.win32stealth as win32_stealth
-import vtrace.util as v_util
-
-import envi.memory as e_mem
-import envi.cli as e_cli
 import envi.bits as e_bits
+import envi.cli as e_cli
+import envi.memory as e_mem
+import vtrace
+import vtrace.tools.iathook as vt_iathook
+import vtrace.tools.win32aslr as win32_aslr
+import vtrace.tools.win32heap as win32heap
+import vtrace.tools.win32stealth as win32_stealth
+from vparsers import PE
 
-import PE
-import vstruct.defs.pe as vs_pe
 
 def teb(vdb, line):
     '''

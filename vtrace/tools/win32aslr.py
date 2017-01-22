@@ -1,9 +1,9 @@
 '''
 Utilities for windows tracer objects.
 '''
-import PE
 import vtrace
-import envi.bits as e_bits
+from vparsers import PE
+
 
 def deAslr(trace, va):
     '''
