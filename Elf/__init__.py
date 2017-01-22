@@ -18,13 +18,7 @@ Send bug reports to Invisigoth or Metr0.
 
 """
 # Copyright (C) 2007 Invisigoth - See LICENSE file for details
-import os
-import sys
-import struct
-import traceback
-import zlib
 
-from stat import *
 from Elf.elf_lookup import *
 
 import vstruct
@@ -547,7 +541,9 @@ class Elf(vs_elf.Elf32, vs_elf.Elf64):
             while offset < notebyteslen:
                 note = vs_elf.ElfNote()
                 if notebyteslen - offset < len(note):
-                    # print ("\nNOTES section length mismatch!\n\t%s\n\tSection Bytes: %s\n\tStranded bytes: %s\n" % (sec, repr(notebytes), repr(notebytes[offset:])))
+                    print("\nNOTES section length mismatch!\n"
+                          "\t%s\n\tSection Bytes: %s\n"
+                          "\tStranded bytes: %s\n" % (sec, repr(notebytes), repr(notebytes[offset:])))
                     break
 
                 offset = note.vsParse(notebytes, offset=offset)
@@ -620,8 +616,8 @@ class Elf(vs_elf.Elf32, vs_elf.Elf64):
         mystr += "\n==Magic:\t\t\t\t" + self.e_ident
         mystr += "\n==Type:\t\t\t\t\t" + e_types.get(self.e_type)
         mystr += "\n==Machine Arch:\t\t\t\t" + e_machine_types.get(self.e_machine)
-        mystr += "\n==Version:\t\t\t\t%d" % (self.e_version)
-        mystr += "\n==Entry:\t\t\t\t0x%.8x" % (self.e_entry)
+        mystr += "\n==Version:\t\t\t\t%d" % self.e_version
+        mystr += "\n==Entry:\t\t\t\t0x%.8x" % self.e_entry
         mystr += "\n==Program Headers(offset):\t\t%d (0x%x) bytes" % (self.e_phoff, self.e_phoff)
         mystr += "\n==Section Headers(offset):\t\t%d (0x%x) bytes" % (self.e_shoff, self.e_shoff)
         mystr += "\n==Flags:\t\t\t\t" + repr(self.e_flags) + " "

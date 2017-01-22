@@ -6,6 +6,7 @@ import envi.memcanvas.renderers as e_render
 
 from PyQt4 import QtGui, QtCore
 
+
 class VQLineEdit(QtGui.QLineEdit):
     '''
     Has an additional signal to emit a signal on release of every keypress.
@@ -15,6 +16,7 @@ class VQLineEdit(QtGui.QLineEdit):
     def keyReleaseEvent(self, event):
         self.keyReleased.emit(event)
         QtGui.QLineEdit.keyReleaseEvent(self, event)
+
 
 class MemNavWidget(QtGui.QWidget):
     userChanged = QtCore.pyqtSignal(str, str)
@@ -56,6 +58,7 @@ class MemNavWidget(QtGui.QWidget):
     def getValues(self):
         return str(self.expr_entry.text()), str(self.esize_entry.text())
 
+
 class MemWriteWindow(QtGui.QWidget):
     '''
     gui for writemem cli command.
@@ -69,7 +72,7 @@ class MemWriteWindow(QtGui.QWidget):
         QtGui.QWidget.__init__(self, parent=parent)
 
         self.modes = ['ascii', 'hex', 'regex', 'utf-8', 'utf-16-le',
-                        'utf-16-be']
+                      'utf-16-be']
 
         rend_orig = e_render.ByteRend()
         self.canvas_orig = e_canvas.StringMemoryCanvas(None)
@@ -89,7 +92,7 @@ class MemWriteWindow(QtGui.QWidget):
         self.hex_edit = QtGui.QPlainTextEdit()
         self.hex_edit.setWordWrapMode(QtGui.QTextOption.NoWrap)
         self.hex_edit.setReadOnly(True)
-        font = QtGui.QFont('Courier') # should use actual memcanvas
+        font = QtGui.QFont('Courier')  # should use actual memcanvas
         self.hex_edit.setFont(font)
         hbox2.addWidget(self.hex_edit)
 
@@ -209,7 +212,7 @@ class MemWriteWindow(QtGui.QWidget):
 
     def encodeData(self, txt, encoding):
         if encoding == 'hex' and (len(txt) % 2) != 0:
-            txt = txt[:-1] # trim last if odd length
+            txt = txt[:-1]  # trim last if odd length
 
         if encoding == 'hex':
             if not all(c in string.hexdigits for c in txt):
@@ -261,12 +264,14 @@ class MemWriteWindow(QtGui.QWidget):
     def setValues(self, expr, esize):
         self.nav.setValues(expr, esize)
 
+
 class MockEmu(object):
     def parseExpression(self, expr):
         return int(eval(expr, {}, {}))
 
     def readMemory(self, va, size):
         return '\x90' * size
+
 
 def main():
     import sys
@@ -276,6 +281,7 @@ def main():
     w.show()
 
     sys.exit(app.exec_())
+
 
 if __name__ == '__main__':
     main()

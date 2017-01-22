@@ -9,7 +9,6 @@ import collections
 
 import envi
 
-
 # Memory Map Permission Flags
 # TODO: move these into envi.const
 MM_NONE = 0x0
@@ -173,7 +172,7 @@ class IMemory:
         # FIXME change this (and all uses of it) to passing in format...
         if len(bytes) != size:
             raise Exception("Read Gave Wrong Length At 0x%.8x (va: 0x%.8x wanted %d got %d)" % (
-                            self.getProgramCounter(), addr, size, len(bytes)))
+                self.getProgramCounter(), addr, size, len(bytes)))
         if size == 1:
             return struct.unpack("B", bytes)[0]
         elif size == 2:

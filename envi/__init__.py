@@ -23,7 +23,7 @@ arch_names = {
     ARCH_DEFAULT:   'default',
     ARCH_I386:      'i386',
     ARCH_AMD64:     'amd64',
-    ARCH_ARMV7:      'arm',
+    ARCH_ARMV7:     'arm',
     ARCH_THUMB16:   'thumb16',
     ARCH_THUMB:     'thumb2',
     ARCH_MSP430:    'msp430',
@@ -59,6 +59,7 @@ BR_DEREF = 1 << 2  # the branch target is *dereferenced* into PC (call [0x414141
 BR_TABLE = 1 << 3  # The branch target is the base of a pointer array of jmp/call slots
 BR_FALL  = 1 << 4  # The branch is a "fall through" to the next instruction
 BR_ARCH  = 1 << 5  # The branch *switches opcode formats*. ( ARCH_FOO in high bits )
+
 
 from envi.const import *
 import envi.bits as e_bits
@@ -96,18 +97,18 @@ class ArchitectureModule:
         return self._arch_name
 
     def getEndian(self):
-        '''
+        """
         Every architecture stores numbers either Most-Significant-Byte-first (MSB)
         or Least-Significant-Byte-first (LSB).  Most modern architectures are
         LSB, however many legacy systems still use MSB architectures.
-        '''
+        """
         return self._endian
 
     def setEndian(self, endian):
-        '''
+        """
         Set the architecture endianness.  Subclasses should make sure this is handled
         correctly in any Disasm object(s)
-        '''
+        """
         self._endian = endian
 
     def archGetBreakInstr(self):
@@ -591,42 +592,42 @@ class Emulator(e_reg.RegisterContext, e_mem.MemoryObject):
                 self.op_methods[name[2:]] = getattr(self, name)
 
     def initEmuOpt(self, opt, defval, doc):
-        '''
+        """
         Initialize an emulator option used by the emulator type.
         Arch specific options should begin with <arch>: and platform
         options should begin with <platform>:
-        '''
+        """
         self._emu_opts[opt] = defval
         self._emu_optdocs[opt] = doc
 
     def setEmuOpt(self, opt, val):
-        '''
+        """
         Set a (previously initialized) emulator option.
-        '''
+        """
         if opt not in self._emu_opts:
             raise Exception('Unknown Emu Opt: %s' % opt)
         self._emu_opts[opt] = val
 
     def getEmuOpt(self, opt):
-        '''
+        """
         Retrieve the current value of an emulator option.
         ( emu impls may directly access _emu_opts for speed )
-        '''
+        """
         if opt not in self._emu_opts:
             raise Exception('Unknown Emu Opt: %s' % opt)
         return self._emu_opts.get(opt)
 
     def setEndian(self, endian):
-        '''
+        """
         Sets Endianness for the Emulator.
-        '''
+        """
         for arch in self.imem_archs:
             arch.setEndian(endian)
 
     def getEndian(self):
-        '''
+        """
         Returns the current Endianness for the emulator
-        '''
+        """
         return self.imem_archs[0].getEndian()
 
     def getMeta(self, name, default=None):
@@ -667,7 +668,7 @@ class Emulator(e_reg.RegisterContext, e_mem.MemoryObject):
         Run the emulator until "something" happens.
         (breakpoint, segv, syscall, etc...)
         """
-        if stepcount != None:
+        if stepcount is not None:
             for i in range(stepcount):
                 self.stepi()
         else:
@@ -692,9 +693,9 @@ class Emulator(e_reg.RegisterContext, e_mem.MemoryObject):
         return 0
 
     def setSegmentInfo(self, idx, base, size):
-        '''
+        """
         Set a base and size for a given segment index.
-        '''
+        """
         if len(self._emu_segments) - idx == 0:
             self._emu_segments.append((base, size))
             return
@@ -737,7 +738,7 @@ class Emulator(e_reg.RegisterContext, e_mem.MemoryObject):
         Usage: getCallArgs(3, "stdcall") -> (0, 32, 0xf00)
         """
         c = self._emu_call_convs.get(cc, None)
-        if c == None:
+        if c is None:
             raise UnknownCallingConvention(cc)
 
         return c.getCallArgs(self, count)
@@ -751,7 +752,7 @@ class Emulator(e_reg.RegisterContext, e_mem.MemoryObject):
         for the calling convention)
         """
         c = self._emu_call_convs.get(cc, None)
-        if c == None:
+        if c is None:
             raise UnknownCallingConvention(cc)
 
         return c.execCallReturn(self, value, argc)
@@ -760,7 +761,7 @@ class Emulator(e_reg.RegisterContext, e_mem.MemoryObject):
         self._emu_call_convs[name] = obj
 
     def hasCallingConvention(self, name):
-        if self._emu_call_convs.get(name) != None:
+        if self._emu_call_convs.get(name) is not None:
             return True
         return False
 
@@ -776,7 +777,7 @@ class Emulator(e_reg.RegisterContext, e_mem.MemoryObject):
         """
         # FIXME: Handle endianness
         bytes = self.readMemory(addr, size)
-        if bytes == None:
+        if bytes is None:
             return None
         if len(bytes) != size:
             raise Exception("Read Gave Wrong Length At 0x%.8x (va: 0x%.8x wanted %d got %d)" % (
@@ -808,7 +809,7 @@ class Emulator(e_reg.RegisterContext, e_mem.MemoryObject):
         # FIXME: Remove byte check and possibly half-word check.  (possibly all but word?)
         # FIXME: Handle endianness
         bytes = self.readMemory(addr, size)
-        if bytes == None:
+        if bytes is None:
             return None
         if size == 1:
             return struct.unpack("b", bytes)[0]
@@ -829,7 +830,7 @@ class Emulator(e_reg.RegisterContext, e_mem.MemoryObject):
         subtra = self.getOperValue(op, sidx)
         minuend = self.getOperValue(op, midx)
 
-        if subtra == None or minuend == None:
+        if subtra is None or minuend is None:
             self.undefFlags()
             return None
 

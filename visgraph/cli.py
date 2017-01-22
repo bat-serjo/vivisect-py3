@@ -10,11 +10,11 @@ import visgraph.dbcore as vg_dbcore
 import visgraph.pathcore as vg_pcore
 import visgraph.graphcore as vg_gcore
 
-class GraphCli(cmd.Cmd):
 
+class GraphCli(cmd.Cmd):
     def __init__(self, graph=None):
         cmd.Cmd.__init__(self)
-        if graph == None:
+        if graph is None:
             graph = vg_gcore.Graph()
         self.graph = graph
 
@@ -32,12 +32,13 @@ class GraphCli(cmd.Cmd):
         '''
         raise SystemExit()
 
-#class GraphDBCli(
+
+# class GraphDBCli(
 
 def main():
     cli = GraphCli()
     cli.cmdloop()
 
+
 if __name__ == '__main__':
     sys.exit(main())
-

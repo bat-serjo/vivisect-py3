@@ -1,5 +1,5 @@
 """
-A file full of bit twidling helpers
+A file full of bit twiddling helpers
 """
 
 import struct

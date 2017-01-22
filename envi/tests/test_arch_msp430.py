@@ -8,10 +8,11 @@ from envi.tests.msp430 import imov, inop, ipop, ipush, iret, irla, irlc, irra
 from envi.tests.msp430 import irrc, isbc, isetc, isetn, isetz, isub, isubc
 from envi.tests.msp430 import iswpb, isxt, itst, ixor
 
+
 class msp430InstructionSet(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.longMessage=True
+        cls.longMessage = True
 
         cls.CODE_VA = 0x4400
         cls.DATA_VA = 0x1000
@@ -21,12 +22,12 @@ class msp430InstructionSet(unittest.TestCase):
         cls._vw.setMeta('Architecture', 'msp430')
         cls._vw.setMeta('Platform', 'unknown')
         cls._vw.setMeta('Format', 'blob')
-        cls._vw.addMemoryMap(0, 0x7, 'mem', "\x00"*cls.MEMSIZE)
+        cls._vw.addMemoryMap(0, 0x7, 'mem', "\x00" * cls.MEMSIZE)
         cls._emu = cls._vw.getEmulator()
 
     def doTest(self, test_name, init_state, final_state):
         # Reset memory
-        self._emu.writeMemory(0, "\x00"*self.MEMSIZE)
+        self._emu.writeMemory(0, "\x00" * self.MEMSIZE)
 
         # Init registers, status flags and memory
         for reg, val in init_state['regs']:

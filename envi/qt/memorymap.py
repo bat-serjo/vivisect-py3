@@ -1,15 +1,16 @@
 from PyQt4 import QtCore, QtGui
 
+import envi.cli as e_cli
 import envi.memcanvas
 import envi.qt.memdump
 import envi.qt.memsearch
-import envi.cli as e_cli
+
 from vqt.common import ACT
 import vqt.tree as vq_tree
 import envi.memory as e_mem
 
-class VQMemoryMapView(vq_tree.VQTreeView):
 
+class VQMemoryMapView(vq_tree.VQTreeView):
     def __init__(self, mem, parent=None):
         self.cols = ('Address', 'Size', 'Perms', 'Filename')
         vq_tree.VQTreeView.__init__(self, parent=parent, cols=self.cols)

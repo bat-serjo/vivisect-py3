@@ -6,9 +6,9 @@ import sys
 
 
 def dismain(d):
-    '''
+    """
     Easy utility for implementing stand-alone disassembler utils...
-    '''
+    """
 
     if os.path.isfile(sys.argv[1]):
         b = open(sys.argv[1], 'rb').read()

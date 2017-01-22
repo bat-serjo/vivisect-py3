@@ -1,9 +1,7 @@
 import os
 import json
-import time
 
 import cobra
-# import cobra.http as c_http
 import envi.config as e_config
 
 
@@ -19,7 +17,7 @@ def symCacheHashFromElf(elf):
 
 
 class SymbolCache:
-    '''
+    """
     A SymbolCache is a location where pre-parsed symbols for
     a given file's "symcache hash" are stored.  This allows faster
     loading of symbol information on re-load etc...
@@ -27,7 +25,7 @@ class SymbolCache:
     Also, this object's API *must* be compatible with cobra
     shared object API to allow "symbol servers" to be cobra
     shared instances of SymbolCache objects.
-    '''
+    """
 
     def __init__(self, dirname=None):
 
@@ -40,14 +38,14 @@ class SymbolCache:
         self._sym_cachedir = os.path.abspath(dirname)
 
     def setCacheSyms(self, vhash, symcache):
-        '''
+        """
         Save a set of symbol cache tuples to the symbol cache.
 
         Example:
             tups = [ ( rva, size, 'wootfunc', SYMSTOR_SYM_FUNCTION), ]
             cache = SymbolCache()
             cache.setCacheSyms( vhash, tups )
-        '''
+        """
         cachefile = os.path.join(self._sym_cachedir, vhash)
 
         abspath = os.path.abspath(cachefile)
@@ -59,7 +57,7 @@ class SymbolCache:
         return json.dump(symcache, fd)
 
     def getCacheSyms(self, vhash):
-        '''
+        """
         Retrieve a list of symbol tuples ( rva, size, name, symtype )
         or None if the symbol cache doesn't have the given file hash.
 
@@ -67,7 +65,7 @@ class SymbolCache:
             cache = SymbolCache()
             for rva, size, name, stype in cache.getCacheSyms():
                 dostuff()
-        '''
+        """
         cachefile = os.path.join(self._sym_cachedir, vhash)
 
         abspath = os.path.abspath(cachefile)

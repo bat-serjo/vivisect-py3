@@ -5,7 +5,8 @@ import traceback
 from queue import Queue
 from threading import currentThread
 
-from PyQt4 import QtCore, QtGui
+from PyQt4 import QtGui
+from PyQt4 import QtCore
 
 import envi.threads as e_threads
 

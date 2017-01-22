@@ -1,13 +1,12 @@
 import os
-import struct
+
+from io import StringIO
 
 import Elf
 import vivisect
 import vivisect.parsers as v_parsers
 
 from vivisect.const import *
-
-from io import StringIO
 
 
 def parseFile(vw, filename):
@@ -81,16 +80,16 @@ def makeRelocTable(vw, va, maxva, addbase, baseaddr):
 
 
 arch_names = {
-    Elf.EM_ARM: 'arm',
-    Elf.EM_386: 'i386',
+    Elf.EM_ARM:    'arm',
+    Elf.EM_386:    'i386',
     Elf.EM_X86_64: 'amd64',
     Elf.EM_MSP430: 'msp430',
 }
 
 archcalls = {
-    'i386':'cdecl',
-    'amd64':'sysvamd64call',
-    'arm':'armcall',
+    'i386':  'cdecl',
+    'amd64': 'sysvamd64call',
+    'arm':   'armcall',
 }
 
 
@@ -279,7 +278,7 @@ def loadElfIntoWorkspace(vw, elf, filename=None):
 
         if stype == Elf.STT_FUNC or (
                         stype == Elf.STT_GNU_IFUNC and arch in (
-                'i386', 'amd64')):  # HACK: linux is what we're really after.
+                        'i386', 'amd64')):  # HACK: linux is what we're really after.
             try:
                 vw.addExport(sva, EXP_FUNCTION, s.name, fname)
                 vw.addEntryPoint(sva)

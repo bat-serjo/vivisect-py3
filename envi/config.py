@@ -1,14 +1,10 @@
 """
 Unified config object for all vtoys.
 """
-import io
+
 import os
-import sys
 import json
 import getpass
-
-from configparser import ConfigParser
-from io import StringIO
 
 
 def gethomedir(*paths):
@@ -70,13 +66,13 @@ class ConfigInvalidOption(Exception):
 
 
 class EnviConfig:
-    '''
-    EnviConfig basically works like a multi-layer dictionary that 
+    """
+    EnviConfig basically works like a multi-layer dictionary that
     loads and stores config data.
 
     Set a config parameter:     cfg['foo'] = 'bar'
     Get a config parameter:     cfg['foo']
-      or access parm using:     cfg.foo  
+      or access parm using:     cfg.foo
     Multilevel:                 cfg.baz.bilbo.foo
 
     Create/get a subconfig:     cfg.getSubConfig('baz', add=True)
@@ -85,7 +81,7 @@ class EnviConfig:
     Save the configuration:     cfg.saveConfigFile()
     Load the configuration:     cfg.loadConfigFile()
                                 # both take optional filenames
-    '''
+    """
 
     def __init__(self, filename=None, defaults=None, docs=None):
         self.cfginfo = {}
@@ -94,33 +90,33 @@ class EnviConfig:
         self.filename = filename
         self.cfgsubsys = {}
 
-        if defaults != None:
+        if defaults is not None:
             self.setConfigPrimitive(defaults)
 
-        if filename != None and os.path.isfile(filename):
+        if filename is not None and os.path.isfile(filename):
             self.loadConfigFile(filename)
 
-        if docs != None:
+        if docs is not None:
             self.setDocsPrimitive(docs)
 
     def getOptionDoc(self, optname):
-        '''
+        """
         Retrieve docs about the given option if present.
 
         Example:
             doc = config.getOptionDoc('woot')
             if doc != None:
                 print('woot: %s' % doc)
-        '''
+        """
         return self.cfgdocs.get(optname)
 
     def getConfigPaths(self):
-        '''
+        """
         Return a list of tuples including: (type, valid path strings, existing value)
 
-        'type' can be CONFIG_PATH or CONFIG_ENTRY to indicate whether the tuple 
+        'type' can be CONFIG_PATH or CONFIG_ENTRY to indicate whether the tuple
         represents a subconfig or an actual key/value pair
-        '''
+        """
         paths = []
         todo = [([], self)]
 
@@ -147,10 +143,10 @@ class EnviConfig:
         return paths
 
     def reprConfigPaths(self):
-        '''
+        """
         Returns a string representation of the configuration paths/options
         and optionally values.  Useful for printing helper data.
-        '''
+        """
         configpaths = self.getConfigPaths()
         out = ["Valid Config Entries:\n    "]
         reprs = ['%s = %s' % (ckey, cval) for ctype, ckey, cval in configpaths if ctype == CONFIG_ENTRY]
@@ -164,10 +160,10 @@ class EnviConfig:
         return ''.join(out)
 
     def parseConfigOption(self, optstr):
-        '''
+        """
         Parse a simple foo.bar.baz=<json> syntax string into
         the current config.
-        '''
+        """
         if '=' not in optstr:
             raise ConfigNoAssignment(optstr)
 
@@ -178,7 +174,7 @@ class EnviConfig:
         config = self
         for opart in optparts[:-1]:
             config = config.getSubConfig(opart, add=False)
-            if config == None:
+            if config is None:
                 raise ConfigInvalidName(optpath)
 
         optname = optparts[-1]
@@ -205,7 +201,7 @@ class EnviConfig:
 
     def getSubConfig(self, name, add=True):
         subcfg = self.cfgsubsys.get(name)
-        if subcfg == None and add:
+        if subcfg is None and add:
             subcfg = EnviConfig()
             self.cfgsubsys[name] = subcfg
             subcfg.autosave = self.autosave
@@ -300,8 +296,6 @@ class EnviConfig:
 
     def pop(self, key, default=None):
         return self.cfginfo.pop(key, default)
-        if self.autosave:
-            self.saveConfigFile()
 
     def keys(self):
         return list(self.cfginfo.keys())

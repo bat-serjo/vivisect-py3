@@ -1,10 +1,10 @@
-'''
+"""
 A widget for editing EnviConfig options.
-'''
+"""
 from PyQt4 import QtCore, QtGui
 
-class EnviConfigOption:
 
+class EnviConfigOption:
     def __init__(self, config, name, value):
         self.econfig = config
         self.ename = name
@@ -14,23 +14,23 @@ class EnviConfigOption:
         self.evalue = evalue
         self.econfig[self.ename] = evalue
 
-class EnviConfigBool(EnviConfigOption,QtGui.QCheckBox):
 
+class EnviConfigBool(EnviConfigOption, QtGui.QCheckBox):
     def __init__(self, config, name, value, parent=None):
         QtGui.QCheckBox.__init__(self, parent=parent)
         EnviConfigOption.__init__(self, config, name, value)
-        self.toggled.connect( self.setEnviValue )
+        self.toggled.connect(self.setEnviValue)
         self.setChecked(value)
 
     def parseEnviValue(self):
-        self.setEnviValue( self.isChecked() )
+        self.setEnviValue(self.isChecked())
 
-class EnviConfigInt(EnviConfigOption,QtGui.QLineEdit):
 
+class EnviConfigInt(EnviConfigOption, QtGui.QLineEdit):
     def __init__(self, config, name, value, parent=None):
         QtGui.QLineEdit.__init__(self, parent=parent)
         EnviConfigOption.__init__(self, config, name, value)
-        self.editingFinished.connect( self.parseEnviValue )
+        self.editingFinished.connect(self.parseEnviValue)
 
         valstr = str(value)
         if value > 1024:
@@ -38,28 +38,30 @@ class EnviConfigInt(EnviConfigOption,QtGui.QLineEdit):
         self.setText(valstr)
 
     def parseEnviValue(self):
-        self.setEnviValue(int(str(self.text()),0))
+        self.setEnviValue(int(str(self.text()), 0))
 
-class EnviConfigString(EnviConfigOption,QtGui.QLineEdit):
+
+class EnviConfigString(EnviConfigOption, QtGui.QLineEdit):
     def __init__(self, config, name, value, parent=None):
         QtGui.QLineEdit.__init__(self, parent=parent)
         EnviConfigOption.__init__(self, config, name, value)
-        self.editingFinished.connect( self.parseEnviValue )
+        self.editingFinished.connect(self.parseEnviValue)
         self.setText(value)
 
     def parseEnviValue(self):
         self.setEnviValue(str(self.text()))
 
+
 cfgtypes = {
-    int:EnviConfigInt,
-    int:EnviConfigInt,
-    str:EnviConfigString,
-    str:EnviConfigString,
-    bool:EnviConfigBool,
+    int:  EnviConfigInt,
+    int:  EnviConfigInt,
+    str:  EnviConfigString,
+    str:  EnviConfigString,
+    bool: EnviConfigBool,
 }
 
-class EnviConfigEditor(QtGui.QWidget):
 
+class EnviConfigEditor(QtGui.QWidget):
     def __init__(self, config, parent=None):
         QtGui.QWidget.__init__(self, parent=parent)
         self.enviconfig = config
@@ -73,7 +75,7 @@ class EnviConfigEditor(QtGui.QWidget):
             optval = config.get(optname)
             cls = cfgtypes.get(type(optval))
             if cls == None:
-                #print('no class: %r' % val)
+                # print('no class: %r' % val)
                 continue
 
             label = QtGui.QLabel(optname)
@@ -85,6 +87,7 @@ class EnviConfigEditor(QtGui.QWidget):
 
         self.setLayout(lyt)
 
+
 class EnviConfigTabs(QtGui.QTabWidget):
     '''
     A widget for a multi-tab multi-config
@@ -95,31 +98,30 @@ class EnviConfigTabs(QtGui.QTabWidget):
     def __init__(self, configs, parent=None):
         QtGui.QTabWidget.__init__(self, parent=parent)
 
-        for name,config in configs:
+        for name, config in configs:
             editor = EnviConfigEditor(config, parent=self)
             self.addTab(editor, name)
 
-if __name__ == '__main__':
 
+if __name__ == '__main__':
     import vqt.main as vq_main
     import envi.config as e_config
 
     defaults = {
-        'woot':10,
-        'baz':'faz',
-        'foo':True,
+        'woot': 10,
+        'baz':  'faz',
+        'foo':  True,
     }
 
     docs = {
-        'woot':'The number of woots!',
-        'baz':'Where to look for a baz',
-        'foo':'Should we do foo?',
+        'woot': 'The number of woots!',
+        'baz':  'Where to look for a baz',
+        'foo':  'Should we do foo?',
     }
 
     config = e_config.EnviConfig(filename='test.json', defaults=defaults, docs=docs)
 
     vq_main.startup()
-    widget = EnviConfigEditor( config )
+    widget = EnviConfigEditor(config)
     widget.show()
     vq_main.main()
-

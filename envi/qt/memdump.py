@@ -1,9 +1,11 @@
-from PyQt4 import QtGui, QtCore
+from PyQt4 import QtGui
+
 
 class MemDumpDialog(QtGui.QDialog):
-    '''
+    """
     gui for memdump cli command.
-    '''
+    """
+
     def __init__(self, va, filename='', size=256):
         QtGui.QDialog.__init__(self)
 
@@ -64,12 +66,14 @@ class MemDumpDialog(QtGui.QDialog):
     def getResults(self):
         return self.filename, self.size
 
+
 def main():
     app = QtGui.QApplication([])
     dlg = MemDumpDialog(0x1234, '5678', 0x9ab)
     if dlg.exec_() == QtGui.QDialog.Accepted:
-        print((dlg.filename))
-        print((dlg.size))
+        print(dlg.filename)
+        print(dlg.size)
+
 
 if __name__ == '__main__':
     main()
