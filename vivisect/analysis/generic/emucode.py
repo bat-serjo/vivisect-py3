@@ -6,8 +6,6 @@ if they are code by emulation behavioral analysis.
 """
 import envi
 import vivisect
-import vivisect.reports as viv_rep
-from envi.archs.i386.opconst import *
 import vivisect.impemu.monitor as viv_imp_monitor
 
 from vivisect.const import *

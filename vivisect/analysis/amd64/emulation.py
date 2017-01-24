@@ -1,16 +1,8 @@
-import sys
-
-import vivisect
-import vivisect.impemu as viv_imp
-import vivisect.impemu.monitor as viv_monitor
-
 import envi
-import envi.archs.amd64 as e_amd64
-from envi.registers import RMETA_NMASK
-
-from vivisect.const import *
-
+import varchs.amd64 as e_amd64
 import vivisect.analysis.generic.switchcase as vag_switch
+import vivisect.impemu.monitor as viv_monitor
+from vivisect.const import *
 
 regops = set(['cmp', 'sub'])
 

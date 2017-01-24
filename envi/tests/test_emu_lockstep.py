@@ -1,9 +1,9 @@
 import unittest
-import vtrace.tests as vt_tests
 
 import envi
 import envi.memory as e_mem
-import envi.archs.i386 as e_i386
+import varchs.i386 as e_i386
+import vtrace.tests as vt_tests
 
 undefs = {
     'amd64':{

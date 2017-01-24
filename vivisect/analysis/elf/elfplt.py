@@ -3,9 +3,8 @@ If a "function" is in the plt it's a wrapper for something in the GOT.
 Make that apparent.
 """
 
-import envi
-import envi.archs.i386 as e_i386
-import envi.archs.i386.opcode86 as opcode86
+import varchs.i386 as e_i386
+import varchs.i386.opcode86 as opcode86
 
 import vivisect
 

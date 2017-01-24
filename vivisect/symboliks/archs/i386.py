@@ -1,16 +1,8 @@
-import sys
-
 import envi
-import envi.bits as e_bits
-import envi.registers as e_registers
-import envi.archs.i386 as e_i386
-
+import varchs.i386 as e_i386
 import vivisect.symboliks.analysis as vsym_analysis
 import vivisect.symboliks.callconv as vsym_callconv
-import vivisect.symboliks.emulator as vsym_emulator
 import vivisect.symboliks.translator as vsym_trans
-
-from vivisect.const import *
 from vivisect.symboliks.common import *
 from vivisect.symboliks.constraints import *
 

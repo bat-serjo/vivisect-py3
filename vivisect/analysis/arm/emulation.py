@@ -1,13 +1,5 @@
-import sys
-
-import vivisect
-import vivisect.impemu as viv_imp
-import vivisect.impemu.monitor as viv_monitor
-
 import envi
-import envi.archs.arm as e_arm
-from envi.registers import RMETA_NMASK
-
+import vivisect.impemu.monitor as viv_monitor
 from vivisect.const import *
 
 

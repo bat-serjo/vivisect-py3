@@ -3,10 +3,10 @@ Analysis plugin for supporting WorkspaceEmulators during analysis pass.
 Finds and connects Switch Cases, most specifically from Microsoft.
 '''
 import envi
-import envi.archs.i386 as e_i386
-
+import varchs.i386 as e_i386
 import vivisect
 import vivisect.analysis.generic.codeblocks as vagc
+
 
 def analyzeJmp(amod, emu, op, starteip):
     ''' 

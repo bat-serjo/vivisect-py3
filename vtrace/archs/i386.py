@@ -2,13 +2,10 @@
 x86 Support Module
 """
 # Copyright (C) 2007 Invisigoth - See LICENSE file for details
-import vtrace
 import struct
-import traceback
-import types
-import vtrace.breakpoints as breakpoints
 
-import envi.archs.i386 as e_i386
+import varchs.i386 as e_i386
+import vtrace.breakpoints as breakpoints
 
 # Pre-populating these saves a little processing
 # time (important in tight watchpoint loops)

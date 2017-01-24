@@ -1,18 +1,9 @@
-import struct
-
-import envi
-import envi.memory as e_mem
-import envi.registers as e_reg
-import envi.memcanvas as e_memcanvas
-import envi.memcanvas.renderers as e_rend
-import envi.archs.arm as arm
-import vivisect
-import platform
 import unittest
-from envi import IF_RET, IF_NOFALL, IF_BRANCH, IF_CALL, IF_COND
-from envi.archs.arm.regs import *
-from envi.archs.arm.const import *
-from envi.archs.arm.disasm import *
+
+import envi.registers as e_reg
+import varchs.arm as arm
+import vivisect
+from varchs.arm.disasm import *
 
 '''
   This dictionary will contain all instructions supported by ARM to test
@@ -1249,8 +1240,7 @@ def getThumbOps(vw, numtups):
 #Out[1]: [msr.w APSR_s, r5]
 
 # testing PSR stuff - not actually working unittesting...
-import envi.memcanvas as ememc
-import envi.archs.thumb16.disasm as eatd
+import varchs.thumb16.disasm as eatd
 oper = eatd.ArmPgmStatRegOper(1,15)
 #smc = ememc.StringMemoryCanvas(vw)
 #oper.render(smc, None, 0)

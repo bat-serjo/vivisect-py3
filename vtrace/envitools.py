@@ -2,7 +2,8 @@ import sys
 import traceback
 
 import envi
-import envi.archs.i386 as e_i386 # FIXME This should NOT have to be here
+import varchs.i386 as e_i386 # FIXME This should NOT have to be here
+
 
 class RegisterException(Exception):
     pass

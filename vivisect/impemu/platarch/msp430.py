@@ -1,5 +1,7 @@
-import envi.archs.msp430.emu as e_msp430e
+import varchs.msp430.emu as e_msp430e
+
 import vivisect.impemu.emulator as v_i_emulator
+
 
 class Msp430WorkspaceEmulator(v_i_emulator.WorkspaceEmulator, e_msp430e.Msp430Emulator):
 

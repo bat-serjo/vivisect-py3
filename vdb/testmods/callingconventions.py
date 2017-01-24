@@ -1,13 +1,9 @@
-import struct
 from contextlib import contextmanager
 
-import envi
-import envi.archs.i386 as e_i386
-from envi.archs.i386.regs import *
-import envi.archs.amd64 as e_amd64
-from envi.archs.amd64.regs import *
-
+import varchs.amd64 as e_amd64
+import varchs.i386 as e_i386
 import vdb.testmods as v_testmods
+
 
 @contextmanager
 def constantStackCounter(trace):

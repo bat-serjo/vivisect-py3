@@ -1,5 +1,7 @@
 import shlex
-import envi.archs.i386 as e_i386
+
+import varchs.i386 as e_i386
+
 
 def eflags(vdb, line):
     '''

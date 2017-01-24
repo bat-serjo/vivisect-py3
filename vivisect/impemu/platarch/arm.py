@@ -1,16 +1,18 @@
 import envi
-import envi.archs.arm as e_arm
+import visgraph.pathcore as vg_path
 import vivisect.impemu.emulator as v_i_emulator
 
-import visgraph.pathcore as vg_path
-from envi.archs.arm.regs import *
+import varchs.arm as e_arm
+from varchs.arm.emu import ArmEmulator
+from varchs.arm.regs import *
 
-class ArmWorkspaceEmulator(v_i_emulator.WorkspaceEmulator, e_arm.ArmEmulator):
+
+class ArmWorkspaceEmulator(v_i_emulator.WorkspaceEmulator, ArmEmulator):
 
     taintregs = [ x for x in range(13) ]
 
     def __init__(self, vw, logwrite=False, logread=False):
-        e_arm.ArmEmulator.__init__(self)
+        ArmEmulator.__init__(self)
         v_i_emulator.WorkspaceEmulator.__init__(self, vw, logwrite=logwrite, logread=logread)
         self.setMemArchitecture(envi.ARCH_ARMV7)
 

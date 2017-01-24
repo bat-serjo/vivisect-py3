@@ -1,5 +1,5 @@
 
-import envi.archs.amd64 as e_amd64
+import varchs.amd64 as e_amd64
 import vivisect.impemu.emulator as v_i_emulator
 ########################################################################
 #

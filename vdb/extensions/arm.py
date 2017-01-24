@@ -1,6 +1,7 @@
+import varchs.arm.thumb as e_thumb
 
 import envi.cli as e_cli
-import envi.archs.arm.thumb as e_thumb
+
 
 def thumb(db, line):
     '''

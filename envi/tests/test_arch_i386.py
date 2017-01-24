@@ -1,11 +1,9 @@
-import envi
-import envi.memory as e_mem
-import envi.memcanvas as e_memcanvas
-import envi.memcanvas.renderers as e_rend
-import envi.archs.i386 as e_i386
-import vivisect
-import platform
 import unittest
+
+import envi
+import envi.memcanvas as e_memcanvas
+import envi.memory as e_mem
+import vivisect
 
 # name, bytes, va, repr, txtRender
 i386SingleByteOpcodes = [

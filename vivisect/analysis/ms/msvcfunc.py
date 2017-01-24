@@ -1,4 +1,3 @@
-import envi.archs.i386.opcode86 as e_opcode86
 def analyze(vw):
 
     for fva in vw.getFunctions():

@@ -10,11 +10,11 @@ import traceback
 from ctypes import *
 
 import envi
-import envi.archs.i386 as e_i386
 import envi.bits as e_bits
 import envi.memory as e_mem
 import envi.symstore.resolver as e_resolv
 import envi.symstore.symcache as e_symcache
+import varchs.i386 as e_i386
 import vstruct.builder as vs_builder
 import vstruct.defs.win32 as vs_win32
 import vstruct.defs.windows as vs_windows

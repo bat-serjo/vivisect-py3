@@ -1,9 +1,6 @@
-import envi.archs.i386 as e_i386
-import envi.archs.amd64 as e_amd64
+import varchs.i386 as e_i386
 
 import vivisect.impemu.emulator as v_i_emulator
-import vivisect.impemu.platarch.i386 as v_i_i386
-
 from vivisect.impemu.emulator import imphook
 
 MAX_PATH = 260

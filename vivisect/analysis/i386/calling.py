@@ -4,16 +4,10 @@ attempt to detect the calling convention.
 """
 import collections
 
-import vivisect
-import vivisect.impemu.monitor as viv_imp_monitor
-
-from vivisect.const import *
-
-import visgraph.pathcore as vg_path
-
 import envi
-import envi.archs.i386 as e_i386
-import envi.archs.i386.opcode86 as opcode86
+import varchs.i386 as e_i386
+import vivisect.impemu.monitor as viv_imp_monitor
+from vivisect.const import *
 
 regcalls = {
     (e_i386.REG_ECX,): ('thiscall', 1),

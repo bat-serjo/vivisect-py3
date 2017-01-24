@@ -1,11 +1,9 @@
-import envi
-import envi.memory as e_mem
-import envi.memcanvas as e_memcanvas
-import envi.memcanvas.renderers as e_rend
-import envi.archs.amd64 as e_amd64
-import vivisect
-import platform
 import unittest
+
+import envi
+import envi.memcanvas as e_memcanvas
+import varchs.amd64 as e_amd64
+import vivisect
 
 instrs = [
         ( "bf9fb44900", 0x456000, 'mov edi,0x0049b49f'),

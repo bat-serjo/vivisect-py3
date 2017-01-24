@@ -2,9 +2,8 @@
 Amd64 Support Module
 """
 # Copyright (C) 2007 Invisigoth - See LICENSE file for details
-import struct
 
-import envi.archs.amd64 as e_amd64
+import varchs.amd64 as e_amd64
 import vtrace.archs.i386 as vt_i386
 
 class Amd64Mixin(

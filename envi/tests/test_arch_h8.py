@@ -1,18 +1,11 @@
 import struct
-
-import envi
-import envi.memory as e_mem
-import envi.registers as e_reg
-import envi.memcanvas as e_memcanvas
-import envi.memcanvas.renderers as e_rend
-import envi.archs.h8 as e_h8
-import vivisect
-import platform
 import unittest
+
+import envi.registers as e_reg
+import varchs.h8 as e_h8
+import vivisect
 from envi import IF_RET, IF_NOFALL, IF_BRANCH, IF_CALL, IF_COND
-from envi.archs.h8.regs import *
-from envi.archs.h8.const import *
-from envi.archs.h8.parsers import *
+from varchs.h8 import *
 
 
 # OPHEX, VA, repr, flags, emutests

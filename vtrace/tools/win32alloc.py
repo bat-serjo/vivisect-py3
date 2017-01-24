@@ -2,9 +2,9 @@
 A module with some cute toys for monitoring allocations.
 '''
 
-import vtrace
+import varchs.i386 as e_i386
 
-import envi.archs.i386 as e_i386
+import vtrace
 
 class ReturnBreak(vtrace.Breakpoint):
     def __init__(self, addr, chsize, chflags):
