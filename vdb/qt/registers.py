@@ -5,6 +5,7 @@ import vdb.qt.base
 
 from vqt.main import *
 
+
 class VdbRegistersWindow(vdb.qt.base.VdbWidgetWindow):
     def __init__(self, db, dbt, parent=None):
         vdb.qt.base.VdbWidgetWindow.__init__(self, db, dbt, parent=parent)
@@ -25,4 +26,3 @@ class VdbRegistersWindow(vdb.qt.base.VdbWidgetWindow):
         the widgets in RegistersView already register for notifications.
         '''
         self.regsWidget.reglist.vqLoad()
-

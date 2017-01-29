@@ -1,25 +1,30 @@
 import sys
 import traceback
 
+import vtrace
+import vtrace.platforms.base as v_base
+
 import envi
-import varchs.i386 as e_i386 # FIXME This should NOT have to be here
+import varchs.i386 as e_i386  # FIXME This should NOT have to be here
 
 
 class RegisterException(Exception):
     pass
 
+
 def cmpRegs(emu, trace):
-    for idx,name in reg_map:
+    for idx, name in reg_map:
         er = emu.getRegister(idx)
         tr = trace.getRegisterByName(name)
         if er != tr:
             raise RegisterException("REGISTER MISMATCH: %s 0x%.8x 0x%.8x" % (name, tr, er))
     return True
 
+
 def emuFromTrace(trace):
-    '''
+    """
     Produce an envi emulator for this tracer object.
-    '''
+    """
     arch = trace.getMeta('Architecture')
     amod = envi.getArchModule(arch)
     emu = amod.getEmulator()
@@ -41,6 +46,7 @@ def emuFromTrace(trace):
 
     return emu
 
+
 def lockStepEmulator(emu, trace):
     while True:
         print("Lockstep: 0x%.8x" % emu.getProgramCounter())
@@ -51,7 +57,7 @@ def lockStepEmulator(emu, trace):
             emu.stepi()
             cmpRegs(emu, trace)
         except RegisterException as msg:
-            print("Lockstep Error: %s: %s" % (repr(op),msg))
+            print("Lockstep Error: %s: %s" % (repr(op), msg))
             setRegs(emu, trace)
             sys.stdin.readline()
         except Exception as msg:
@@ -59,13 +65,12 @@ def lockStepEmulator(emu, trace):
             print("Lockstep Error: %s" % msg)
             return
 
-import vtrace
-import vtrace.platforms.base as v_base
 
 class TraceEmulator(vtrace.Trace, v_base.TracerBase):
     """
     Wrap an arbitrary emulator in a Tracer compatible API.
     """
+
     def __init__(self, emu):
         self.emu = emu
         archname = emu.vw.getMeta('Architecture')
@@ -110,17 +115,18 @@ class TraceEmulator(vtrace.Trace, v_base.TracerBase):
         return self.emu.getMemoryMaps()
 
     def platformGetThreads(self):
-        return {1:0xffff0000,}
+        return {1: 0xffff0000, }
 
     def platformGetFds(self):
-        return [] #FIXME perhaps tie this into magic?
+        return []  # FIXME perhaps tie this into magic?
 
     def getStackTrace(self):
         # FIXME i386...
-        return [(self.emu.getProgramCounter(), 0), (0,0)]
+        return [(self.emu.getProgramCounter(), 0), (0, 0)]
 
     def platformDetach(self):
         pass
+
 
 def main():
     import vtrace
@@ -133,11 +139,11 @@ def main():
     while t.getProgramCounter() != symaddr:
         t.run()
     snap = t.takeSnapshot()
-    #snap.saveToFile("woot.snap") # You may open in vdb to follow along
+    # snap.saveToFile("woot.snap") # You may open in vdb to follow along
     emu = emulatorFromTrace(snap)
     lockStepEmulator(emu, t)
+
 
 if __name__ == "__main__":
     # Copy this file out to the vtrace dir for testing and run as main
     main()
-

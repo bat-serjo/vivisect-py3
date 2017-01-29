@@ -1,6 +1,6 @@
-'''
+"""
 All the code related to vtrace process snapshots and TraceSnapshot classes.
-'''
+"""
 import sys
 import copy
 import pickle as pickle
@@ -14,17 +14,17 @@ import vtrace.platforms.base as v_base
 
 
 class TraceSnapshot(vtrace.Trace, v_base.TracerBase):
-    '''
+    """
     A trace snapshot is similar to a traditional "core file" except that
     you may also have memory only snapshots that are never written to disk.
-    '''
+    """
 
     def __init__(self, snapdict):
 
         self.s_snapcache = {}
         self.s_snapdict = snapdict
 
-        # a seperate parser for each version...
+        # a separate parser for each version...
         if snapdict['version'] == 1:
             self.s_version = snapdict['version']
             self.s_threads = snapdict['threads']
@@ -69,16 +69,16 @@ class TraceSnapshot(vtrace.Trace, v_base.TracerBase):
         self.thread = None
 
     def saveToFd(self, fd):
-        '''
+        """
         Save this snapshot to the given file like object
         for later reloading...
-        '''
+        """
         pickle.dump(self.s_snapdict, fd)
 
     def saveToFile(self, filename):
-        '''
+        """
         Save a snapshot to file for later reading in...
-        '''
+        """
         f = open(filename, 'wb')
         self.saveToFd(f)
         f.close()
@@ -100,7 +100,7 @@ class TraceSnapshot(vtrace.Trace, v_base.TracerBase):
     def getStackTrace(self):
         tid = self.getMeta('ThreadId')
         tr = self.s_stacktrace.get(tid, None)
-        if tr == None:
+        if tr is None:
             raise Exception('ERROR: Invalid thread id specified')
         return tr
 
@@ -118,11 +118,11 @@ class TraceSnapshot(vtrace.Trace, v_base.TracerBase):
 
     def platformReadMemory(self, address, size):
         map = self.getMemoryMap(address)
-        if map == None:
+        if map is None:
             raise Exception("ERROR: platformReadMemory says no map for 0x%.8x" % address)
         offset = address - map[0]  # Base address
         mapbytes = self.s_mem.get(map[0], None)
-        if mapbytes == None:
+        if mapbytes is None:
             raise vtrace.PlatformException("ERROR: Memory map at 0x%.8x is not backed!" % map[0])
         if len(mapbytes) == 0:
             raise vtrace.PlatformException("ERROR: Memory Map at 0x%.8x is backed by ''" % map[0])
@@ -136,7 +136,7 @@ class TraceSnapshot(vtrace.Trace, v_base.TracerBase):
 
     def platformWriteMemory(self, address, bytes):
         map = self.getMemoryMap(address)
-        if map == None:
+        if map is None:
             raise Exception("ERROR: platformWriteMemory says no map for 0x%.8x" % address)
         offset = address - map[0]
         mapbytes = self.s_mem[map[0]]
@@ -160,19 +160,19 @@ class TraceSnapshot(vtrace.Trace, v_base.TracerBase):
 
 
 def loadSnapshot(filename):
-    '''
+    """
     Load a vtrace process snapshot from a file
-    '''
+    """
     sfile = open(filename, "rb")
     snapdict = pickle.load(sfile)
     return TraceSnapshot(snapdict)
 
 
 def takeSnapshot(trace):
-    '''
+    """
     Take a snapshot of the process from the current state and return
     a reference to a tracer which wraps a "snapshot" or "core file".
-    '''
+    """
     sd = dict()
     orig_thread = trace.getMeta("ThreadId")
 

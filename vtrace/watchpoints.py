@@ -1,15 +1,17 @@
 """
-Watchpoint Objects
+Watch point Objects
 """
 # Copyright (C) 2007 Invisigoth - See LICENSE file for details
 from vtrace import *
 from vtrace.breakpoints import *
+
 
 class Watchpoint(Breakpoint):
     """
     The basic "break on access" watchpoint.  Extended from 
     Breakpoints and handled almost exactly the same way...
     """
+
     def __init__(self, addr, expression=None, size=4, perms="rw"):
         Breakpoint.__init__(self, addr, expression=expression)
         self.wpsize = size
@@ -30,7 +32,7 @@ class Watchpoint(Breakpoint):
     def activate(self, trace):
         trace.requireAttached()
         if not self.active:
-            if self.address != None:
+            if self.address is not None:
                 trace.archAddWatchpoint(self.address, size=self.wpsize, perms=self.wpperms)
                 self.active = True
         return self.active
@@ -42,6 +44,7 @@ class Watchpoint(Breakpoint):
             self.active = False
         return self.active
 
+
 class PageWatchpoint(Watchpoint):
     """
     A special "watchpoint" that uses memory permissions to
@@ -52,6 +55,7 @@ class PageWatchpoint(Watchpoint):
 
     NOTE: These *must* be added page aligned
     """
+
     def __init__(self, addr, expression=None, size=4, watchread=False):
         Watchpoint.__init__(self, addr, expression=expression, size=size, perms='rw')
         self._orig_perms = None
@@ -65,7 +69,7 @@ class PageWatchpoint(Watchpoint):
     def notify(self, event, trace):
         pw = trace.getMeta('pagewatch')
         pc = trace.getProgramCounter()
-        vaddr,vperm = trace.platformGetMemFault()
+        vaddr, vperm = trace.platformGetMemFault()
         pw.append((pc, vaddr, vperm))
         # Change to/from fastbreak on pagerun...
         self.fastbreak = trace.getMeta('pagerun')
@@ -75,16 +79,15 @@ class PageWatchpoint(Watchpoint):
         return "%s (%s %d bytes)" % (bname, e_mem.reprPerms(self._new_perms), self.wpsize)
 
     def activate(self, trace):
-        #trace.requireNotRunning()
+        # trace.requireNotRunning()
         if not self.active:
             trace.protectMemory(self.address, self.wpsize, self._new_perms)
             self.active = True
         return self.active
 
     def deactivate(self, trace):
-        #trace.requireNotRunning()
+        # trace.requireNotRunning()
         if self.active:
             trace.protectMemory(self.address, self.wpsize, self._orig_perms)
             self.active = False
         return self.active
-

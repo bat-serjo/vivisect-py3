@@ -2,6 +2,7 @@
 import vstruct
 from vstruct.primitives import *
 
+
 # Mapped at 0xe000e000 in arm7
 class SCS(vstruct.VStruct):
 

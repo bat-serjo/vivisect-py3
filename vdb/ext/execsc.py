@@ -3,6 +3,7 @@ import shlex
 
 import vtrace
 
+
 class ShellcodeLoadNotifier(vtrace.Notifier):
     def __init__(self, db, fname):
         self.db = db
@@ -26,12 +27,13 @@ class ShellcodeLoadNotifier(vtrace.Notifier):
 
         self.db.deregisterNotifier(vtrace.NOTIFY_BREAK, self)
 
+
 def execsc(db, line):
-    '''
+    """
     Load and execute shellcode stub from file
 
     Usage: execsc <fname>
-    '''
+    """
     argv = shlex.split(line)
     if len(argv) != 1:
         return db.do_help('execsc')
@@ -44,6 +46,7 @@ def execsc(db, line):
     db.registerNotifier(vtrace.NOTIFY_BREAK, sc)
 
     trace.execute(cmd)
+
 
 def vdbExtension(db, trace):
     db.registerCmdExtension(execsc)

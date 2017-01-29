@@ -1,6 +1,6 @@
-'''
+"""
 Some utils for QT code which uses vstruct...
-'''
+"""
 import vqt.tree as vq_tree
 
 from PyQt4 import QtCore, QtGui

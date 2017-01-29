@@ -14,15 +14,16 @@ drnames = ["debug%d" % d for d in range(8)]
 dbg_status = "debug6"
 dbg_ctrl = "debug7"
 
-dbg_execute    = 0
-dbg_write      = 1
+dbg_execute = 0
+dbg_write = 1
 dbg_read_write = 3
 
 dbg_types = {
-    "x":dbg_execute,
-    "w":dbg_write,
-    "rw":dbg_read_write,
+    "x":  dbg_execute,
+    "w":  dbg_write,
+    "rw": dbg_read_write,
 }
+
 
 class i386WatchMixin:
     def __init__(self):
@@ -38,32 +39,32 @@ class i386WatchMixin:
                 idx = i
                 break
 
-        if idx == None:
+        if idx is None:
             raise Exception("ERROR: there...  are... 4... debug registers!")
 
         pbits = dbg_types.get(perms)
-        if pbits == None:
+        if pbits is None:
             raise Exception("Unsupported watchpoint perms %s (x86 supports x,w,rw)" % perms)
 
         if pbits == dbg_execute and size != 1:
             raise Exception("Watchpoint for execute *must* be 1 byte long!")
 
-        if size not in [1,2,4]:
+        if size not in [1, 2, 4]:
             raise Exception("Unsupported watchpoint size %d (x86 supports 1,2,4)" % size)
 
         ctrl = 0
 
         self.hwdebug[idx] = address
 
-        ctrl |= 1 << (2*idx)           # Enabled
-        mask = ((size-1) << 2) + pbits # perms and size
-        ctrl |= (mask << (16+(4*idx)))
-        #ctrl |= 0x100 # Local exact (ignored by p6+ for read)
+        ctrl |= 1 << (2 * idx)  # Enabled
+        mask = ((size - 1) << 2) + pbits  # perms and size
+        ctrl |= (mask << (16 + (4 * idx)))
+        # ctrl |= 0x100 # Local exact (ignored by p6+ for read)
 
         for tid in list(self.getThreads().keys()):
             ctx = self.getRegisterContext(tid)
             ctrl_orig = ctx.getRegister(e_i386.REG_DEBUG7)
-            #print "debug%d: %.8x debug7: %.8x" % (idx,address,ctrl|ctrl_orig)
+            # print "debug%d: %.8x debug7: %.8x" % (idx,address,ctrl|ctrl_orig)
             ctx.setRegister(e_i386.REG_DEBUG7, ctrl_orig | ctrl)
             ctx.setRegister(e_i386.REG_DEBUG0 + idx, address)
         return
@@ -75,20 +76,20 @@ class i386WatchMixin:
                 idx = i
                 break
 
-        if idx == None:
+        if idx is None:
             raise Exception("Watchpoint not found at 0x%.8x" % address)
 
         self.hwdebug[idx] = 0
 
-        ctrl_disable = ~(1 << (2*idx))      # we are not enabled
-        ctrl_disperm = ~(0xf << (16+(4*idx))) # mask off the rwx stuff
+        ctrl_disable = ~(1 << (2 * idx))  # we are not enabled
+        ctrl_disperm = ~(0xf << (16 + (4 * idx)))  # mask off the rwx stuff
         ctrl_mask = ctrl_disable & ctrl_disperm
 
         for tid in list(self.getThreads().keys()):
             ctx = self.getRegisterContext(tid)
             ctrl = ctx.getRegister(e_i386.REG_DEBUG7)
             ctrl &= ctrl_mask
-            #print "debug%d: %.8x debug7: %.8x" % (idx,address,ctrl|ctrl_orig)
+            # print "debug%d: %.8x debug7: %.8x" % (idx,address,ctrl|ctrl_orig)
             ctx.setRegister(e_i386.REG_DEBUG7, ctrl)
             ctx.setRegister(e_i386.REG_DEBUG0 + idx, 0)
         return
@@ -96,8 +97,8 @@ class i386WatchMixin:
     def archCheckWatchpoints(self):
         regs = self.getRegisters()
         status = regs.get(dbg_status)
-        #print "STATUS %.8x" % status
-        if status == None:
+        # print "STATUS %.8x" % status
+        if status is None:
             return None
         x = status & 0x0f
         if not x:
@@ -110,7 +111,6 @@ class i386WatchMixin:
 
 
 class i386Mixin(e_i386.i386Module, e_i386.i386RegisterContext, i386WatchMixin):
-
     def __init__(self):
         # Mixin our i386 envi architecture module and register context
         e_i386.i386Module.__init__(self)
@@ -127,19 +127,19 @@ class i386Mixin(e_i386.i386Module, e_i386.i386RegisterContext, i386WatchMixin):
         sanity = 1000
         frames = []
 
-        #FIXME make these by register index
-        #FIXME make these GPREG stuff! (then both are the same)
+        # FIXME make these by register index
+        # FIXME make these GPREG stuff! (then both are the same)
         ebp = self.getRegisterByName("ebp")
         eip = self.getRegisterByName("eip")
-        frames.append((eip,ebp))
+        frames.append((eip, ebp))
 
         while ebp != 0 and current < sanity:
             try:
                 buf = self.readMemory(ebp, 8)
-                ebp,eip = struct.unpack("<LL",buf)
-                if frames[-1] == (ebp,eip):
+                ebp, eip = struct.unpack("<LL", buf)
+                if frames[-1] == (ebp, eip):
                     break
-                frames.append((ebp,eip))
+                frames.append((ebp, eip))
                 current += 1
             except:
                 break
@@ -154,24 +154,24 @@ class i386Mixin(e_i386.i386Module, e_i386.i386RegisterContext, i386WatchMixin):
         pc = self.getProgramCounter()
 
         for arg in args:
-            if type(arg) == bytes: # Nicly map strings into mem
-                buf = arg+"\x00\x00"+buf    # Pad with a null for convenience
+            if type(arg) == bytes:  # Nicely map strings into mem
+                buf = arg + "\x00\x00" + buf  # Pad with a null for convenience
                 finalargs.append(sp - len(buf))
             else:
                 finalargs.append(arg)
 
         m = len(buf) % 4
         if m:
-            buf = ("\x00" * (4-m)) + buf
+            buf = ("\x00" * (4 - m)) + buf
 
         # Args are 
-        #finalargs.reverse()
+        # finalargs.reverse()
         buf = struct.pack("<%dI" % len(finalargs), *finalargs) + buf
 
         # Saved EIP is target addr so when we hit the break...
         buf = struct.pack("<I", address) + buf
         # Calc the new stack pointer
-        newsp = sp-len(buf)
+        newsp = sp - len(buf)
         # Write the stack buffer in
         self.writeMemory(newsp, buf)
         # Setup the stack pointer
@@ -185,4 +185,3 @@ class i386Mixin(e_i386.i386Module, e_i386.i386RegisterContext, i386WatchMixin):
         while not callbreak.endregs:
             self.run()
         return callbreak.endregs
-

@@ -1,3 +1,7 @@
+"""
+QtGui objects which assist in GUIs which use vtrace parts.
+"""
+
 from PyQt4 import Qt, QtCore, QtGui
 
 import vtrace
@@ -14,16 +18,12 @@ import vqt.colors as vq_colors
 
 from vqt.main import workthread, idlethread, idlethreadsync
 
-'''
-QtGui objects which assist in GUIs which use vtrace parts.
-'''
-
 
 class VQTraceNotifier(vtrace.Notifier):
-    '''
+    """
     A bit of shared mixin code for the handling of vtrace
     notifier callbacks in various VQTreeViews...
-    '''
+    """
 
     def __init__(self, trace=None):
         self.trace = trace
@@ -74,9 +74,9 @@ class RegisterListModel(envi_qt_memory.EnviNavModel):
 
 
 class RegistersListView(vq_tree.VQTreeView, VQTraceNotifier):
-    '''
+    """
     A pure "list view" object for registers
-    '''
+    """
 
     def __init__(self, trace=None, parent=None):
         VQTraceNotifier.__init__(self, trace)
@@ -169,10 +169,10 @@ class RegColorDelegate(QtGui.QStyledItemDelegate):
 
 
 class RegistersView(QtGui.QWidget):
-    '''
+    """
     A register view which includes the idea of "sub views" for particular
     sets of registers per-architecture.
-    '''
+    """
 
     def __init__(self, trace=None, parent=None):
         QtGui.QWidget.__init__(self, parent=parent)
@@ -231,9 +231,9 @@ class RegistersView(QtGui.QWidget):
 
 
 class VQFlagsGridView(QtGui.QWidget, VQTraceNotifier):
-    '''
+    """
     Show the state of the status register (if available).
-    '''
+    """
 
     def __init__(self, trace=None, parent=None):
         QtGui.QWidget.__init__(self, parent=parent)
@@ -302,7 +302,7 @@ class VQProcessListModel(vq_tree.VQTreeModel):
 class VQProcessListView(vq_tree.VQTreeView):
     def __init__(self, trace=None, parent=None):
         vq_tree.VQTreeView.__init__(self, parent=parent)
-        if trace == None:
+        if trace is None:
             trace = vtrace.getTrace()
         self.trace = trace
 
@@ -438,7 +438,7 @@ class VQTraceToolBar(QtGui.QToolBar, vtrace.Notifier):
 
     def actAttach(self, *args, **kwargs):
         pid = getProcessPid(trace=self.trace)
-        if pid != None:
+        if pid is not None:
             workthread(self.trace.attach)(pid)
 
     @workthread
@@ -502,10 +502,10 @@ class VQTraceToolBar(QtGui.QToolBar, vtrace.Notifier):
 
 
 class VQMemoryMapView(envi_qt_memmap.VQMemoryMapView, VQTraceNotifier):
-    '''
+    """
     A memory map view which is sensitive to the status of a
     trace object.
-    '''
+    """
 
     def __init__(self, trace, parent=None):
         VQTraceNotifier.__init__(self, trace)

@@ -2,18 +2,18 @@ import os
 import unittest
 import vtrace.tests as vt_tests
 
-class VtraceBasicTest(vt_tests.VtraceProcessTest):
 
+class VtraceBasicTest(vt_tests.VtraceProcessTest):
     breakpoints = {
-        'windows':'ntdll.NtTerminateProcess',
-        'linux':'libc.exit',
-        'freebsd':'libc.exit',
+        'windows': 'ntdll.NtTerminateProcess',
+        'linux':   'libc.exit',
+        'freebsd': 'libc.exit',
     }
 
     def test_vtrace_getregisters(self):
-        self.assertTrue( self.trace.getProgramCounter() )
-        self.assertTrue( self.trace.getStackCounter() )
-        self.assertTrue( self.trace.getRegisters() )
+        self.assertTrue(self.trace.getProgramCounter())
+        self.assertTrue(self.trace.getStackCounter())
+        self.assertTrue(self.trace.getRegisters())
         self.runUntilExit()
 
     def test_vtrace_setregisters(self):
@@ -32,7 +32,7 @@ class VtraceBasicTest(vt_tests.VtraceProcessTest):
             raise unittest.SkipTest('no platform breakpoint: %s' % plat)
 
         pycode = 'trace.setMeta("testbphit", 1)'
-        bpid = self.trace.addBreakByExpr( symname )
+        bpid = self.trace.addBreakByExpr(symname)
         self.trace.setBreakpointCode(bpid, pycode)
         self.runUntilExit()
 
@@ -43,21 +43,22 @@ class VtraceBasicTest(vt_tests.VtraceProcessTest):
 
     def test_vtrace_exename(self):
         exename = self.trace.getExe()
-        self.assertTrue( os.path.isfile( exename ) )
-        self.assertTrue( exename.lower().find('python') != -1)
+        self.assertTrue(os.path.isfile(exename))
+        self.assertTrue(exename.lower().find('python') != -1)
 
     def test_vtrace_mmaps(self):
         pymapfound = False
-        for va,size,perms,fname in self.trace.getMemoryMaps():
+        for va, size, perms, fname in self.trace.getMemoryMaps():
             if fname.lower().find('python') != -1:
                 pymapfound = True
                 break
-        self.assertTrue( pymapfound )
+        self.assertTrue(pymapfound)
+
 
 # All of the above "simple" tests should also work in the "exec" case
 class VtraceBasicExecTest(VtraceBasicTest, vt_tests.VtraceExecTest):
     breakpoints = {
-        'windows':'ntdll.NtTerminateProcess',
-        'linux':'ld.malloc',
-        'freebsd':'ld._rtld_thread_init',
+        'windows': 'ntdll.NtTerminateProcess',
+        'linux':   'ld.malloc',
+        'freebsd': 'ld._rtld_thread_init',
     }

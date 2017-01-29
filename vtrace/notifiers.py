@@ -1,13 +1,13 @@
 """
-Vtrace notitifers base classes and examples
+Vtrace notifiers base classes and examples
 
 Vtrace supports the idea of callback notifiers which
 get called whenever particular events occur in the target
-process.  Notifiers may be registered to recieve a callback
+process.  Notifiers may be registered to receive a callback
 on any of the vtrace.NOTIFY_FOO events from vtrace.  One notifier
 *may* be registered with more than one trace, as the "notify"
 method is passed a reference to the trace for which an event
-has occured...
+has occurred...
 
 """
 # Copyright (C) 2007 Invisigoth - See LICENSE file for details
@@ -102,6 +102,7 @@ class DistributedNotifier(Notifier):
             self.notifiers[i] = []
 
     def getProxy(self, trace):
+        import cobra
         host, nothing = cobra.getCobraSocket(trace).getLocalName()
 
     def notify(self, event, trace):
@@ -109,7 +110,7 @@ class DistributedNotifier(Notifier):
 
     def fireNotifiers(self, event, trace):
         """
-        Fire all our registerd local-notifiers
+        Fire all our registered local-notifiers
         """
         nlist = self.notifiers.get(vtrace.NOTIFY_ALL, [])
         for notifier in nlist:

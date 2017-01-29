@@ -21,7 +21,8 @@ class ExpressionLocals(dict):
     def __getitem__(self, name):
         if self.symobj is not None:
             ret = self.symobj.getSymByName(name)
-            if ret is not None: return ret
+            if ret is not None:
+                return ret
         return dict.__getitem__(self, name)
 
 
@@ -40,7 +41,7 @@ class MemoryExpressionLocals(ExpressionLocals):
 
     def sym(self, symstr):
         """
-        An easy to use utility for symbols which have un-pythonic names.
+        An easy to use utility for symbols which have non pythonic names.
 
         Example x = sym('kernel32.??2@$$FYAPAXI@Z')
         """

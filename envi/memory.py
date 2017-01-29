@@ -163,7 +163,7 @@ class IMemory:
         return struct.unpack(fmt, bytez)
 
     def getSegmentInfo(self, id):
-        return (0, 0xffffffff)
+        return 0, 0xffffffff
 
     def readMemValue(self, addr, size):
         bytes = self.readMemory(addr, size)

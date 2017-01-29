@@ -38,6 +38,8 @@ libc.read.argtypes = [c_uint, c_void_p, c_long]
 libc.write.restype = c_long
 libc.write.argtypes = [c_uint, c_void_p, c_long]
 
+O_RDONLY = 0
+O_WRONLY = 1
 O_RDWR = 2
 O_LARGEFILE = 0x8000
 
@@ -262,8 +264,13 @@ class LinuxMixin(v_posix.PtraceMixin, v_posix.PosixMixin):
         """
         A utility to open (if necessary) and seek the memfile
         """
-        if self.memfd == None:
-            self.memfd = libc.open("/proc/%d/mem" % self.pid, O_RDWR | O_LARGEFILE, 0o755)
+        if self.memfd is None:
+            pid_mem = "/proc/%d/mem" % self.pid
+            self.memfd = libc.open(pid_mem, O_RDWR | O_LARGEFILE)
+            if self.memfd < 0:
+                self.memfd = libc.open(pid_mem, O_RDONLY | O_LARGEFILE)
+                if self.memfd < 0:
+                    raise Exception('Opening %s : %s' % (pid_mem, libc.perror()))
 
         x = libc.lseek64(self.memfd, offset, 0)
 
@@ -278,7 +285,7 @@ class LinuxMixin(v_posix.PtraceMixin, v_posix.PosixMixin):
         buf = create_string_buffer(size)
         x = libc.read(self.memfd, addressof(buf), size)
         if x != size:
-            # libc.perror('libc.read %d (size: %d)' % (x,size))
+            libc.perror('libc.read %d (size: %d)' % (x, size))
             raise Exception("reading from invalid memory %s (%d returned)" % (hex(address), x))
         # We have to slice cause ctypes "helps" us by adding a null byte...
         return buf.raw
@@ -286,7 +293,7 @@ class LinuxMixin(v_posix.PtraceMixin, v_posix.PosixMixin):
     @v_base.threadwrap
     def whynot_platformWriteMemory(self, address, data):
         """
-        A *much* faster way of writting memory that the 4 bytes
+        A *much* faster way of writing memory that the 4 bytes
         per syscall allowed by ptrace
         """
         self.setupMemFile(address)
@@ -358,10 +365,11 @@ class LinuxMixin(v_posix.PtraceMixin, v_posix.PosixMixin):
 
     @v_base.threadwrap
     def platformAttach(self, pid):
+        if v_posix.ptrace(PT_ATTACH, pid, 0, 0) != 0:
+            raise Exception("PT_ATTACH failed! %s" % get_errno())
+
         self.pthreads = [pid, ]
         self.setMeta("ThreadId", pid)
-        if v_posix.ptrace(PT_ATTACH, pid, 0, 0) != 0:
-            raise Exception("PT_ATTACH failed!")
         self.setMeta("ExeName", self._findExe(pid))
 
     def platformPs(self):
@@ -370,12 +378,13 @@ class LinuxMixin(v_posix.PtraceMixin, v_posix.PosixMixin):
             try:
                 if not dname.isdigit():
                     continue
-                cmdline = self.platformReadFile('/proc/%s/cmdline' % dname)
-                cmdline = cmdline.replace("\x00", " ")
+                cmdline = self.platformReadFile('/proc/%s/cmdline' % dname).decode()
+                cmdline = cmdline.replace("\x00", "")
                 if len(cmdline) > 0:
                     pslist.append((int(dname), cmdline))
-            except:
-                pass  # Permissions...  quick process... whatev.
+            except Exception:
+                traceback.print_exc()
+                # pass  # Permissions...  quick process... whatev.
         return pslist
 
     def _simpleCreateThreads(self):
@@ -768,19 +777,18 @@ class Linuxi386Trace(
             self.setRegisters(regsave)
 
 
-class LinuxAmd64Trace(
-    vtrace.Trace,
-    LinuxMixin,
-    v_amd64.Amd64Mixin,
-    v_posix.ElfMixin,
-    v_base.TracerBase):
+class LinuxAmd64Trace(vtrace.Trace,
+                      LinuxMixin,
+                      v_amd64.Amd64Mixin,
+                      v_posix.ElfMixin,
+                      v_base.TracerBase):
     user_reg_struct = user_regs_amd64
     user_dbg_offset = 848
     reg_val_mask = 0xffffffffffffffff
 
     def __init__(self):
         vtrace.Trace.__init__(self)
-        v_base.TracerBase.__init__(self)
+        # v_base.TracerBase.__init__(self)
         v_posix.ElfMixin.__init__(self)
         v_amd64.Amd64Mixin.__init__(self)
         LinuxMixin.__init__(self)

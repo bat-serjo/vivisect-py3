@@ -4,11 +4,11 @@ import varchs.i386 as e_i386
 
 
 def eflags(vdb, line):
-    '''
+    """
     Shows or flips the status of the eflags register bits.
 
     Usage: eflags [flag short name]
-    '''
+    """
     trace = vdb.getTrace()
     argv = shlex.split(line)
     if len(argv) not in (0, 1):
@@ -37,12 +37,12 @@ def eflags(vdb, line):
     vdb.vprint('%16s: %s' % ('Direction', bool(ef & e_i386.EFLAGS_DF)))
     vdb.vprint('%16s: %s' % ('Overflow', bool(ef & e_i386.EFLAGS_OF)))
 
-def vdbExtension(vdb, trace):
-    vdb.addCmdAlias('db','mem -F bytes')
-    vdb.addCmdAlias('dw','mem -F u_int_16')
-    vdb.addCmdAlias('dd','mem -F u_int_32')
-    vdb.addCmdAlias('dq','mem -F u_int_64')
-    vdb.addCmdAlias('dr','mem -F "Deref View"')
-    vdb.addCmdAlias('ds','mem -F "Symbols View"')
-    vdb.registerCmdExtension(eflags)
 
+def vdbExtension(vdb, trace):
+    vdb.addCmdAlias('db', 'mem -F bytes')
+    vdb.addCmdAlias('dw', 'mem -F u_int_16')
+    vdb.addCmdAlias('dd', 'mem -F u_int_32')
+    vdb.addCmdAlias('dq', 'mem -F u_int_64')
+    vdb.addCmdAlias('dr', 'mem -F "Deref View"')
+    vdb.addCmdAlias('ds', 'mem -F "Symbols View"')
+    vdb.registerCmdExtension(eflags)

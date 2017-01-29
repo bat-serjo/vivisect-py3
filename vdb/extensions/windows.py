@@ -14,11 +14,11 @@ from vparsers import PE
 
 
 def teb(vdb, line):
-    '''
+    """
     Print the TEB for the current or specified thread.
 
     Usage: teb [threadid]
-    '''
+    """
     trace = vdb.getTrace()
     threads = trace.getThreads()
     tid = trace.getMeta('ThreadId')
@@ -38,12 +38,13 @@ def teb(vdb, line):
     vdb.vprint('TEB for thread id: %d' % tid)
     vdb.vprint(vteb.tree(va=tva, reprmax=32))
 
+
 def peb(vdb, line):
-    '''
+    """
     Print the PEB.
 
     Usage: peb
-    '''
+    """
     trace = vdb.getTrace()
     trace.requireAttached()
     va = trace.getMeta('PEB')
@@ -54,6 +55,7 @@ def peb(vdb, line):
     vpeb = trace.getStruct('ntdll.PEB', va)
     vdb.vprint(vpeb.tree(va, reprmax=32))
 
+
 def regkeys(vdb, line):
     """
     Show all the registry keys the target process currently has open.
@@ -63,10 +65,11 @@ def regkeys(vdb, line):
     t = vdb.getTrace()
     t.requireAttached()
     vdb.vprint("\nOpen Registry Keys:\n")
-    for fd,ftype,fname in t.getFds():
+    for fd, ftype, fname in t.getFds():
         if ftype == vtrace.FD_REGKEY:
             vdb.vprint("\t%s" % fname)
     vdb.vprint("")
+
 
 def einfo(vdb, line):
     """
@@ -81,11 +84,11 @@ def einfo(vdb, line):
     t = vdb.getTrace()
 
     try:
-        opts,args = getopt.getopt(argv, 'P')
+        opts, args = getopt.getopt(argv, 'P')
     except Exception as e:
         return vdb.do_help('einfo')
 
-    for opt,optarg in opts:
+    for opt, optarg in opts:
         if opt == '-P':
             p = t.getMeta('PendingSignal')
             if p != None:
@@ -99,20 +102,21 @@ def einfo(vdb, line):
     if exc == None:
         vdb.vprint("No Exception Information Found")
     ecode = exc.get("ExceptionCode", 0)
-    eaddr = exc.get("ExceptionAddress",0)
+    eaddr = exc.get("ExceptionAddress", 0)
     chance = 2
     if exc.get("FirstChance", False):
         chance = 1
 
     einfo = exc.get("ExceptionInformation", [])
-    #FIXME get extended infoz
-    #FIXME unify with cli thing
+    # FIXME get extended infoz
+    # FIXME unify with cli thing
     vdb.vprint("Win32 Exception 0x%.8x at 0x%.8x (%d chance)" % (ecode, eaddr, chance))
     vdb.vprint("Exception Information: %s" % " ".join([hex(i) for i in einfo]))
     dbool = True
     if t.getCurrentSignal() == None:
         dbool = False
     vdb.vprint('Deliver Exception: %s' % dbool)
+
 
 def seh(vdb, line):
     """
@@ -133,10 +137,11 @@ def seh(vdb, line):
     addr = int(teb.NtTib.ExceptionList)
     vdb.vprint("REG        HANDLER")
     while addr != 0xffffffff:
-        #FIXME print out which frame these are in
+        # FIXME print out which frame these are in
         er = t.getStruct("ntdll.EXCEPTION_REGISTRATION_RECORD", addr)
         vdb.vprint("0x%.8x 0x%.8x" % (addr, er.Handler))
         addr = int(er.Next)
+
 
 def safeseh(vdb, line):
     """
@@ -166,7 +171,7 @@ def safeseh(vdb, line):
             if va != 0:
                 count = int(p.IMAGE_LOAD_CONFIG.SEHandlerCount)
                 for h in t.readMemoryFormat(va, "<%dL" % count):
-                    vdb.vprint("\t0x%.8x %s" % (base+h, vdb.reprPointer(base+h)))
+                    vdb.vprint("\t0x%.8x %s" % (base + h, vdb.reprPointer(base + h)))
                 return
         vdb.vprint("None...")
 
@@ -189,6 +194,7 @@ def safeseh(vdb, line):
 
             vdb.vprint("%16s\t%s" % (name, enabled))
 
+
 def validate_heaps(db):
     """
     A simple routine that works like the built in windows
@@ -203,27 +209,28 @@ def validate_heaps(db):
         try:
             f = heap.getFreeLists()
         except Exception as e:
-            #import traceback
-            #traceback.print_exc()
-            db.vprint("%s: %s" % (e.__class__.__name__,e))
+            # import traceback
+            # traceback.print_exc()
+            db.vprint("%s: %s" % (e.__class__.__name__, e))
 
         for seg in heap.getSegments():
-            db.vprint("%s: 0x%.8x" % ("segment".rjust(9),seg.address))
+            db.vprint("%s: 0x%.8x" % ("segment".rjust(9), seg.address))
             try:
                 blist = seg.getChunks()
-                for i,chunk in enumerate(blist):
+                for i, chunk in enumerate(blist):
                     if i == 0:
                         continue
                     if heap._win7_heap:
                         continue
-                    pchunk = blist[i-1]
+                    pchunk = blist[i - 1]
                     if chunk.chunk.PreviousSize != pchunk.chunk.Size:
-                        db.vprint('Corruption! (block at 0x%.8x (size: %d) block at 0x%.8x (prevsize: %d)' % 
+                        db.vprint('Corruption! (block at 0x%.8x (size: %d) block at 0x%.8x (prevsize: %d)' %
                                   (pchunk.address, pchunk.chunk.Size, chunk.address, chunk.chunk.PreviousSize))
                         break
 
             except Exception as e:
-                db.vprint("%s: %s" % (e.__class__.__name__,e))
+                db.vprint("%s: %s" % (e.__class__.__name__, e))
+
 
 def heaps(vdb, line):
     """
@@ -256,11 +263,11 @@ def heaps(vdb, line):
     buckets_heap = None
 
     try:
-        opts,args = getopt.getopt(argv, "F:C:S:L:l:U:V:b:")
+        opts, args = getopt.getopt(argv, "F:C:S:L:l:U:V:b:")
     except Exception as e:
         return vdb.do_help('heaps')
 
-    for opt,optarg in opts:
+    for opt, optarg in opts:
         if opt == "-F":
             freelist_heap = t.parseExpression(optarg)
         elif opt == "-C":
@@ -289,7 +296,7 @@ def heaps(vdb, line):
 
         heap = win32heap.Win32Heap(t, lookaside_heap)
         vdb.vprint('[Index] [Chunks]')
-        for i,l in enumerate(heap.getLookAsideLists()):
+        for i, l in enumerate(heap.getLookAsideLists()):
             vdb.vprint("[%d]" % i)
             for c in l:
                 vdb.vprint("    %s" % (repr(c)))
@@ -323,18 +330,18 @@ def heaps(vdb, line):
             return
 
         heap = win32heap.Win32Heap(t, freelist_heap)
-        for i,l in enumerate(heap.getFreeLists()):
+        for i, l in enumerate(heap.getFreeLists()):
             if len(l):
                 vdb.vprint("Freelist Index: %d" % i)
                 for c in l:
                     vdb.vprint("   %s" % repr(c))
 
     elif chunkfind_addr != None:
-        heap,seg,chunk = win32heap.getHeapSegChunk(t, chunkfind_addr)
+        heap, seg, chunk = win32heap.getHeapSegChunk(t, chunkfind_addr)
         vdb.vprint("Address  0x%.8x found in:" % (chunkfind_addr,))
         vdb.vprint("Heap:    0x%.8x" % (heap.address))
         vdb.vprint("Segment: 0x%.8x" % (seg.address))
-        vdb.vprint("Chunk:   0x%.8x (%d) FLAGS: %s" % (chunk.address, len(chunk),chunk.reprFlags()))
+        vdb.vprint("Chunk:   0x%.8x (%d) FLAGS: %s" % (chunk.address, len(chunk), chunk.reprFlags()))
 
     elif chunklist_seg != None:
 
@@ -346,7 +353,7 @@ def heaps(vdb, line):
                         c = " "
                         if chunk.isBusy():
                             c = "X"
-                        vdb.vprint("0x%.8x %s (%d)" % (chunk.address,c,len(chunk)))
+                        vdb.vprint("0x%.8x %s (%d)" % (chunk.address, c, len(chunk)))
                     return
 
         vdb.vprint("Segment 0x%.8x not found!" % chunklist_seg)
@@ -375,7 +382,8 @@ def heaps(vdb, line):
                     vdb.vprint("0x%.8x may be leaked!" % addr)
 
     elif buckets_heap != None:
-        headers = '{0:10} {1:10} {2:10} {3:>8} {4:>8} {5:>8} {6:>8}'.format('Heap', 'SubSeg', 'UserData', 'Index', 'Size', 'Total', 'Free')
+        headers = '{0:10} {1:10} {2:10} {3:>8} {4:>8} {5:>8} {6:>8}'.format('Heap', 'SubSeg', 'UserData', 'Index',
+                                                                            'Size', 'Total', 'Free')
         vdb.vprint(headers)
 
         for heap in win32heap.getHeaps(t):
@@ -385,10 +393,17 @@ def heaps(vdb, line):
             if heap.isLFH():
                 lfh = heap.getLFH()
                 for s in lfh.getSubsegments():
-                    row = '{0:<#10x} {1:<#10x} {2:<#10x} {3:>#8x} {4:>#8x} {5:>#8x} {6:>#8x}'.format(heap.address, s.address, s.getUserBlocks(), s.getSizeIndex(), s.getBucketSize(), s.getBlockCount(), s.getFreeBlockCount())
+                    row = '{0:<#10x} {1:<#10x} {2:<#10x} {3:>#8x} {4:>#8x} {5:>#8x} {6:>#8x}'.format(heap.address,
+                                                                                                     s.address,
+                                                                                                     s.getUserBlocks(),
+                                                                                                     s.getSizeIndex(),
+                                                                                                     s.getBucketSize(),
+                                                                                                     s.getBlockCount(),
+                                                                                                     s.getFreeBlockCount())
                     vdb.vprint(row)
             else:
-                row = '{0:<#10x} {1:<10} {2:^10} {3:>8} {4:>8} {5:>8} {5:>8}'.format(heap.address, 'No LFH', '-', '-', '-', '-')
+                row = '{0:<#10x} {1:<10} {2:^10} {3:>8} {4:>8} {5:>8} {5:>8}'.format(heap.address, 'No LFH', '-', '-',
+                                                                                     '-', '-')
                 vdb.vprint(row)
 
     else:
@@ -401,7 +416,9 @@ def heaps(vdb, line):
             for s in heap.getSegments():
                 vdb.vprint("0x%.8x\t0x%.8x\t%s\t%s" % (heap.address, s.address, flags, lfh))
 
+
 IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE = 0x0040
+
 
 def showaslr(vdb, base, libname):
     t = vdb.getTrace()
@@ -415,6 +432,7 @@ def showaslr(vdb, base, libname):
     if c & IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE:
         enabled = True
     vdb.vprint("%16s\t%s" % (libname, enabled))
+
 
 def aslr(vdb, line):
     """
@@ -440,6 +458,7 @@ def aslr(vdb, line):
             base = libs.get(name)
             showaslr(vdb, base, name)
 
+
 def deaslr(vdb, line):
     '''
     Rebase the specified expression as though the origin library had the
@@ -458,6 +477,7 @@ def deaslr(vdb, line):
     vdb.vprint('  aslr va: 0x%.8x' % va)
     vdb.vprint('deaslr va: 0x%.8x' % newva)
 
+
 def _printPageHits(vdb, hits, unique=False):
     vdb.vprint('[  eip  ]  [ mem addr ] [ access ]')
     if unique:
@@ -465,8 +485,9 @@ def _printPageHits(vdb, hits, unique=False):
         [newhits.append(h) for h in hits if not newhits.count(h)]
         hits = newhits
 
-    for eip,addr,perm in hits:
-        vdb.vprint("0x%.8x 0x%.8x   %s" % (eip,addr,e_mem.getPermName(perm)))
+    for eip, addr, perm in hits:
+        vdb.vprint("0x%.8x 0x%.8x   %s" % (eip, addr, e_mem.getPermName(perm)))
+
 
 def pagewatch(vdb, line):
     """
@@ -486,7 +507,7 @@ def pagewatch(vdb, line):
     """
     argv = e_cli.splitargs(line)
     try:
-        opts,args = getopt.getopt(argv, "CFLMP:RS:u")
+        opts, args = getopt.getopt(argv, "CFLMP:RS:u")
     except Exception as e:
         return vdb.do_help('pagewatch')
 
@@ -499,7 +520,7 @@ def pagewatch(vdb, line):
     domap = False
     unique = False
     watchread = False
-    for opt,optarg in opts:
+    for opt, optarg in opts:
 
         if opt == "-C":
             vdb.trace.setMeta("pagewatch", [])
@@ -530,7 +551,7 @@ def pagewatch(vdb, line):
             if hits == None:
                 vdb.vprint("No pagewatch log!")
                 return
-            hits = [ h for h in hits if h[1] == saddr ]
+            hits = [h for h in hits if h[1] == saddr]
             _printPageHits(vdb, hits, unique=unique)
             return
 
@@ -541,7 +562,7 @@ def pagewatch(vdb, line):
                 vdb.vprint("No pagewatch log!")
                 return
 
-            hits = [ h for h in hits if h[0] == saddr ]
+            hits = [h for h in hits if h[0] == saddr]
             _printPageHits(vdb, hits, unique=unique)
             return
 
@@ -562,7 +583,7 @@ def pagewatch(vdb, line):
 
     if domap:
         baseaddr = mmap[0]
-        maxaddr  = baseaddr + mmap[1]
+        maxaddr = baseaddr + mmap[1]
 
     bpset = vdb.trace.breakpoints
     while baseaddr < maxaddr:
@@ -571,6 +592,7 @@ def pagewatch(vdb, line):
             wp = vtrace.PageWatchpoint(baseaddr, size=4096, watchread=watchread)
             wpid = vdb.trace.addBreakpoint(wp)
         baseaddr += 4096
+
 
 def stealth(vdb, line):
     """
@@ -594,16 +616,16 @@ def stealth(vdb, line):
     to the debugger?
     """
     args = e_cli.splitargs(line)
-    arglist = ('peb','zwqueryinformationprocess','checkremotedebuggerpresent',
-               'gettickcount','outputdebugstring','all',
-               'zwsetinformationthread','zwclose')
+    arglist = ('peb', 'zwqueryinformationprocess', 'checkremotedebuggerpresent',
+               'gettickcount', 'outputdebugstring', 'all',
+               'zwsetinformationthread', 'zwclose')
 
-    if len(args) < 2  or ('on' not in args and 'off' not in args):
+    if len(args) < 2 or ('on' not in args and 'off' not in args):
         vdb.do_help('stealth')
         enabledPatches = win32_stealth.getStatus(vdb.trace)
 
         vdb.vprint('Stealth Status')
-        vdb.vprint('='*40)
+        vdb.vprint('=' * 40)
         for name, isPatched in enabledPatches:
             status = 'disabled'
             if isPatched:
@@ -629,18 +651,20 @@ def stealth(vdb, line):
         for i in commands:
             if i in arglist:
                 if win32_stealth.stealthify(vdb.trace, i):
-                    vdb.vprint('%s enabled!'%i)
+                    vdb.vprint('%s enabled!' % i)
 
     if oper == 'off':
         for i in commands:
             if i in arglist:
                 if win32_stealth.unstealthify(vdb.trace, i):
-                    vdb.vprint('%s disabled!'%i)
+                    vdb.vprint('%s disabled!' % i)
+
 
 gflag_stuff = [
     ('loader_snaps', 'ntdll.ShowSnaps', '<B', 0, 1),
     ('loader_debug', 'ntdll.LdrpDebugFlags', '<I', 0, 0xffffffff),
 ]
+
 
 def gflags(vdb, line):
     '''
@@ -654,7 +678,7 @@ def gflags(vdb, line):
     '''
     argv = e_cli.splitargs(line)
 
-    optnames = [ x[0] for x in gflag_stuff ]
+    optnames = [x[0] for x in gflag_stuff]
 
     for opt in argv:
 
@@ -718,10 +742,10 @@ def pe(vdb, line):
         pe -t esi
 
     """
-    #-v      Show PE version information
+    # -v      Show PE version information
     argv = e_cli.splitargs(line)
     try:
-        opts,args = getopt.getopt(argv, "EImNStvV")
+        opts, args = getopt.getopt(argv, "EImNStvV")
     except Exception as e:
         return vdb.do_help('pe')
 
@@ -734,7 +758,7 @@ def pe(vdb, line):
     shownthd = False
     showexps = False
     showvsin = False
-    for opt,optarg in opts:
+    for opt, optarg in opts:
         if opt == '-I':
             showimps = True
         elif opt == '-t':
@@ -777,7 +801,7 @@ def pe(vdb, line):
         if showimps:
             ldeps = {}
             try:
-                for rva,lname,fname in pobj.getImports():
+                for rva, lname, fname in pobj.getImports():
                     ldeps[lname.lower()] = True
                 lnames = list(ldeps.keys())
                 lnames.sort()
@@ -792,7 +816,7 @@ def pe(vdb, line):
             vs = pobj.getVS_VERSIONINFO()
             if vs != None:
                 version = vs.getVersionValue('FileVersion')
-            vdb.vprint('%s: %s' % (libname.rjust(30),version))
+            vdb.vprint('%s: %s' % (libname.rjust(30), version))
 
         elif showvsin:
             vs = pobj.getVS_VERSIONINFO()
@@ -825,6 +849,7 @@ def pe(vdb, line):
         else:
             vdb.vprint('0x%.8x - %.30s %s' % (base, libname, path))
 
+
 def bindiff(mem1, mem2):
     ret = []
     i = 0
@@ -835,11 +860,12 @@ def bindiff(mem1, mem2):
             r += 1
         # We found a discrepency
         if r != i:
-            size = (r-i)
-            ret.append((i,size))
-            i+=size
-        i+=1
+            size = (r - i)
+            ret.append((i, size))
+            i += size
+        i += 1
     return ret
+
 
 def sympath(vdb, line):
     '''
@@ -854,6 +880,7 @@ def sympath(vdb, line):
     if sympath == None:
         sympath = os.getenv('_NT_SYMBOL_PATH')
     vdb.vprint('Current Symbol Path: %s' % sympath)
+
 
 def stepb(vdb, line):
     '''
@@ -874,6 +901,7 @@ def stepb(vdb, line):
     vdb.do_stepi('')
     vdb.trace.setMode('BranchStep', orig)
 
+
 def hooks(vdb, line):
     '''
     Check the executable regions of the target process for any
@@ -892,15 +920,15 @@ def hooks(vdb, line):
 
         skips = {}
         # Get relocations for skipping
-        r = list(range( t.getPointerSize()))
+        r = list(range(t.getPointerSize()))
         for relrva, reltype in pobj.getRelocations():
             for i in r:
-                skips[base+relrva+i] = True
+                skips[base + relrva + i] = True
 
         # Add the import entries to skip
-        for iva,libname,name in pobj.getImports():
+        for iva, libname, name in pobj.getImports():
             for i in r:
-                skips[base+iva+i] = True
+                skips[base + iva + i] = True
 
         for sec in pobj.getSections():
             if sec.Characteristics & PE.IMAGE_SCN_MEM_EXECUTE:
@@ -910,7 +938,7 @@ def hooks(vdb, line):
                 filebytes = pobj.readAtRva(sec.VirtualAddress, sec.VirtualSize)
                 procbytes = t.readMemory(va, size)
 
-                for off,size in bindiff(filebytes, procbytes):
+                for off, size in bindiff(filebytes, procbytes):
                     difva = va + off
                     fdifva = fileva + off
 
@@ -919,20 +947,21 @@ def hooks(vdb, line):
                         continue
 
                     found = True
-                    dmem = procbytes[off:off+size].encode('hex')[:10]
-                    dfil = filebytes[off:off+size].encode('hex')[:10]
+                    dmem = procbytes[off:off + size].encode('hex')[:10]
+                    dfil = filebytes[off:off + size].encode('hex')[:10]
 
                     vdb.canvas.addVaText('0x%.8x' % difva, difva)
-                    vdb.canvas.addText(' (0x%.8x) (%d)' % (fdifva,size))
+                    vdb.canvas.addText(' (0x%.8x) (%d)' % (fdifva, size))
                     vdb.canvas.addText(' mem: %s file: %s ' % (dmem, dfil))
 
                     sym = vdb.symobj.getSymByAddr(difva, exact=False)
                     if sym != None:
                         vdb.canvas.addText(' ')
-                        vdb.canvas.addVaText('%s + %d' % (repr(sym),difva-int(sym)), difva)
+                        vdb.canvas.addVaText('%s + %d' % (repr(sym), difva - int(sym)), difva)
                     vdb.canvas.addText('\n')
 
     if not found: vdb.canvas.addText('No Hooks Found!\n')
+
 
 def jit(vdb, line):
     '''
@@ -945,7 +974,7 @@ def jit(vdb, line):
     '''
     argv = e_cli.splitargs(line)
     try:
-        opts,args = getopt.getopt(argv, "ED")
+        opts, args = getopt.getopt(argv, "ED")
     except Exception as e:
         return vdb.do_help('jit')
 
@@ -960,15 +989,15 @@ def jit(vdb, line):
     REG_SZ = winreg.REG_SZ
 
     regpath = r'SOFTWARE\Microsoft\Windows NT\CurrentVersion\AeDebug'
-    #wow64path = r'SOFTWARE\Wow6432Node\Microsoft\Windows NT\CurrentVersion\AeDebug'
+    # wow64path = r'SOFTWARE\Wow6432Node\Microsoft\Windows NT\CurrentVersion\AeDebug'
 
-    #regkey = _winreg.CreateKey(HKLM, regpath)
+    # regkey = _winreg.CreateKey(HKLM, regpath)
     regkey = winreg.CreateKey(HKLM, regpath)
 
     vdb.vprint('JIT Currently: %s' % winreg.QueryValueEx(regkey, 'Debugger')[0])
 
     setval = None
-    for opt,optarg in opts:
+    for opt, optarg in opts:
 
         if opt == '-D':
             setval = ''
@@ -976,11 +1005,12 @@ def jit(vdb, line):
         elif opt == '-E':
             vdbpath = os.path.abspath(sys.argv[0])
             setval = '%s %s -r -p %%ld -e %%Id' % (sys.executable, vdbpath)
-            #_winreg.SetValue(HKLM
+            # _winreg.SetValue(HKLM
 
     if setval != None:
         vdb.vprint('Setting JIT: %s' % (setval,))
         winreg.SetValueEx(regkey, 'Debugger', None, REG_SZ, setval)
+
 
 def svclist(vdb, line):
     '''
@@ -993,7 +1023,7 @@ def svclist(vdb, line):
     names = []
     descrs = []
     for pid, name, descr in vdb.trace._getSvcList():
-        pids.append('%d' %  pid)
+        pids.append('%d' % pid)
         names.append(name)
         descrs.append(descr)
 
@@ -1001,6 +1031,7 @@ def svclist(vdb, line):
 
     for i in range(len(pids)):
         vdb.vprint('%8s %s %s' % (pids[i], names[i], descrs[i]))
+
 
 def injectso(vdb, line):
     '''
@@ -1013,12 +1044,15 @@ def injectso(vdb, line):
     t = vdb.trace
     t.injectso(line)
 
+
 token_elevation_types = {
     0: 'UAC Not Present',
     1: 'Default Elevation',
     2: 'Elevated',
     3: 'Low',
 }
+
+
 def uac(db, line):
     '''
     Display the current UAC status of the target process.
@@ -1030,6 +1064,7 @@ def uac(db, line):
     t.requireNotRunning()
     u = t._getUacStatus()
     db.vprint('UAC Status: %s' % token_elevation_types.get(u))
+
 
 def hookiat(db, line):
     '''
@@ -1062,6 +1097,7 @@ def hookiat(db, line):
         db.vprint('[%6d] %s' % (bpid, iatname))
     db.vprint('Added %d hooks.' % len(hooks))
 
+
 def gle(db, line):
     '''
     Shows GetLastError for the current thread or threadid.
@@ -1089,6 +1125,7 @@ def gle(db, line):
     else:
         db.vprint('GetLastError: 0x%08X - unknown error value' % lasterr)
 
+
 def win32err(db, line):
     '''
     Shows the message associated with an error code.
@@ -1114,30 +1151,31 @@ def win32err(db, line):
     else:
         db.vprint('0x%08X - unknown error code!' % errcode)
 
-def vdbExtension(db, trace):
-    db.registerCmdExtension(hookiat,subsys='windows')
-    db.registerCmdExtension(pe,subsys='windows')
-    db.registerCmdExtension(peb,subsys='windows')
-    db.registerCmdExtension(einfo,subsys='windows')
-    db.registerCmdExtension(heaps,subsys='windows')
-    db.registerCmdExtension(regkeys,subsys='windows')
-    db.registerCmdExtension(seh,subsys='windows')
-    db.registerCmdExtension(safeseh,subsys='windows')
-    db.registerCmdExtension(teb,subsys='windows')
-    db.registerCmdExtension(pagewatch,subsys='windows')
-    db.registerCmdExtension(stealth,subsys='windows')
-    db.registerCmdExtension(aslr,subsys='windows')
-    db.registerCmdExtension(deaslr, subsys='windows')
-    db.registerCmdExtension(hooks,subsys='windows')
-    db.registerCmdExtension(gflags,subsys='windows')
-    db.registerCmdExtension(sympath,subsys='windows')
-    db.registerCmdExtension(jit,subsys='windows')
-    db.registerCmdExtension(svclist,subsys='windows')
-    #db.registerCmdExtension(stepb,subsys='windows')
-    db.registerCmdExtension(injectso,subsys='windows')
-    db.registerCmdExtension(uac,subsys='windows')
-    db.registerCmdExtension(gle,subsys='windows')
-    db.registerCmdExtension(win32err,subsys='windows')
 
-    #config = db.config.vdb.getSubConfig('windows')
-    #config.setConfigDefault('_NT_SYMBOL_PATH','','Override the use of the _NT_SYMBOL_PATH env var')
+def vdbExtension(db, trace):
+    db.registerCmdExtension(hookiat, subsys='windows')
+    db.registerCmdExtension(pe, subsys='windows')
+    db.registerCmdExtension(peb, subsys='windows')
+    db.registerCmdExtension(einfo, subsys='windows')
+    db.registerCmdExtension(heaps, subsys='windows')
+    db.registerCmdExtension(regkeys, subsys='windows')
+    db.registerCmdExtension(seh, subsys='windows')
+    db.registerCmdExtension(safeseh, subsys='windows')
+    db.registerCmdExtension(teb, subsys='windows')
+    db.registerCmdExtension(pagewatch, subsys='windows')
+    db.registerCmdExtension(stealth, subsys='windows')
+    db.registerCmdExtension(aslr, subsys='windows')
+    db.registerCmdExtension(deaslr, subsys='windows')
+    db.registerCmdExtension(hooks, subsys='windows')
+    db.registerCmdExtension(gflags, subsys='windows')
+    db.registerCmdExtension(sympath, subsys='windows')
+    db.registerCmdExtension(jit, subsys='windows')
+    db.registerCmdExtension(svclist, subsys='windows')
+    # db.registerCmdExtension(stepb,subsys='windows')
+    db.registerCmdExtension(injectso, subsys='windows')
+    db.registerCmdExtension(uac, subsys='windows')
+    db.registerCmdExtension(gle, subsys='windows')
+    db.registerCmdExtension(win32err, subsys='windows')
+
+    # config = db.config.vdb.getSubConfig('windows')
+    # config.setConfigDefault('_NT_SYMBOL_PATH','','Override the use of the _NT_SYMBOL_PATH env var')

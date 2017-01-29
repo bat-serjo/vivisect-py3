@@ -5,8 +5,8 @@ import envi.qt.memwrite as e_qt_mw
 
 from vqt.main import *
 
-class VdbMemWriteWindow(vdb.qt.base.VdbWidgetWindow):
 
+class VdbMemWriteWindow(vdb.qt.base.VdbWidgetWindow):
     def __init__(self, db, dbt, expr='', esize='', parent=None):
         vdb.qt.base.VdbWidgetWindow.__init__(self, db, dbt, parent=parent)
 
@@ -18,7 +18,7 @@ class VdbMemWriteWindow(vdb.qt.base.VdbWidgetWindow):
         self.memWriteWidget.writeToMemory.connect(self.writeMemory)
         self.setWindowTitle('Write Memory')
 
-        vqtconnect( self.vdbWriteMem, 'vdb:writemem' )
+        vqtconnect(self.vdbWriteMem, 'vdb:writemem')
 
     def vdbWriteMem(self, event, einfo):
         self.vqLoad()

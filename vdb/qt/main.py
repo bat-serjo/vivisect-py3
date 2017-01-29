@@ -25,8 +25,8 @@ from vqt.basics import *
 from vqt.common import *
 from vtrace.const import *
 
-class VdbCmdWidget(vqt.cli.VQCli, vtrace.qt.VQTraceNotifier):
 
+class VdbCmdWidget(vqt.cli.VQCli, vtrace.qt.VQTraceNotifier):
     def __init__(self, db, parent=None):
 
         vqt.cli.VQCli.__init__(self, db, parent)
@@ -85,10 +85,10 @@ class VdbCmdWidget(vqt.cli.VQCli, vtrace.qt.VQTraceNotifier):
             self.status.setStyleSheet('color:red')
 
     def returnPressedSlot(self):
-        '''
+        """
         Override VQCli returnPressedSlot so we submit to the vdb transaction
         queue instead of firing a thread.
-        '''
+        """
         command = str(self.input.text())
         self.input.clear()
         self.input.setText('')
@@ -98,10 +98,10 @@ class VdbCmdWidget(vqt.cli.VQCli, vtrace.qt.VQTraceNotifier):
         workthread(self.onecmd)(command)
 
     def onecmd(self, line):
-        '''
+        """
         Override VQCli onecmd so we can handle exceptions other than
         explicit exiting or keyboard interrupts.
-        '''
+        """
         lines = line.split('&&')
         try:
             for line in lines:
@@ -141,10 +141,12 @@ class VdbCmdWidget(vqt.cli.VQCli, vtrace.qt.VQTraceNotifier):
 
         self.input.setText('exec "%s"' % url.toLocalFile())
 
+
 class VdbToolBar(vtrace.qt.VQTraceToolBar):
-    '''
+    """
     Subclass so we get access to the db object not proxied through VdbTrace.
-    '''
+    """
+
     def __init__(self, db, trace, parent=None):
         vtrace.qt.VQTraceToolBar.__init__(self, trace, parent=parent)
         self.db = db
@@ -175,8 +177,8 @@ class VdbToolBar(vtrace.qt.VQTraceToolBar):
     def actStepover(self, thing):
         self.db.do_stepo('')
 
-class VdbWindow(vq_app.VQMainCmdWindow):
 
+class VdbWindow(vq_app.VQMainCmdWindow):
     __cli_widget_class__ = VdbCmdWidget
 
     def __init__(self, db):
@@ -187,7 +189,7 @@ class VdbWindow(vq_app.VQMainCmdWindow):
         # stores named window names.
         self.namedWindowsCount = collections.Counter()
 
-        db.gui = self # This must go before VQMainCmdWindow
+        db.gui = self  # This must go before VQMainCmdWindow
         vq_app.VQMainCmdWindow.__init__(self, 'Vdb', db)
 
         tbar = VdbToolBar(db, self._db_t, parent=self)
@@ -208,23 +210,23 @@ class VdbWindow(vq_app.VQMainCmdWindow):
         self.vqAddMenuField('&Tools.&Python', self.menuToolsPython)
 
         # Map some default keys
-        self.addHotKey('f5','debug:go')
-        self.addHotKey('f6','debug:attach')
-        self.addHotKey('f7','debug:stepi')
-        self.addHotKey('f8','debug:stepover')
-        self.addHotKey('ctrl+b','debug:break')
-        self.addHotKey('ctrl+p','vdb:view:python')
+        self.addHotKey('f5', 'debug:go')
+        self.addHotKey('f6', 'debug:attach')
+        self.addHotKey('f7', 'debug:stepi')
+        self.addHotKey('f8', 'debug:stepover')
+        self.addHotKey('ctrl+b', 'debug:break')
+        self.addHotKey('ctrl+p', 'vdb:view:python')
 
         # Get hotkey overrides
         self.loadHotKeys(self._vq_settings)
 
         db.registerCmdExtension(self.hotkeys)
 
-        vqtconnect( self.buildMemoryWindow, 'vdb:view:memory' )
-        vqtconnect( self.buildMemWriteWindow, 'vdb:view:writemem' )
+        vqtconnect(self.buildMemoryWindow, 'vdb:view:memory')
+        vqtconnect(self.buildMemWriteWindow, 'vdb:view:writemem')
 
     def vdbUIEvent(self, event, einfo):
-        vqtevent(event,einfo)
+        vqtevent(event, einfo)
 
     def buildMemoryWindow(self, event, einfo):
         expr, esize, rend = einfo
@@ -237,34 +239,34 @@ class VdbWindow(vq_app.VQMainCmdWindow):
         view.enviNavGoto(expr, esize)
 
     def hotkeys(self, db, line):
-        '''
+        """
         Manipulate gui hotkeys.
 
         Usage: hotkeys [target=keyname]
-        '''
+        """
         argv = envi.cli.splitargs(line)
         for arg in argv:
 
             if arg.find('=') == -1:
                 return db.do_help('hotkeys')
 
-            target,keyname = arg.split('=',1)
+            target, keyname = arg.split('=', 1)
             if not self.isHotKeyTarget(target):
                 db.vprint('Invalid Hotkey Target: %s' % target)
                 return
 
-            db.vprint('Setting: %s = %s' % (target,keyname))
+            db.vprint('Setting: %s = %s' % (target, keyname))
 
-            self.addHotKey(keyname,target)
-            self._vq_settings.setValue('hotkey:%s' % target,keyname)
+            self.addHotKey(keyname, target)
+            self._vq_settings.setValue('hotkey:%s' % target, keyname)
 
         db.vprint('Hotkeys:')
-        lookup = dict([ (targname, keystr) for (keystr,targname) in self.getHotKeys() ])
+        lookup = dict([(targname, keystr) for (keystr, targname) in self.getHotKeys()])
         targets = self.getHotKeyTargets()
         targets.sort()
 
         for targname in targets:
-            db.vprint('%s: %s' % (targname.ljust(20),lookup.get(targname,'')))
+            db.vprint('%s: %s' % (targname.ljust(20), lookup.get(targname, '')))
 
     @vq_hotkeys.hotkey('debug:attach')
     def _hotkey_attach(self):
@@ -318,15 +320,15 @@ class VdbWindow(vq_app.VQMainCmdWindow):
         arch = trace.getMeta('Architecture').lower()
         platform = trace.getMeta('Platform').lower()
 
-        pconfig = config.getSubConfig( platform, add=False )
+        pconfig = config.getSubConfig(platform, add=False)
         if pconfig != None:
             configs.append(('vdb:%s' % platform, pconfig))
 
-        aconfig = config.getSubConfig( arch, add=False )
+        aconfig = config.getSubConfig(arch, add=False)
         if aconfig != None:
             configs.append(('vdb:%s' % arch, aconfig))
 
-        self._cfg_widget = envi.qt.config.EnviConfigTabs( configs )
+        self._cfg_widget = envi.qt.config.EnviConfigTabs(configs)
         self._cfg_widget.show()
 
     @vq_hotkeys.hotkey('vdb:view:python')

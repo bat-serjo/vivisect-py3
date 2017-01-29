@@ -1,6 +1,6 @@
-'''
+"""
 A home for the vdb specific memory renderers.
-'''
+"""
 
 import envi
 import vtrace
@@ -10,24 +10,24 @@ import envi.memcanvas as e_canvas
 import vivisect.impapi as viv_impapi
 import envi.memcanvas.renderers as e_canvas_rend
 
-class OpcodeRenderer(e_canvas.MemoryRenderer):
 
+class OpcodeRenderer(e_canvas.MemoryRenderer):
     def __init__(self, trace, arch=envi.ARCH_DEFAULT):
         self.arch = arch
-        self.emu_cache = {} # arch_num: emu instance
+        self.emu_cache = {}  # arch_num: emu instance
         self.pwidth = trace.getPointerSize()
-        self.pformat = '0x%%.%dx' % ( self.pwidth * 2 )
+        self.pformat = '0x%%.%dx' % (self.pwidth * 2)
 
     def _getOpcodePrefix(self, trace, va, op):
         regs = trace.getRegisters()
-        regs = dict([ (rval,rname) for (rname,rval) in list(regs.items()) if rval != 0 ])
+        regs = dict([(rval, rname) for (rname, rval) in list(regs.items()) if rval != 0])
 
         bp = trace.getBreakpointByAddr(va)
-        if bp != None:
+        if bp is not None:
             return ('bp[%d]' % bp.id).ljust(8)
 
-        rname = regs.get( va )
-        if rname != None:
+        rname = regs.get(va)
+        if rname is not None:
             return rname[:7].ljust(8)
 
         return '        '
@@ -78,7 +78,7 @@ class OpcodeRenderer(e_canvas.MemoryRenderer):
         # NOTE: we assume the memobj is a trace
         trace = mcanv.mem
         sym = trace.getSymByAddr(va)
-        if sym != None:
+        if sym is not None:
             mcanv.addText('\n')
             mcanv.addVaText(str(sym), va=va)
             mcanv.addText(':\n')
@@ -96,12 +96,13 @@ class OpcodeRenderer(e_canvas.MemoryRenderer):
         try:
             suffix = self._getOpcodeSuffix(trace, va, op)
             if suffix:
-                mcanv.addText(' ;'+suffix)
+                mcanv.addText(' ;' + suffix)
         except Exception as e:
             mcanv.addText('; suffix error: %s' % e)
 
         mcanv.addText("\n")
         return len(op)
+
 
 class SymbolRenderer(e_canvas.MemoryRenderer):
     def __init__(self, trace):
@@ -130,12 +131,13 @@ class SymbolRenderer(e_canvas.MemoryRenderer):
 
         if isptr:
             sym = trace.getSymByAddr(p, exact=False)
-            if sym != None:
-                mcanv.addText(' %s + %d' % (repr(sym), p-int(sym)))
+            if sym is not None:
+                mcanv.addText(' %s + %d' % (repr(sym), p - int(sym)))
 
         mcanv.addText('\n')
 
         return self.pwidth
+
 
 class DerefRenderer(e_canvas.MemoryRenderer):
     def __init__(self, trace):
@@ -155,7 +157,7 @@ class DerefRenderer(e_canvas.MemoryRenderer):
         preg = ""
 
         regs = trace.getRegisters()
-        for name,val in list(regs.items()):
+        for name, val in list(regs.items()):
             if val == 0:
                 continue
             if val == va:
@@ -204,6 +206,7 @@ class DerefRenderer(e_canvas.MemoryRenderer):
         mcanv.addText('\n')
         return self.arch.getPointerSize()
 
+
 class StackRenderer(DerefRenderer):
     def __init__(self, trace):
         DerefRenderer.__init__(self, trace)
@@ -215,7 +218,7 @@ class StackRenderer(DerefRenderer):
 
         pc = trace.getProgramCounter()
         sym, is_thunk = trace.getSymByAddrThunkAware(pc)
-        if sym == None:
+        if sym is None:
             return DerefRenderer.render(self, mcanv, va)
 
         # TODO: this code also exists in win32stealth and in hookbreakpoint
@@ -227,7 +230,7 @@ class StackRenderer(DerefRenderer):
         emu = vtrace.getEmu(trace)
         cc = emu.getCallingConvention(cc_name)
         args_def = impapi.getImpApiArgs(sym)
-        if args_def == None:
+        if args_def is None:
             # sym did not exist in impapi :(
             print(('sym but no impapi match: {}'.format(sym)))
             return DerefRenderer.render(self, mcanv, va)
@@ -247,7 +250,7 @@ class StackRenderer(DerefRenderer):
         # conventions in a stdcall fashion, some args (like the ones in
         # registers don't have a stack va.
         mcanv.addText('%s :\n' % sym)
-        fmt = '  arg%%d (%%s) 0x%%0%dx %%s\n' % (trace.getPointerSize()*2,)
+        fmt = '  arg%%d (%%s) 0x%%0%dx %%s\n' % (trace.getPointerSize() * 2,)
         for index, arg in enumerate(args):
             argtype = args_def[index][0]
             argva = arg

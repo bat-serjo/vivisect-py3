@@ -1,5 +1,5 @@
-'''
-'''
+"""
+"""
 
 from PyQt4 import QtCore, QtGui
 
@@ -50,19 +50,19 @@ class VQTreeItem(object):
         return str(self.rowdata[column])
 
     def row(self):
-        '''
+        """
         Retrieve our row number.
-        '''
+        """
         if self.parent:
             return self.parent.children.index(self)
         return 0
 
 
 class VQTreeModel(QtCore.QAbstractItemModel):
-    '''
+    """
     A QT tree model that uses the tree API from visgraph
     to hold the data...
-    '''
+    """
 
     columns = ('A first column!', 'The Second Column!')
     editable = None

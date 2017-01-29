@@ -1,4 +1,4 @@
-'''
+"""
 Underlying platform implementation for kernel debugging
 with vmware gdbserver.
 
@@ -18,31 +18,33 @@ debugStub.listen.guest64 = "TRUE"
 debugStub.listen.guest64.remote = "TRUE" # bind to 0.0.0.0 rather than 127.0.0.1
 debugStub.hideBreakpoints = "TRUE" # Enable breakpoints
 
-'''
+"""
+import traceback
+
 import envi.bits as e_bits
 import envi.symstore.resolver as e_resolv
 import envi.symstore.symcache as e_symcache
+
 import vtrace
 import vtrace.archs.i386 as vt_i386
 import vtrace.platforms.base as vt_base
 import vtrace.platforms.gdbstub as vt_gdbstub
 import vtrace.platforms.winkern as vt_winkern
+
 from vparsers import PE
 
 
 class VMWareMixin(vt_gdbstub.GdbStubMixin):
-
     def __init__(self, host=None, port=None):
         vt_gdbstub.GdbStubMixin.__init__(self, host=host, port=port)
-        self.bigmask = e_bits.u_maxes[ self.getPointerSize() ]
+        self.bigmask = e_bits.u_maxes[self.getPointerSize()]
 
-class VMWare32WindowsTrace(
-            vtrace.Trace,
-            VMWareMixin,
-            vt_i386.i386Mixin,
-            vt_base.TracerBase,
-            ):
 
+class VMWare32WindowsTrace(vtrace.Trace,
+                           VMWareMixin,
+                           vt_i386.i386Mixin,
+                           vt_base.TracerBase,
+                           ):
     def __init__(self, host=None, port=None):
 
         vtrace.Trace.__init__(self, archname='i386')
@@ -50,17 +52,17 @@ class VMWare32WindowsTrace(
         vt_i386.i386Mixin.__init__(self)
         VMWareMixin.__init__(self, host=host, port=port)
 
-        self.setMeta('Format','pe')
-        self.setMeta('Platform','winkern')
+        self.setMeta('Format', 'pe')
+        self.setMeta('Platform', 'winkern')
 
         self._break_after_bp = False  # we stop directly on the bp addr
 
     def _getVmwareReg(self, rname):
-        '''
+        """
         Use VMWare's monitor extension to get a register we wouldn't
         normally have...
-        '''
-        #fs 0x30 base 0xffdff000 limit 0x00001fff type 0x3 s 1 dpl 0 p 1 db 1
+        """
+        # fs 0x30 base 0xffdff000 limit 0x00001fff type 0x3 s 1 dpl 0 p 1 db 1
         fsstr = self._monitorCommand('r %s' % rname)
         fsparts = fsstr.split()
         return int(fsparts[3], 16)
@@ -73,10 +75,10 @@ class VMWare32WindowsTrace(
         fs_fields = self.readMemoryFormat(fsbase, '<8I')
         # Windows has a self reference in the KPCR...
         if fs_fields[7] != fsbase:
-            print([ hex(x) for x in fs_fields ])
+            print([hex(x) for x in fs_fields])
             raise Exception('poi(fsbase+(ptr*7)) != fsbase! ( not actually windows? )')
 
-        vt_winkern.initWinkernTrace(self,fsbase)
+        vt_winkern.initWinkernTrace(self, fsbase)
         return
 
     def normFileName(self, libname):
@@ -89,20 +91,19 @@ class VMWare32WindowsTrace(
             vhash = e_symcache.symCacheHashFromPe(pe)
 
             symcache = self.symcache.getCacheSyms(vhash)
-            if symcache == None:
+            if symcache is None:
                 # Symbol type 0 for now...
-                symcache = [ ( rva, 0, name, e_resolv.SYMSTOR_SYM_SYMBOL ) for rva,ord,name in pe.getExports() ]
-                self.symcache.setCacheSyms( vhash, symcache )
+                symcache = [(rva, 0, name, e_resolv.SYMSTOR_SYM_SYMBOL) for rva, ord, name in pe.getExports()]
+                self.symcache.setCacheSyms(vhash, symcache)
 
-            self.impSymCache( symcache, symfname=normname, baseaddr=baseaddr )
+            self.impSymCache(symcache, symfname=normname, baseaddr=baseaddr)
 
         except Exception as e:
-            import traceback;traceback.print_exc()
+            traceback.print_exc()
             print(('Error Parsing Binary (%s): %s' % (normname, e)))
 
-
     def buildNewTrace(self):
-        return VMWare32WindowsTrace( host=self._gdb_host, port=self._gdb_port )
+        return VMWare32WindowsTrace(host=self._gdb_host, port=self._gdb_port)
 
     # FIXME move these to gdbstub
 
@@ -117,4 +118,3 @@ class VMWare32WindowsTrace(
 
     def archClearBreakpoint(self, addr):
         self._gdbDelMemBreak(addr, 1)
-

@@ -1,7 +1,10 @@
 """
 PPC Support Module (not done)
 """
+
 # Copyright (C) 2007 Invisigoth - See LICENSE file for details
+
+
 class PpcMixin:
     def archAddWatchpoint(self, address):
         pass
