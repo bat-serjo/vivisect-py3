@@ -1,6 +1,7 @@
 """
 QtGui objects which assist in GUIs which use vtrace parts.
 """
+import traceback
 
 from PyQt4 import Qt, QtCore, QtGui
 
@@ -149,6 +150,7 @@ class RegistersListView(vq_tree.VQTreeView, VQTraceNotifier):
                 smc = e_mcanv.StringMemoryCanvas(self.trace)
                 self.descrend.render(smc, rval)
             except Exception as e:
+                traceback.print_exc()
                 smc = repr(e)
             finally:
                 model.append((rname, hexva, rval, str(smc)))

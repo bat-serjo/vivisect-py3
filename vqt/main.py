@@ -12,13 +12,13 @@ import envi.threads as e_threads
 
 
 def idlethread(func):
-    '''
+    """
     A decorator which causes the function to be called by the qt
     main thread rather than synchronously...
 
     NOTE: This makes the call async handled by the qt main
     loop code.  you can NOT return anything.
-    '''
+    """
 
     def idleadd(*args, **kwargs):
         if iAmQtSafeThread():
@@ -31,10 +31,10 @@ def idlethread(func):
 
 
 def workthread(func):
-    '''
+    """
     Proxy a call through the single vqt.main worker thread
     (who exists to keep the GUI from blocking on stuff... )
-    '''
+    """
 
     # If we're already the work thread, just do it.
     def workadd(*args, **kwargs):
@@ -48,10 +48,10 @@ def workthread(func):
 
 
 def boredthread(func):
-    '''
+    """
     The same as "workthread" above, but drop the request on the
     floor if the worker thread already has better things to do...
-    '''
+    """
 
     # If we're already the work thread, just do it.
     def workadd(*args, **kwargs):
@@ -66,16 +66,17 @@ def boredthread(func):
 
 
 def idlethreadsync(func):
-    '''
+    """
     Similar to idlethread except that it is synchronous and able
     to return values.
-    '''
+    """
     q = Queue()
 
     def dowork(*args, **kwargs):
         try:
             q.put(func(*args, **kwargs))
         except Exception as e:
+            traceback.print_exc()
             q.put(e)
 
     def idleadd(*args, **kwargs):
@@ -115,10 +116,10 @@ def iAmQtSafeThread():
 
 
 class QEventThread(QtCore.QThread):
-    '''
+    """
     A thread who exists to consume callback requests from the
     given workq and fire them into Qt *safely*.
-    '''
+    """
     idleadd = QtCore.pyqtSignal(object, object, object)
 
     def __init__(self, workq):
@@ -140,6 +141,7 @@ class QEventThread(QtCore.QThread):
                 self.idleadd.emit(func, args, kwargs)
 
             except Exception as e:
+                traceback.print_exc()
                 print(('vqt event thread: %s' % e))
 
 
@@ -174,6 +176,7 @@ def workerThread():
                 func(*args, **kwargs)
 
         except Exception as e:
+            traceback.print_exc()
             print(('vqt worker warning: %s' % e))
 
 
@@ -214,11 +217,11 @@ def eatevents():
 
 
 def vqtevent(event, einfo):
-    '''
+    """
     Fire an event into the application wide GUI events subsystem.
     Each event should be an event name ( str ) and arbitrary event
     info context.
-    '''
+    """
     global qapp
     qapp.guievents.emit(event, einfo)
     chan = qapp.vqtchans.get(event)
@@ -227,14 +230,14 @@ def vqtevent(event, einfo):
 
 
 def vqtconnect(callback, event=None):
-    '''
+    """
     Connect to the application wide "gui events" which has
     a callback syntax:
         callback(event,einfo)
 
     Optionally specify an event name to only recieve events
     of the specified type.
-    '''
+    """
     global qapp
     if event is None:
         qapp.guievents.connect(callback)
@@ -249,14 +252,14 @@ def vqtconnect(callback, event=None):
 
 
 def vqtdisconnect(callback, event=None):
-    '''
+    """
     Connect to the application wide "gui events" which has
     a callback syntax:
         callback(event,einfo)
 
     Optionally specify an event name to only recieve events
     of the specified type.
-    '''
+    """
     global qapp
     if event is None:
         qapp.guievents.disconnect(callback)

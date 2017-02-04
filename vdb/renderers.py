@@ -90,7 +90,7 @@ class OpcodeRenderer(e_canvas.MemoryRenderer):
         mcanv.addText(prefix)
 
         mcanv.addVaText(vastr, va=va)
-        mcanv.addText(": %s " % obytes.encode('hex').ljust(17))
+        mcanv.addText(": %s " % obytes.hex().ljust(17))
         op.render(mcanv)
 
         try:

@@ -72,7 +72,7 @@ def isAscii(bytez):
     if len(bytez) < 4:
         return False, None
     for i in range(len(bytez)):
-        o = ord(bytez[i])
+        o = bytez[i]
         if o < 0x20 or o > 0x7e:
             return False, None
     return True, bytez
@@ -82,7 +82,7 @@ def isBasicUnicode(bytez):
     bytez = bytez.split(b'\x00\x00')[0]
     if len(bytez) < 8:
         return False, None
-    nonull = bytez.replace(b'\x00', '')
+    nonull = bytez.replace(b'\x00', b'')
     if (len(bytez) / 2) != len(nonull):
         return False, None
     return isAscii(nonull)
@@ -147,7 +147,7 @@ class AutoBytesRenderer(e_canvas.MemoryRenderer):
             desc = items[0]
         elif len(items) == 0:
             # if none match, just return the bytes.
-            desc = bytez.encode('hex')
+            desc = bytez.hex()
         elif len(items) > 1:
             # we only really expect one or none of these to match.
             desc = 'Error, multiple matches for this address!'

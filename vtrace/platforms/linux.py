@@ -37,6 +37,8 @@ libc.read.restype = c_long
 libc.read.argtypes = [c_uint, c_void_p, c_long]
 libc.write.restype = c_long
 libc.write.argtypes = [c_uint, c_void_p, c_long]
+libc.perror.argtypes = [c_char_p]
+libc.open.argtypes = [c_char_p, c_uint, c_uint]
 
 O_RDONLY = 0
 O_WRONLY = 1
@@ -260,19 +262,22 @@ class LinuxMixin(v_posix.PtraceMixin, v_posix.PosixMixin):
 
         self.initMode("Syscall", False, "Break On Syscalls")
 
-    def setupMemFile(self, offset):
+    def setupMemFile(self):
         """
         A utility to open (if necessary) and seek the memfile
         """
         if self.memfd is None:
             pid_mem = "/proc/%d/mem" % self.pid
-            self.memfd = libc.open(pid_mem, O_RDWR | O_LARGEFILE)
-            if self.memfd < 0:
-                self.memfd = libc.open(pid_mem, O_RDONLY | O_LARGEFILE)
-                if self.memfd < 0:
-                    raise Exception('Opening %s : %s' % (pid_mem, libc.perror()))
-
-        x = libc.lseek64(self.memfd, offset, 0)
+            self.memfd = open(pid_mem, 'rb+')
+            self.memfd.seek(0)
+        # if self.memfd is None or self.memfd < 0:
+        #     pid_mem = "/proc/%d/mem" % self.pid
+        #     pid_mem = pid_mem.encode()
+        #     self.memfd = libc.open(pid_mem, O_RDWR)
+        #     if self.memfd < 0:
+        #         self.memfd = libc.open(pid_mem, O_RDONLY)
+        #         if self.memfd < 0:
+        #             raise Exception('Opening %s : %s' % (pid_mem, libc.perror()))
 
     @v_base.threadwrap
     def platformReadMemory(self, address, size):
@@ -280,15 +285,21 @@ class LinuxMixin(v_posix.PtraceMixin, v_posix.PosixMixin):
         A *much* faster way of reading memory that the 4 bytes
         per syscall allowed by ptrace
         """
-        self.setupMemFile(address)
+        self.setupMemFile()
+        # x = libc.lseek64(self.memfd, address, 0)
+        self.memfd.seek(address)
+
         # Use ctypes cause python implementation is teh ghey
-        buf = create_string_buffer(size)
-        x = libc.read(self.memfd, addressof(buf), size)
-        if x != size:
-            libc.perror('libc.read %d (size: %d)' % (x, size))
-            raise Exception("reading from invalid memory %s (%d returned)" % (hex(address), x))
+        # buf = create_string_buffer(size)
+        # x = libc.read(self.memfd, addressof(buf), size)
+        # if x != size:
+        #     msg = 'libc.read %d (size: %d)' % (x, size)
+        #     libc.perror(c_char_p(msg.encode()))
+        #     raise Exception("reading from invalid memory %s (%d returned)" % (hex(address), x))
         # We have to slice cause ctypes "helps" us by adding a null byte...
-        return buf.raw
+        # return buf.raw
+
+        return self.memfd.read(size)
 
     @v_base.threadwrap
     def whynot_platformWriteMemory(self, address, data):
@@ -457,7 +468,10 @@ class LinuxMixin(v_posix.PtraceMixin, v_posix.PosixMixin):
 
     @v_base.threadwrap
     def platformDetach(self):
-        libc.close(self.memfd)
+        # libc.close(self.memfd)
+        if self.memfd is not None:
+            self.memfd.close()
+
         for tid in self.pthreads:
             v_posix.ptrace(PT_DETACH, tid, 0, 0)
 

@@ -1,14 +1,14 @@
 from PyQt4 import QtCore, QtGui
 
-import vtrace.qt
 import vdb.qt.base
+import vui.qt
 
 
 class VdbThreadsWindow(vdb.qt.base.VdbWidgetWindow):
     def __init__(self, db, dbt, parent=None):
         vdb.qt.base.VdbWidgetWindow.__init__(self, db, dbt, parent=parent)
 
-        self.threadWidget = vtrace.qt.VQThreadsView(trace=dbt, parent=parent)
+        self.threadWidget = vui.qt.VQThreadsView(trace=dbt, parent=parent)
 
         vbox = QtGui.QVBoxLayout()
         vbox.addWidget(self.threadWidget)

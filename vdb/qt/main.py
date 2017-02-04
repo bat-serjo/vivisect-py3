@@ -4,33 +4,30 @@ import collections
 from PyQt4 import QtCore, QtGui
 
 import envi.cli
-import vtrace.qt
 import envi.qt.config
-
 import vdb.qt.memory
-import vdb.qt.threads
 import vdb.qt.memwrite
 import vdb.qt.registers
-
+import vdb.qt.threads
+import vqt.application as vq_app
 import vqt.cli
-import vqt.main
 import vqt.colors
+import vqt.hotkeys as vq_hotkeys
+import vqt.main
 import vqt.qpython
 import vqt.shortcut
-import vqt.hotkeys as vq_hotkeys
-import vqt.application as vq_app
-
-from vqt.main import *
+import vui.qt
 from vqt.basics import *
 from vqt.common import *
+from vqt.main import *
 from vtrace.const import *
 
 
-class VdbCmdWidget(vqt.cli.VQCli, vtrace.qt.VQTraceNotifier):
+class VdbCmdWidget(vqt.cli.VQCli, vui.qt.VQTraceNotifier):
     def __init__(self, db, parent=None):
 
         vqt.cli.VQCli.__init__(self, db, parent)
-        vtrace.qt.VQTraceNotifier.__init__(self, trace=db.gui._db_t)
+        vui.qt.VQTraceNotifier.__init__(self, trace=db.gui._db_t)
         self._db_t = db.gui._db_t
 
         self.setAcceptDrops(True)
@@ -142,18 +139,18 @@ class VdbCmdWidget(vqt.cli.VQCli, vtrace.qt.VQTraceNotifier):
         self.input.setText('exec "%s"' % url.toLocalFile())
 
 
-class VdbToolBar(vtrace.qt.VQTraceToolBar):
+class VdbToolBar(vui.qt.VQTraceToolBar):
     """
     Subclass so we get access to the db object not proxied through VdbTrace.
     """
 
     def __init__(self, db, trace, parent=None):
-        vtrace.qt.VQTraceToolBar.__init__(self, trace, parent=parent)
+        vui.qt.VQTraceToolBar.__init__(self, trace, parent=parent)
         self.db = db
 
     def actAttach(self, *args, **kwargs):
-        pid = vtrace.qt.getProcessPid(trace=self.trace)
-        if pid != None:
+        pid = vui.qt.getProcessPid(trace=self.trace)
+        if pid is not None:
             workthread(self.trace.attach)(pid)
 
     @workthread
@@ -271,7 +268,7 @@ class VdbWindow(vq_app.VQMainCmdWindow):
     @vq_hotkeys.hotkey('debug:attach')
     def _hotkey_attach(self):
         trace = self._db.getTrace()
-        pid = vtrace.qt.getProcessPid(trace=trace, parent=self)
+        pid = vui.qt.getProcessPid(trace=trace, parent=self)
         workthread(trace.attach)(pid)
 
     @workthread
@@ -301,8 +298,8 @@ class VdbWindow(vq_app.VQMainCmdWindow):
 
     def vqInitDockWidgetClasses(self):
         self.vqAddDockWidgetClass(vdb.qt.memory.VdbMemoryWindow, args=(self._db, self._db_t))
-        self.vqAddDockWidgetClass(vtrace.qt.VQMemoryMapView, args=(self._db_t, self))
-        self.vqAddDockWidgetClass(vtrace.qt.VQFileDescView, args=(self._db_t, self))
+        self.vqAddDockWidgetClass(vui.qt.VQMemoryMapView, args=(self._db_t, self))
+        self.vqAddDockWidgetClass(vui.qt.VQFileDescView, args=(self._db_t, self))
         self.vqAddDockWidgetClass(vdb.qt.threads.VdbThreadsWindow, args=(self._db, self._db_t,))
         self.vqAddDockWidgetClass(vqt.qpython.VQPythonView, args=(self._db.getExpressionLocals(),))
 
@@ -314,18 +311,17 @@ class VdbWindow(vq_app.VQMainCmdWindow):
         trace = self._db.getTrace()
 
         config = self._db.config.vdb
-        configs = []
-        configs.append(('vdb', config))
+        configs = [('vdb', config)]
 
         arch = trace.getMeta('Architecture').lower()
         platform = trace.getMeta('Platform').lower()
 
         pconfig = config.getSubConfig(platform, add=False)
-        if pconfig != None:
+        if pconfig is not None:
             configs.append(('vdb:%s' % platform, pconfig))
 
         aconfig = config.getSubConfig(arch, add=False)
-        if aconfig != None:
+        if aconfig is not None:
             configs.append(('vdb:%s' % arch, aconfig))
 
         self._cfg_widget = envi.qt.config.EnviConfigTabs(configs)
@@ -361,7 +357,7 @@ class VdbWindow(vq_app.VQMainCmdWindow):
 
     def menuViewLayoutsLoad(self):
         fname = QtGui.QFileDialog.getOpenFileName(self, 'Load Layout')
-        if fname == None:
+        if fname is None:
             return
 
         self.vqClearDockWidgets()
@@ -371,7 +367,7 @@ class VdbWindow(vq_app.VQMainCmdWindow):
 
     def menuViewLayoutsSave(self):
         fname = QtGui.QFileDialog.getSaveFileName(self, 'Save Layout')
-        if fname == None:
+        if fname is None:
             return
 
         settings = QtCore.QSettings(fname, QtCore.QSettings.IniFormat)
@@ -404,6 +400,7 @@ class VdbWindow(vq_app.VQMainCmdWindow):
                     t.detach()
 
         except Exception as e:
+            traceback.print_exc()
             print(('Error Detaching: %s' % e))
 
         return vq_app.VQMainCmdWindow.closeEvent(self, event)
