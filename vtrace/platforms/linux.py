@@ -2,6 +2,7 @@
 Linux Platform Module
 """
 # Copyright (C) 2007 Invisigoth - See LICENSE file for details
+
 import os
 import sys
 import time
@@ -31,14 +32,26 @@ if os.getenv('ANDROID_ROOT'):
 else:
     libc = CDLL(cutil.find_library("c"))
 
+libc.lseek.restype = c_longlong
+libc.lseek.argtypes = [c_int, c_ulonglong, c_int]
+
 libc.lseek64.restype = c_ulonglong
-libc.lseek64.argtypes = [c_uint, c_ulonglong, c_uint]
+libc.lseek64.argtypes = [c_int, c_ulonglong, c_int]
+
 libc.read.restype = c_long
-libc.read.argtypes = [c_uint, c_void_p, c_long]
+libc.read.argtypes = [c_int, c_void_p, c_ulong]
+
 libc.write.restype = c_long
-libc.write.argtypes = [c_uint, c_void_p, c_long]
+libc.write.argtypes = [c_int, c_void_p, c_ulong]
+
+libc.open.argtypes = [c_char_p, c_int, c_uint]
+libc.open.restype = c_int
+
+libc.close.argtypes = [c_int]
+libc.close.restype = c_int
+
 libc.perror.argtypes = [c_char_p]
-libc.open.argtypes = [c_char_p, c_uint, c_uint]
+
 
 O_RDONLY = 0
 O_WRONLY = 1
@@ -266,18 +279,14 @@ class LinuxMixin(v_posix.PtraceMixin, v_posix.PosixMixin):
         """
         A utility to open (if necessary) and seek the memfile
         """
-        if self.memfd is None:
+        if self.memfd is None or self.memfd < 0:
             pid_mem = "/proc/%d/mem" % self.pid
-            self.memfd = open(pid_mem, 'rb+')
-            self.memfd.seek(0)
-        # if self.memfd is None or self.memfd < 0:
-        #     pid_mem = "/proc/%d/mem" % self.pid
-        #     pid_mem = pid_mem.encode()
-        #     self.memfd = libc.open(pid_mem, O_RDWR)
-        #     if self.memfd < 0:
-        #         self.memfd = libc.open(pid_mem, O_RDONLY)
-        #         if self.memfd < 0:
-        #             raise Exception('Opening %s : %s' % (pid_mem, libc.perror()))
+            pid_mem = pid_mem.encode()
+            self.memfd = libc.open(pid_mem, O_RDWR | O_LARGEFILE, 0)
+            if self.memfd < 0:
+                self.memfd = libc.open(pid_mem, O_RDONLY | O_LARGEFILE, 0)
+                if self.memfd < 0:
+                    raise Exception('Opening %s : %s' % (pid_mem, libc.perror()))
 
     @v_base.threadwrap
     def platformReadMemory(self, address, size):
@@ -286,35 +295,19 @@ class LinuxMixin(v_posix.PtraceMixin, v_posix.PosixMixin):
         per syscall allowed by ptrace
         """
         self.setupMemFile()
-        # x = libc.lseek64(self.memfd, address, 0)
-        self.memfd.seek(address)
+        x = libc.lseek64(self.memfd, address, 0)
+        if x < 0:
+            libc.perror(b"lseek64: ")
 
         # Use ctypes cause python implementation is teh ghey
-        # buf = create_string_buffer(size)
-        # x = libc.read(self.memfd, addressof(buf), size)
-        # if x != size:
-        #     msg = 'libc.read %d (size: %d)' % (x, size)
-        #     libc.perror(c_char_p(msg.encode()))
-        #     raise Exception("reading from invalid memory %s (%d returned)" % (hex(address), x))
-        # We have to slice cause ctypes "helps" us by adding a null byte...
-        # return buf.raw
-
-        return self.memfd.read(size)
-
-    @v_base.threadwrap
-    def whynot_platformWriteMemory(self, address, data):
-        """
-        A *much* faster way of writing memory that the 4 bytes
-        per syscall allowed by ptrace
-        """
-        self.setupMemFile(address)
-        buf = create_string_buffer(data)
-        size = len(data)
-        x = libc.write(self.memfd, addressof(buf), size)
+        buf = create_string_buffer(size)
+        x = libc.read(self.memfd, addressof(buf), size)
         if x != size:
-            libc.perror('write mem failed: 0x%.8x (%d)' % (address, size))
-            raise Exception("write memory failed: %d" % x)
-        return x
+            msg = 'libc.read %d (size: %d)' % (x, size)
+            libc.perror(c_char_p(msg.encode()))
+            raise Exception("reading from invalid memory %s (%d returned)" % (hex(address), x))
+        # We have to slice cause ctypes "helps" us by adding a null byte...
+        return buf.raw
 
     def _findExe(self, pid):
         exe = os.readlink("/proc/%d/exe" % pid)
@@ -341,7 +334,7 @@ class LinuxMixin(v_posix.PtraceMixin, v_posix.PosixMixin):
                 # Don't use PT_TRACEME -- on some linux (tested on ubuntu)
                 # it will cause immediate asignment of ptrace slot to parent
                 # without parent having PT_ATTACH'D.... MAKES SYNCHRONIZATION HARD
-                # SIGSTOP ourself until parent continues us
+                # SIGSTOP our self until parent continues us
                 os.kill(os.getpid(), signal.SIGSTOP)
                 os.execv(cmdlist[0], cmdlist)
             except Exception as e:
@@ -446,7 +439,7 @@ class LinuxMixin(v_posix.PtraceMixin, v_posix.PosixMixin):
             cmd = PT_SYSCALL
         pid = self.getPid()
         sig = self.getCurrentSignal()
-        if sig == None:
+        if sig is None:
             sig = 0
         # Only deliver signals to the main thread
         if v_posix.ptrace(cmd, pid, 0, sig) != 0:
@@ -468,9 +461,8 @@ class LinuxMixin(v_posix.PtraceMixin, v_posix.PosixMixin):
 
     @v_base.threadwrap
     def platformDetach(self):
-        # libc.close(self.memfd)
         if self.memfd is not None:
-            self.memfd.close()
+            libc.close(self.memfd)
 
         for tid in self.pthreads:
             v_posix.ptrace(PT_DETACH, tid, 0, 0)
@@ -611,7 +603,7 @@ class LinuxMixin(v_posix.PtraceMixin, v_posix.PosixMixin):
         msgs.
         """
         p = c_ulong(0)
-        if tid == None:
+        if tid is None:
             tid = self.getMeta("ThreadId", -1)
         if v_posix.ptrace(PT_GETEVENTMSG, tid, 0, addressof(p)) != 0:
             raise Exception('ptrace PT_GETEVENTMSG failed!')

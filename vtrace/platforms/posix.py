@@ -232,16 +232,16 @@ class PtraceMixin:
         return pid
 
     @v_base.threadwrap
-    def platformWriteMemory(self, address, bytes):
+    def platformWriteMemory(self, address, bytez):
         wordsize = len(struct.pack("P", 0))
-        remainder = len(bytes) % wordsize
+        remainder = len(bytez) % wordsize
 
         if remainder:
-            pad = self.readMemory(address + (len(bytes) - remainder), wordsize)
-            bytes += pad[remainder:]
+            pad = self.readMemory(address + (len(bytez) - remainder), wordsize)
+            bytez += pad[remainder:]
 
-        for i in range(len(bytes) / wordsize):
+        for i in range(len(bytez) / wordsize):
             offset = wordsize * i
-            dword = struct.unpack("L", bytes[offset:offset + wordsize])[0]
+            dword = struct.unpack("L", bytez[offset:offset + wordsize])[0]
             if ptrace(PT_WRITE_D, self.pid, int(address + offset), int(dword)) != 0:
                 raise Exception("ERROR ptrace PT_WRITE_D failed!")
