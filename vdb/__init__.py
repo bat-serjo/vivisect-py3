@@ -1,40 +1,30 @@
 import os
-import re
-import sys
-import shlex
 import pprint
+import re
+import shlex
 import signal
+import sys
 import threading
 import traceback
-from queue import Queue
-from collections import defaultdict
-
-from configparser import *
-
-from cmd import *
-from struct import *
-from getopt import getopt
 from collections import UserDict
-
-import vtrace
-import vtrace.util as v_util
-import vtrace.snapshot as vs_snap
-import vtrace.notifiers as v_notif
-
-import vdb
-import vdb.stalker as v_stalker
-import vdb.extensions as v_ext
+from collections import defaultdict
+from getopt import getopt
+from queue import Queue
 
 import envi
-import envi.cli as e_cli
 import envi.bits as e_bits
-import envi.memory as e_mem
+import envi.cli as e_cli
 import envi.config as e_config
-import envi.memcanvas as e_canvas
+import envi.memory as e_mem
 import envi.symstore.resolver as e_resolv
-
-import vstruct
+import vdb
+import vdb.extensions as v_ext
+import vdb.stalker as v_stalker
 import vstruct.primitives as vs_prims
+import vtrace
+import vtrace.notifiers as v_notif
+import vtrace.snapshot as vs_snap
+import vtrace.util as v_util
 
 vdb.basepath = vdb.__path__[0] + '/'
 
@@ -1287,7 +1277,7 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
             return
 
         import vqt.main as vq_main
-        import vdb.qt.main as vdb_q_main
+        import vui.vdb.main as vdb_q_main
         import vqt.colors as vq_colors
 
         vq_main.startup(css=vq_colors.qt_matrix)

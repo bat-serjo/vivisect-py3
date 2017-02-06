@@ -154,7 +154,7 @@ def openServerAndWorkspace(vw, parent=None):
 
 @vq_main.workthread
 def connServerAndWorkspace(vw, host,parent=None):
-    # NOTE: do *not* touch parent (or qt) in here!
+    # NOTE: do *not* touch parent (or vdb) in here!
     try:
         server = viv_server.connectToServer(host)
         wslist = server.listWorkspaces()

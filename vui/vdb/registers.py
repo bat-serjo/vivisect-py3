@@ -1,13 +1,11 @@
-from PyQt4 import QtCore, QtGui
-
-import vdb.qt.base
+import vui.vdb.base
 import vui.qtrace
 from vqt.main import *
 
 
-class VdbRegistersWindow(vdb.qt.base.VdbWidgetWindow):
+class VdbRegistersWindow(vui.vdb.base.VdbWidgetWindow):
     def __init__(self, db, dbt, parent=None):
-        vdb.qt.base.VdbWidgetWindow.__init__(self, db, dbt, parent=parent)
+        vui.vdb.base.VdbWidgetWindow.__init__(self, db, dbt, parent=parent)
 
         self.regsWidget = vui.qtrace.RegistersView(trace=dbt, parent=parent)
 

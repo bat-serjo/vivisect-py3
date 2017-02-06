@@ -175,7 +175,7 @@ class VQMemoryWindow(vq_hotkey.HotKeyMixin, EnviNavMixin, vq_save.SaveableWidget
     def updateMemWindowTitle(self):
         try:
             # TODO: FIGURE OUT WHAT IS GOING ON HERE!
-            # expr = self.getExprTitle() #<- when debugging this leads to a completely different class vivisect/qt/memory
+            # expr = self.getExprTitle() #<- when debugging this leads to a completely different class vivisect/vdb/memory
             #
             expr = str(self.addr_entry.text())
         except Exception as e:

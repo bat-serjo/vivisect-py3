@@ -3,11 +3,11 @@ import traceback
 
 
 class SaveableWidget(object):
-    '''
+    """
     Inherited by widgets that want to save and restore settings.
 
     Implement vqGetSaveState/vqSetSaveState.
-    '''
+    """
 
     def vqSaveState(self, settings, name):
         state = self.vqGetSaveState()

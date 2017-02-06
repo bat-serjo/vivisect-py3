@@ -65,9 +65,9 @@ class VQInput(vq_hotkeys.HotKeyMixin, QtGui.QLineEdit):
 
 
 class VQCli(QtGui.QWidget):
-    '''
+    """
     A Qt class to wrap and emulate a Cmd object.
-    '''
+    """
 
     sigCliQuit = QtCore.pyqtSignal()
 
@@ -119,5 +119,5 @@ class VQCli(QtGui.QWidget):
     @idlethread
     def _emit_quit(self):
         # A way to emit the "quit" signal from threads other than the
-        # qt main thread.
+        # vdb main thread.
         self.sigCliQuit.emit()

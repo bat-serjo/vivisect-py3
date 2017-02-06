@@ -1,14 +1,11 @@
-from PyQt4 import QtGui
-
-import vdb.qt.base
 import envi.qt.memwrite as e_qt_mw
-
+import vui.vdb.base
 from vqt.main import *
 
 
-class VdbMemWriteWindow(vdb.qt.base.VdbWidgetWindow):
+class VdbMemWriteWindow(vui.vdb.base.VdbWidgetWindow):
     def __init__(self, db, dbt, expr='', esize='', parent=None):
-        vdb.qt.base.VdbWidgetWindow.__init__(self, db, dbt, parent=parent)
+        vui.vdb.base.VdbWidgetWindow.__init__(self, db, dbt, parent=parent)
 
         self.memWriteWidget = e_qt_mw.MemWriteWindow(expr=expr, esize=esize, emu=dbt, parent=parent)
         vbox = QtGui.QVBoxLayout()

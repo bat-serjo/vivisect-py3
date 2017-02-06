@@ -2,16 +2,13 @@
 '''
 The vdb command / GUI extensions from vivisect!
 '''
-import time
 import traceback
 
-import vdb
-import vtrace
-import vdb.qt.main as vdb_qt_main
-
 import envi.cli as e_cli
+import vdb
 import vivisect.colormap as viv_color
-
+import vtrace
+import vui.vdb.main as vdb_qt_main
 from envi.threads import firethread
 from vqt.main import idlethread, idlethreadsync
 

@@ -1,6 +1,6 @@
-'''
+"""
 Views related to information about a given function.
-'''
+"""
 from PyQt4 import QtCore, QtGui
 
 import envi.qt.memcanvas as e_q_memcanvas

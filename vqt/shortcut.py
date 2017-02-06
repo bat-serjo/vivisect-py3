@@ -1,6 +1,6 @@
-'''
+"""
 Some utilities for adding shortcut keys to widgets...
-'''
+"""
 
 from PyQt4 import QtCore, QtGui
 

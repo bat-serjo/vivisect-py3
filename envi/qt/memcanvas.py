@@ -133,7 +133,7 @@ class VQMemoryCanvas(QtWebKit.QWebView, e_memcanvas.MemoryCanvas):
     def getNameTag(self, name, typename='name'):
         """
         Return a "tag" for this memory canvas.  In the case of the
-        qt tags, they are a tuple of html text (<opentag>, <closetag>)
+        vdb tags, they are a tuple of html text (<opentag>, <closetag>)
         """
         clsname = 'envi-%s' % typename
         namehex = name.lower()

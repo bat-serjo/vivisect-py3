@@ -86,7 +86,7 @@ class VQVivMainWindow(vq_app.VQMainCmdWindow, viv_base.VivEventDist):
         if len(self.vqGetDockWidgets()) == 0:
             self.vw.vprint('\n')
             self.vw.vprint('Looks like you have an empty layout!')
-            self.vw.vprint('Use View->Layouts->Load and select vivisect/qt/default.lyt')
+            self.vw.vprint('Use View->Layouts->Load and select vivisect/vdb/default.lyt')
 
         fname = os.path.basename(self.vw.getMeta('StorageName', 'Unknown'))
         self.setWindowTitle('Vivisect: %s' % fname)

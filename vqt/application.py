@@ -119,7 +119,7 @@ class VQMainCmdWindow(vq_hotkey.HotKeyMixin, QtGui.QMainWindow):
 
     def vqBuildDockWidget(self, clsname, floating=False, area=QtCore.Qt.TopDockWidgetArea):
         res = self._dock_classes.get(clsname)
-        if res == None:
+        if res is None:
             print(('vqBuildDockWidget Failed For: %s' % clsname))
             return
         cls, args = res

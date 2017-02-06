@@ -1,6 +1,6 @@
-'''
+"""
 A place for some no-brainer basics :)
-'''
+"""
 
 from PyQt4 import QtCore, QtGui
 

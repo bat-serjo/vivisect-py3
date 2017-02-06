@@ -1,6 +1,6 @@
-'''
+"""
 Home of some helpers for python interactive stuff.
-'''
+"""
 import types
 import traceback
 
@@ -35,7 +35,7 @@ class ScriptThread(Thread):
 
 class VQPythonView(QtGui.QWidget):
     def __init__(self, locals=None, parent=None):
-        if locals == None:
+        if locals is None:
             locals = {}
 
         self._locals = locals
@@ -71,7 +71,7 @@ class VQPythonView(QtGui.QWidget):
             if type(lval) in (types.ModuleType,):
                 continue
             doc = getattr(lval, '__doc__', '\nNo Documentation\n')
-            if doc == None:
+            if doc is None:
                 doc = '\nNo Documentation\n'
             withhelp.append((lname, doc))
 

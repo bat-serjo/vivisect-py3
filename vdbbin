@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-import sys
 import argparse
+import sys
 import traceback
 
 import vdb
@@ -51,7 +51,7 @@ def main():
     parser = argparse.ArgumentParser(prog='vdbbin', usage='%(prog)s [options] [platformopt=foo, ...]')
     parser.add_argument('-c', '--cmd', dest='command', default=None, help='Debug a fired command')
     parser.add_argument('-p', '--process', dest='process', default=None, help='Attach to process by name or pid')
-    parser.add_argument('-Q', '--qt', dest='doqt', default=False, action='store_true', help='Run the QT gui')
+    parser.add_argument('-Q', '--vdb', dest='doqt', default=False, action='store_true', help='Run the QT gui')
     parser.add_argument('-R', '--remote', dest='remotehost', default=None, help='Attach to remote VDB server')
     parser.add_argument('-r', '--run', dest='dorunagain', default=False, action='store_true',
                         help='Do not stop on attach')
@@ -118,7 +118,7 @@ def main():
 
     if args.doqt:
         import vqt.main as vq_main
-        import vdb.qt.main as vdb_q_main
+        import vui.vdb.main as vdb_q_main
         import vqt.colors as vq_colors
         vq_main.startup(css=vq_colors.qt_matrix)
         qgui = vdb_q_main.VdbWindow(db)

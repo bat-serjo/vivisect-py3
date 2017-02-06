@@ -1,14 +1,13 @@
 import cmd
+import vdb
 import collections
 
-from PyQt4 import QtCore, QtGui
+import vui.vdb.memwrite
+import vui.vdb.registers
+import vui.vdb.threads
 
 import envi.cli
 import envi.qt.config
-import vdb.qt.memory
-import vdb.qt.memwrite
-import vdb.qt.registers
-import vdb.qt.threads
 import vqt.application as vq_app
 import vqt.cli
 import vqt.colors
@@ -16,9 +15,9 @@ import vqt.hotkeys as vq_hotkeys
 import vqt.main
 import vqt.qpython
 import vqt.shortcut
+import vui.vdb.memory
 import vui.qtrace
 from vqt.basics import *
-from vqt.common import *
 from vqt.main import *
 from vtrace.const import *
 
@@ -297,14 +296,14 @@ class VdbWindow(vq_app.VQMainCmdWindow):
         self._db.do_break('')
 
     def vqInitDockWidgetClasses(self):
-        self.vqAddDockWidgetClass(vdb.qt.memory.VdbMemoryWindow, args=(self._db, self._db_t))
+        self.vqAddDockWidgetClass(vui.vdb.memory.VdbMemoryWindow, args=(self._db, self._db_t))
         self.vqAddDockWidgetClass(vui.qtrace.VQMemoryMapView, args=(self._db_t, self))
         self.vqAddDockWidgetClass(vui.qtrace.VQFileDescView, args=(self._db_t, self))
-        self.vqAddDockWidgetClass(vdb.qt.threads.VdbThreadsWindow, args=(self._db, self._db_t,))
+        self.vqAddDockWidgetClass(vui.vdb.threads.VdbThreadsWindow, args=(self._db, self._db_t,))
         self.vqAddDockWidgetClass(vqt.qpython.VQPythonView, args=(self._db.getExpressionLocals(),))
 
-        self.vqAddDockWidgetClass(vdb.qt.registers.VdbRegistersWindow, args=(self._db, self._db_t))
-        self.vqAddDockWidgetClass(vdb.qt.memwrite.VdbMemWriteWindow, args=(self._db, self._db_t,))
+        self.vqAddDockWidgetClass(vui.vdb.registers.VdbRegistersWindow, args=(self._db, self._db_t))
+        self.vqAddDockWidgetClass(vui.vdb.memwrite.VdbMemWriteWindow, args=(self._db, self._db_t,))
 
     def menuEditPrefs(self):
 

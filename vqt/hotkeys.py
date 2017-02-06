@@ -109,18 +109,15 @@ class HotKeyMixin(object):
         mods = int(event.modifiers())
 
         # print('HOTKEY: %s 0x%.8x' % (key, mods))
-
         keytxt = None
 
         if key < 255:
             keytxt = chr(key).lower()
-
         else:
             keytxt = special_keys.get(key)
 
         # Check for modifiers...
         if keytxt:
-
             if mods & QMOD_SHIFT:
                 keytxt = keytxt.upper()
 
@@ -134,7 +131,7 @@ class HotKeyMixin(object):
         # print 'KEYSTR:',hotkey
 
         target = self._vq_hotkeys.get(hotkey)
-        if target != None:
+        if target is not None:
             callback, args, kwargs = self._vq_hotkey_targets.get(target)
             callback(*args, **kwargs)
             event.accept()

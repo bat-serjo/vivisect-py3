@@ -13,10 +13,10 @@ import envi.threads as e_threads
 
 def idlethread(func):
     """
-    A decorator which causes the function to be called by the qt
+    A decorator which causes the function to be called by the vdb
     main thread rather than synchronously...
 
-    NOTE: This makes the call async handled by the qt main
+    NOTE: This makes the call async handled by the vdb main
     loop code.  you can NOT return anything.
     """
 
