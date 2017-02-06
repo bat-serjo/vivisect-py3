@@ -2,7 +2,7 @@ from PyQt4 import QtCore, QtGui
 
 import envi.qt.memcanvas
 import envi.qt.memory
-import vui.qt
+import vui.qtrace
 from vqt.common import *
 from vqt.main import *
 
@@ -131,9 +131,9 @@ class VdbMemoryCanvas(envi.qt.memcanvas.VQMemoryCanvas):
         self.renderMemory(self._canv_beginva, totalsize)
 
 
-class VdbMemoryWindow(envi.qt.memory.VQMemoryWindow, vui.qt.VQTraceNotifier):
+class VdbMemoryWindow(envi.qt.memory.VQMemoryWindow, vui.qtrace.VQTraceNotifier):
     def __init__(self, db, dbt, parent=None, expr=None, sizeexpr=None, rend=None, **kwargs):
-        vui.qt.VQTraceNotifier.__init__(self, trace=dbt)
+        vui.qtrace.VQTraceNotifier.__init__(self, trace=dbt)
         envi.qt.memory.VQMemoryWindow.__init__(self, dbt, syms=dbt, parent=parent, **kwargs)
 
         for rname in db.canvas.getRendererNames():

@@ -16,18 +16,18 @@ import vqt.hotkeys as vq_hotkeys
 import vqt.main
 import vqt.qpython
 import vqt.shortcut
-import vui.qt
+import vui.qtrace
 from vqt.basics import *
 from vqt.common import *
 from vqt.main import *
 from vtrace.const import *
 
 
-class VdbCmdWidget(vqt.cli.VQCli, vui.qt.VQTraceNotifier):
+class VdbCmdWidget(vqt.cli.VQCli, vui.qtrace.VQTraceNotifier):
     def __init__(self, db, parent=None):
 
         vqt.cli.VQCli.__init__(self, db, parent)
-        vui.qt.VQTraceNotifier.__init__(self, trace=db.gui._db_t)
+        vui.qtrace.VQTraceNotifier.__init__(self, trace=db.gui._db_t)
         self._db_t = db.gui._db_t
 
         self.setAcceptDrops(True)
@@ -139,17 +139,17 @@ class VdbCmdWidget(vqt.cli.VQCli, vui.qt.VQTraceNotifier):
         self.input.setText('exec "%s"' % url.toLocalFile())
 
 
-class VdbToolBar(vui.qt.VQTraceToolBar):
+class VdbToolBar(vui.qtrace.VQTraceToolBar):
     """
     Subclass so we get access to the db object not proxied through VdbTrace.
     """
 
     def __init__(self, db, trace, parent=None):
-        vui.qt.VQTraceToolBar.__init__(self, trace, parent=parent)
+        vui.qtrace.VQTraceToolBar.__init__(self, trace, parent=parent)
         self.db = db
 
     def actAttach(self, *args, **kwargs):
-        pid = vui.qt.getProcessPid(trace=self.trace)
+        pid = vui.qtrace.getProcessPid(trace=self.trace)
         if pid is not None:
             workthread(self.trace.attach)(pid)
 
@@ -268,7 +268,7 @@ class VdbWindow(vq_app.VQMainCmdWindow):
     @vq_hotkeys.hotkey('debug:attach')
     def _hotkey_attach(self):
         trace = self._db.getTrace()
-        pid = vui.qt.getProcessPid(trace=trace, parent=self)
+        pid = vui.qtrace.getProcessPid(trace=trace, parent=self)
         workthread(trace.attach)(pid)
 
     @workthread
@@ -298,8 +298,8 @@ class VdbWindow(vq_app.VQMainCmdWindow):
 
     def vqInitDockWidgetClasses(self):
         self.vqAddDockWidgetClass(vdb.qt.memory.VdbMemoryWindow, args=(self._db, self._db_t))
-        self.vqAddDockWidgetClass(vui.qt.VQMemoryMapView, args=(self._db_t, self))
-        self.vqAddDockWidgetClass(vui.qt.VQFileDescView, args=(self._db_t, self))
+        self.vqAddDockWidgetClass(vui.qtrace.VQMemoryMapView, args=(self._db_t, self))
+        self.vqAddDockWidgetClass(vui.qtrace.VQFileDescView, args=(self._db_t, self))
         self.vqAddDockWidgetClass(vdb.qt.threads.VdbThreadsWindow, args=(self._db, self._db_t,))
         self.vqAddDockWidgetClass(vqt.qpython.VQPythonView, args=(self._db.getExpressionLocals(),))
 

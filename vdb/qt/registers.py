@@ -1,7 +1,7 @@
 from PyQt4 import QtCore, QtGui
 
 import vdb.qt.base
-import vui.qt
+import vui.qtrace
 from vqt.main import *
 
 
@@ -9,7 +9,7 @@ class VdbRegistersWindow(vdb.qt.base.VdbWidgetWindow):
     def __init__(self, db, dbt, parent=None):
         vdb.qt.base.VdbWidgetWindow.__init__(self, db, dbt, parent=parent)
 
-        self.regsWidget = vui.qt.RegistersView(trace=dbt, parent=parent)
+        self.regsWidget = vui.qtrace.RegistersView(trace=dbt, parent=parent)
 
         vbox = QtGui.QVBoxLayout()
         vbox.addWidget(self.regsWidget)

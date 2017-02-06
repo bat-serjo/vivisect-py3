@@ -78,7 +78,7 @@ class ThumbModule(envi.ArchitectureModule):
         return
 
     def archGetNopInstr(self):
-        return '\x00'
+        return b'\x00'
 
     def getPointerSize(self):
         return 4

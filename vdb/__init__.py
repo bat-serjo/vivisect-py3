@@ -40,9 +40,9 @@ vdb.basepath = vdb.__path__[0] + '/'
 
 
 class VdbLookup(UserDict):
-    '''
+    """
     Used for lookups by key or value.
-    '''
+    """
 
     def __init__(self, initdict=None):
         UserDict.__init__(self)
@@ -73,15 +73,15 @@ class ScriptThread(threading.Thread):
 
 
 def setupBreakOnEntry(trace):
-    '''
+    """
     Sets a one time breakpoint at the __entry symbol. Removes itself as a
     notifier after a single NOTIFY_BREAK event.
-    '''
+    """
     exefile = trace.normFileName(trace.getExe())
     exesym = trace.getSymByName(exefile)
-    if exesym != None:
+    if exesym is not None:
         entrySym = exesym.getSymByName('__entry')
-        if entrySym != None:
+        if entrySym is not None:
             entrySymExpr = '%s.__entry' % (exefile,)
             otb = vtrace.OneTimeBreak(None, expression=entrySymExpr)
             trace.addBreakpoint(otb)
@@ -155,11 +155,11 @@ docconfig = {
 
 
 class WrapExcThread(threading.Thread):
-    '''
+    """
     Places the return value or exception information into a queue that can
     be checked by the caller.
     If the method calls exit(), then nothing will be in the queue.
-    '''
+    """
 
     def __init__(self, target=None, args=tuple(), kwargs={}):
         threading.Thread.__init__(self)
@@ -178,17 +178,17 @@ class WrapExcThread(threading.Thread):
 
 
 class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
-    '''
+    """
     A VDB object is a debugger object which may be used to embed full
     debugger like functionality into a python application.  The
     Vdb object contains a CLI impelementation which extends envi.cli>
-    '''
+    """
 
     def __init__(self, trace=None):
         v_notif.Notifier.__init__(self)
         v_util.TraceManager.__init__(self)
 
-        if trace == None:
+        if trace is None:
             trace = vtrace.getTrace()
 
         arch = trace.getMeta('Architecture')
@@ -242,22 +242,22 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
         self.loadExtensions(trace)
 
     def addRunCacheCtor(self, name, ctor):
-        '''
+        """
         Add a "run cache constructor" which will be used if a RunCacheVar
         is requested that is not currently cached.  *All* RunCacheVar
         entries are flushed automagically on run...
 
         ( Allows db caching of critical structs likely to be parsed
           more than once by extensions )
-        '''
+        """
         self.runcachectors[name] = ctor
 
     def getRunCacheVar(self, cname):
-        '''
+        """
         Retrieve a variable from the vdb "runcache".  If not currently
         cached, the object will be constructed and added to the cache
         so that future references are fast.
-        '''
+        """
         ret = self.runcache.get(cname)
         if ret == None:
             ret = self.runcachectors.get(cname)(self)
@@ -297,15 +297,15 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
         sys.stderr.write(msg)
 
     def fatalError(self, exception):
-        '''
+        """
         Used for platform exceptions.  This indicates something in the
         underlying platform failed and continuing to debug is probably not a
         good idea.
-        '''
+        """
         self.vprint('%s: %s' % ('FATAL ERROR (you probably should restart session', exception))
 
     def vdbUIEvent(self, event, einfo=None):
-        '''
+        """
         Fire a UI event (mostly used by the GUI to force refresh)
 
         Do *not* fire this API in a tight loop, rather, fire once when
@@ -313,8 +313,8 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
 
         NOTE: Events should only be created for notification on
               events *not* already emitted by the tracer.
-        '''
-        if self.gui != None:
+        """
+        if self.gui is not None:
             self.gui.vdbUIEvent(event, einfo)
 
     def loadExtensions(self, trace):
@@ -381,7 +381,7 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
 
         # Do we have a symbol?
         sym = self.trace.getSymByAddr(address, exact=False)
-        if sym != None:
+        if sym is not None:
             return "%s + %d" % (repr(sym), address - int(sym))
 
         # Check if it's a thread's stack
@@ -394,7 +394,7 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
                 continue
 
             stack, size, perms, fname = smap
-            if address >= stack and address < (stack + size):
+            if stack <= address < (stack + size):
                 off = address - sp
                 op = "+"
                 if off < 0:
@@ -451,7 +451,7 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
             self.vprint("Process Recieved Signal %d (0x%.8x) (Thread: %d (0x%.8x))" % (signo, signo, thr, thr))
 
             faddr, fperm = trace.getMemoryFault()
-            if faddr != None:
+            if faddr is not None:
                 accstr = e_mem.getPermName(fperm)
                 self.vprint('Memory Fault: addr: 0x%.8x perm: %s' % (faddr, accstr))
 
@@ -461,7 +461,7 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
             if bp:
                 self.vprint("Thread: %d Hit Break: %s" % (tid, repr(bp)))
                 cmdstr = self.bpcmds.get(bp.id, None)
-                if cmdstr != None:
+                if cmdstr is not None:
                     self.onecmd(cmdstr)
 
             else:
@@ -480,7 +480,7 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
 
         elif event == vtrace.NOTIFY_LOAD_LIBRARY:
             self.vprint("Loading Binary: %s" % trace.getMeta("LatestLibrary", None))
-            if self.waitlib != None:
+            if self.waitlib is not None:
                 normname = trace.getMeta('LatestLibraryNorm', None)
                 if self.waitlib == normname:
                     self.waitlib = None
@@ -653,11 +653,11 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
             self.vprint("Allocation Error: %s" % e)
 
     def do_autoscript(self, line):
-        '''
+        """
         Tell vdb to run a python script on every process attach.
 
         Usage: autoscript <scriptfile>|clear
-        '''
+        """
         argv = e_cli.splitargs(line)
         if len(argv) != 1:
             self.vprint('Current Autoscript: %s' % self.autoscript)
@@ -674,11 +674,11 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
         self.autoscript = argv[0]
 
     def do_memload(self, line):
-        '''
+        """
         Load a file into memory. (straight mapping, no parsing)
 
         Usage: memload <filename>
-        '''
+        """
         argv = e_cli.splitargs(line)
         if len(argv) != 1:
             return self.do_help('memload')
@@ -695,12 +695,12 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
         self.vprint('Loaded At: 0x%.8x (%d bytes)' % (memva, len(fbytes)))
 
     def do_struct(self, line):
-        '''
+        """
         Show and optionally apply a vstruct definition to memory.
         Use the 'vstruct' command to find and display a structure of interest.
 
         Usage: struct <vstruct name> [memory expression]
-        '''
+        """
         argv = shlex.split(line)
         if len(argv) not in (1, 2):
             return self.do_help('struct')
@@ -881,7 +881,7 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
             self.vprint("Suspended Thread: %d" % tid)
 
     def do_restart(self, line):
-        '''
+        """
         Restart the current process.
 
         Usage: restart
@@ -889,7 +889,7 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
         NOTE: This only works if the process was exec'd to begin with!
 
         TODO: Plumb options for persisting bp's etc...
-        '''
+        """
         t = self.trace
         cmdline = t.getMeta('ExecCommand')
         if cmdline == None:
@@ -1137,7 +1137,7 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
                 if count != None and hits >= count:
                     break
 
-                if t.getCurrentSignal() != None:
+                if t.getCurrentSignal() is not None:
                     break
 
                 if t.getMeta('PendingSignal'):
@@ -1149,12 +1149,12 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
             t.fireNotifiers(vtrace.NOTIFY_STEP)
 
     def do_stepo(self, line):
-        '''
+        """
         Step over current instruction.
         Executes the current instruction unless it is a procedure call.
         If it is a procedure call, sets a breakpoint on the instruction after
         the call.
-        '''
+        """
         op = self.trace.parseOpcode(self.trace.getProgramCounter())
         if not op.isCall():
             self.trace.stepi()
@@ -1165,14 +1165,14 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
             self.trace.run()
 
     def do_stepout(self, line):
-        '''
+        """
         Step out of the current function. (stepi or stepover until return)
         Single step (stepping over procedure calls) until a return
         instruction. Breaks on the return instruction.
 
         Usage: stepout [options]
         -V  verbose, print step instructions. (much slower)
-        '''
+        """
         args = shlex.split(line)
         verbose = False
         if len(args) not in (0, 1):
@@ -1197,7 +1197,7 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
                 if op.isReturn():
                     break
 
-                if self.trace.getCurrentSignal() != None:
+                if self.trace.getCurrentSignal() is not None:
                     self.vprint('do_stepout: received signal, stopping')
                     break
 
@@ -1228,20 +1228,20 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
 
             # make sure waitva is gone
             bpid = self.trace.getBreakpointByAddr(waitva)
-            if bpid != None:
+            if bpid is not None:
                 self.trace.removeBreakpoint(bpid)
 
             self.trace.fireNotifiers(vtrace.NOTIFY_STEP)
 
     def do_go(self, line):
-        '''
+        """
         Continue the target tracer.
         -I go icount linear instructions forward (step over style)
         -U go *out* of fcount frames (step out style)
         <until addr> go until explicit address
 
         Usage: go [-U <fcount> | -I <icount> | <until addr expression>]
-        '''
+        """
         until = None
         icount = None
         fcount = None
@@ -1260,14 +1260,14 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
                 if len(optarg) == 0: return self.do_help('go')
                 icount = self.trace.parseExpression(optarg)
 
-        if icount != None:
+        if icount is not None:
             addr = self.trace.getProgramCounter()
             for i in range(icount):
                 addr += len(self.trace.parseOpcode(addr))
 
             until = addr
 
-        elif fcount != None:
+        elif fcount is not None:
             until = self.trace.getStackTrace()[fcount][0]
 
         elif len(args):
@@ -1279,10 +1279,10 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
         self.trace.run(until=until)
 
     def do_gui(self, line):
-        '''
+        """
         Attempt to spawn the VDB gui.
-        '''
-        if self.gui != None:
+        """
+        if self.gui is not None:
             self.vprint('Gui already running!')
             return
 
@@ -1297,13 +1297,13 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
         vq_main.main()
 
     def do_waitlib(self, line):
-        '''
+        """
         Run the target process until the specified library
         (by normalized name such as 'kernel32' or 'libc')
         is loaded.  Disable waiting with -D.
 
         Usage: waitlib [ -D | <libname> ]
-        '''
+        """
         t = self.trace
         pid = t.getPid()
 
@@ -1326,7 +1326,7 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
 
         libname = args[0]
 
-        if t.getMeta('LibraryBases').get(libname) != None:
+        if t.getMeta('LibraryBases').get(libname) is not None:
             self.vprint('Library Already Loaded: %s' % libname)
             return
 
@@ -1369,7 +1369,7 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
             self.vprint('%6d %.8s - %s' % (pid, runmsg, name))
 
     def do_syms(self, line):
-        '''
+        """
         List symbols for loaded libraries. Use 'lm' to see loaded libraries.
         -s <regex> a regular expression (case insensitive search)
         <libname> the library name
@@ -1384,7 +1384,7 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
 
         Usage: shows specific symbols in any library
                 syms -s .*?barfoo.*
-        '''
+        """
         argv = shlex.split(line)
         if len(argv) < 1:
             return self.do_help('syms')
@@ -1408,7 +1408,7 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
             for sym in self.trace.getSymsForFile(lib):
                 r = repr(sym)
 
-                if rgx != None:
+                if rgx is not None:
                     match = re.search(rgx, r, re.IGNORECASE)
                     if match == None:
                         continue
@@ -1447,9 +1447,9 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
         self.vprint(self.reprPointer(addr))
 
     def do_EOF(self, string):
-        '''
+        """
         Prints how to exit VDB (use quit).
-        '''
+        """
         self.vprint("No.. this is NOT a python interpreter... use quit ;)")
 
     def do_quit(self, args):
@@ -1483,13 +1483,13 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
             self.vprint('Exception during quit (may need: quit force): %s' % e)
 
     def do_detach(self, line):
-        '''
+        """
         Detach from the current tracer.
 
         Detaching using -k terminates the process on detach.
 
         Usage: detach [-k]
-        '''
+        """
         self.trace.requireAttached()
 
         argv = e_cli.splitargs(line)
@@ -1784,7 +1784,7 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
 
                         symstr = str(sym)
                         symval = int(sym)
-                        if self.trace.getBreakpointByAddr(symval) != None:
+                        if self.trace.getBreakpointByAddr(symval) is not None:
                             self.vprint('Duplicate (0x%.8x) %s' % (symval, symstr))
                             continue
                         bp = vtrace.Breakpoint(None, expression=symstr)
@@ -1802,7 +1802,7 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
         if len(args) >= 1:
             arg = args[0]
 
-            if wpargs != None:
+            if wpargs is not None:
                 size = int(wpargs[1])
                 bp = vtrace.Watchpoint(None, expression=arg, size=size, perms=wpargs[0])
             else:
@@ -1956,7 +1956,7 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
         return ret
 
     def do_dope(self, line):
-        '''
+        """
         Cli interface to the "stack doping" api inside recon.  *BETA*
 
         (Basically, set all un-initialized stack memory to V's to tease
@@ -1966,7 +1966,7 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
         -E  Enable automagic thread stack doping on all continue events
         -D  Disable automagic thread stack doping on all continue events
         -A  Dope all current thread stacks
-        '''
+        """
         import vdb.recon.dopestack as vr_dopestack
 
         argv = e_cli.splitargs(line)
@@ -1997,7 +1997,7 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
                 self.vprint('...complete!')
 
     def do_recon(self, line):
-        '''
+        """
         Cli front end to the vdb recon subsystem which allows runtime
         analysis of known API calls.
 
@@ -2020,7 +2020,7 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
         U - A unicode string (up to 260 chars)
         X - A hex number
 
-        '''
+        """
         import vdb.recon as v_recon
         import vdb.recon.sniper as v_sniper
         argv = e_cli.splitargs(line)
@@ -2061,7 +2061,7 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
                 v_sniper.snipeDynArg(self.trace, symname, argidx)
 
     def do_stalker(self, line):
-        '''
+        """
         Cli front end to the VDB code coverage subsystem. FIXME MORE DOCS!
 
         Usage: stalker [options]
@@ -2071,7 +2071,7 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
         -H                  - Show the current hits
         -L <lib>:<regex>    - Add stalker breaks to all matching library symbols
         -R                  - Reset all breakpoints to enabled and clear hit info
-        '''
+        """
 
         argv = e_cli.splitargs(line)
 
@@ -2117,9 +2117,9 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
                 v_stalker.resetStalkerBreaks(trace)
 
     def do_status(self, line):
-        '''
+        """
         Print out the status of the debugger / trace...
-        '''
+        """
         t = self.getTrace()
         if not t.isAttached():
             self.vprint('Trace Not Attached...')
@@ -2132,11 +2132,11 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
         self.vprint('Attached to pid: %d (%s)' % (pid, runmsg))
 
     def _getFirstLine(self, line):
-        '''
+        """
         Returns the first non-empty line in a (potentially) empty or
         multiline string.  An empty line is returned for a None string or
         if all lines are empty.
-        '''
+        """
         if line == None:
             return ''
 
@@ -2149,12 +2149,12 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
         return ''
 
     def _getCommandHelp(self):
-        '''
+        """
         Returns a list of command name, doc first line, and doc string tuples.
         (sorted by command name)
         We'll need this later anyway when we implement our own groups of
         commands.
-        '''
+        """
         # commands can be docstrings or have help_<cmd> methods.
         HELP_DOCS = 0  # help docstring
         HELP_FUNC = 1  # help function (precedence over docstring)
@@ -2193,7 +2193,7 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
         return rcmds
 
     def do_help(self, line):
-        '''
+        """
         Prints a list of commands and further help depending on the options.
 
         Usage: help [options] [string]
@@ -2205,7 +2205,7 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
         -s <string>     one line of help per command for commands that contain
                         string
         -k <string>     all help per command for commands that contain <string>
-        '''
+        """
         argv = shlex.split(line)
         if len(argv) == 0:
             return e_cli.EnviMutableCli.do_help(self, line)

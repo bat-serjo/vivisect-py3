@@ -48,7 +48,7 @@ class HookBpTest(v_testmods.VtracePythonTest):
 
         plat = self.trace.getMeta('Platform').lower()
         symname = plat_syms.get(plat)
-        if symname == None:
+        if symname is None:
             raise Exception('No symbol to test platform!')
 
         # if we're on 64bit, impapi won't have the sym so specify cc
@@ -84,7 +84,7 @@ class HookBpTest2(v_testmods.VtracePythonTest):
 
         plat = self.trace.getMeta('Platform').lower()
         symname = plat_syms.get(plat)
-        if symname == None:
+        if symname is None:
             raise Exception('No symbol to test platform!')
 
         # if we're on 64bit, impapi won't have the sym so specify cc
@@ -116,7 +116,7 @@ class HookBpTest3(v_testmods.VtracePythonTest):
     def runTest(self):
         plat = self.trace.getMeta('Platform').lower()
         symname = plat_syms.get(plat)
-        if symname == None:
+        if symname is None:
             raise Exception('No symbol to test platform!')
 
         # don't specify posthook
@@ -147,7 +147,7 @@ class HookBpTest4(v_testmods.VtracePythonTest):
         vtrace.breakpoints.HookBreakpoint.defaultErrorHandler = self.silentErrorHandler
         plat = self.trace.getMeta('Platform').lower()
         symname = plat_syms.get(plat)
-        if symname == None:
+        if symname is None:
             raise Exception('No symbol to test platform!')
 
         vtrace.breakpoints.addHook(self.trace, symname, prehookThrow)
@@ -169,7 +169,7 @@ class HookBpTest5(v_testmods.VtracePythonTest):
     def runTest(self):
         plat = self.trace.getMeta('Platform').lower()
         symname = plat_syms.get(plat)
-        if symname == None:
+        if symname is None:
             raise Exception('No symbol to test platform!')
 
         vtrace.breakpoints.addHook(self.trace, symname, prehook)
@@ -198,7 +198,7 @@ class HookBpTest6(v_testmods.VtracePythonTest):
 
         plat = self.trace.getMeta('Platform').lower()
         symname = plat_syms.get(plat)
-        if symname == None:
+        if symname is None:
             raise Exception('No symbol to test platform!')
 
         # add a normal bp
