@@ -26,13 +26,13 @@ class Symbol:
         t = type(value)
 
         if t == type(None):
-            return (True, False)
+            return True, False
 
         if t in (int, int):
-            return (t(self.value), value)
+            return t(self.value), value
 
         if isinstance(value, Symbol):
-            return (int(self.value), int(value.value))
+            return int(self.value), int(value.value)
 
     def __hash__(self):
         return hash(int(self))
@@ -47,7 +47,7 @@ class Symbol:
         return self.size
 
     def __str__(self):
-        if self.fname != None:
+        if self.fname is not None:
             return "%s.%s" % (self.fname, self.name)
         return self.name
 
@@ -86,7 +86,7 @@ class SymbolResolver:
         self.casesens = casesens
         self.baseaddr = baseaddr  # Set if this is an RVA sym resolver
 
-        # Lets use 4096 byte buckes for now
+        # Lets use 4096 byte buckets for now
         self.bucketsize = 4096
         self.bucketmask = self.widthmask ^ (self.bucketsize - 1)
 
@@ -112,11 +112,11 @@ class SymbolResolver:
         # self.objbuckets[bbase].remove(sym)
 
         subres = None
-        if sym.fname != None:
+        if sym.fname is not None:
             subres = self.symnames.get(sym.fname)
 
         # Potentially del it from the sub resolver's namespace
-        if subres != None:
+        if subres is not None:
             subres.delSymbol(sym)
 
         # Otherwise del it from our namespace
@@ -148,20 +148,20 @@ class SymbolResolver:
         return self._addSymObject(sym)
 
     def getSymByName(self, name):
-        '''
+        """
         Retrieve a Symbol object by name.
-        '''
+        """
         if not self.casesens:
             name = name.lower()
 
         # Do we have a cached object?
         sym = self.symobjsbyname.get(name)
-        if sym != None:
+        if sym is not None:
             return sym
 
         # Do we have a symbol tuple?
         symtup = self.symnames.get(name)
-        if symtup != None:
+        if symtup is not None:
             return self._symFromTup(symtup)
 
     def delSymByName(self, name):
@@ -169,7 +169,7 @@ class SymbolResolver:
             name = name.lower()
 
         sym = self.symnames.get(name, None)
-        if sym != None:
+        if sym is not None:
             self.delSymbol(self._symFromTup(sym))
 
     def _symFromTup(self, symtup):
@@ -194,7 +194,7 @@ class SymbolResolver:
 
         if sym.fname:
             subres = self.symobjsbyname.get(sym.fname)
-            if subres != None:
+            if subres is not None:
                 subres._addSymObject(sym)
                 return
 
@@ -208,10 +208,10 @@ class SymbolResolver:
         """
         Return a symbol object for the given virtual address.
         """
-        va = va & self.widthmask
+        va &= self.widthmask
 
         sym = self.symobjsbyaddr.get(va)
-        if sym != None:
+        if sym is not None:
             return sym
 
         symtup = self.symaddrs.get(va)
@@ -230,7 +230,7 @@ class SymbolResolver:
                 b1.sort()
                 symtup = b1[-1]
                 sym = self.symobjsbyaddr.get(symtup[0])
-                if sym != None:
+                if sym is not None:
                     return sym
 
                 return self._symFromTup(symtup)
@@ -273,10 +273,10 @@ class SymbolResolver:
             [self.symnames.__setitem__(n[2], n) for n in symtups]
 
     def impSymCache(self, symcache, symfname=None, baseaddr=0):
-        '''
+        """
         Import a list of symbol tuples (see getCacheSyms()) at the
         given base address ( and for the given sub-file )
-        '''
+        """
         # Recieve a "cache" list and make it into our kind of tuples.
         symtups = [(symaddr + baseaddr, symsize, symname, symtype, symfname) for (symaddr, symsize, symname, symtype) in
                    symcache]
@@ -301,14 +301,14 @@ class FileSymbol(Symbol, SymbolResolver):
     A file symbol is both a symbol resolver of it's own, and
     a symbol.
 
-    File symbols are used to do heirarchal symbol lookups and don't
+    File symbols are used to do hierarchical symbol lookups and don't
     actually add anything but the name to their lookup (it is assumed
     that the parent Resolver of the FileSymbol takes care of addr lookups.
     """
     symtype = SYMSTOR_SYM_MODULE
 
     def __init__(self, fname, base, size, width=4):
-        if fname == None:
+        if fname is None:
             raise Exception('fname must not be None for a FileSymbol')
 
         SymbolResolver.__init__(self, width=width, baseaddr=base)
@@ -316,11 +316,11 @@ class FileSymbol(Symbol, SymbolResolver):
 
     def __getattr__(self, name):
         """
-        File symbols may be dereferenced like python objects to resolve
+        File symbols may be de-referenced like python objects to resolve
         symbols within them.
         """
         ret = self.getSymByName(name)
-        if ret == None:
+        if ret is None:
             raise AttributeError("%s has no symbol %s" % (self.name, name))
         return ret
 
@@ -329,7 +329,7 @@ class FileSymbol(Symbol, SymbolResolver):
         Allow dictionary style access for mangled incompatible names...
         """
         ret = self.getSymByName(name)
-        if ret == None:
+        if ret is None:
             raise KeyError("%s has no symbol %s" % (self.name, name))
         return ret
 

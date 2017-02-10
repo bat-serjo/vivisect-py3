@@ -1609,7 +1609,7 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
         if len(args):
             base = bases.get(args)
             path = paths.get(base, "unknown")
-            if base == None:
+            if base is None:
                 self.vprint("Library %s is not found!" % args)
             else:
                 self.vprint("0x%.8x - %s %s" % (base, args, path))
@@ -1618,6 +1618,7 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
             names = self.trace.getNormalizedLibNames()
             names.sort()
             names = e_cli.columnstr(names)
+
             for libname in names:
                 base = bases.get(libname.strip(), -1)
                 path = paths.get(base, "unknown")
