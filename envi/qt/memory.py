@@ -17,13 +17,13 @@ from vqt.common import *
 
 
 class EnviNavMixin:
-    '''
+    """
     Classes may inerhit from this mixin to help out with envi
     nav events.
 
     Implement enviNavGoto() which will only be called when your
     envi nav name (setEnviNavName()) matches the nav event.
-    '''
+    """
 
     def __init__(self):
         self._envi_navname = 'mem'
@@ -32,12 +32,12 @@ class EnviNavMixin:
         self.setAcceptDrops(True)
 
     def enviNavFini(self):
-        '''
+        """
         Called when it's time to explicitly cleanup our event
         subscriptions.
 
         NOTE: this should be called by closeEvent handlers.
-        '''
+        """
         vqtdisconnect(self.enviNavGetnames, 'envi:nav:getnames')
         vqtdisconnect(self.enviNavExpr, 'envi:nav:expr')
 
@@ -162,9 +162,9 @@ class VQMemoryWindow(vq_hotkey.HotKeyMixin, EnviNavMixin, vq_save.SaveableWidget
         return e_memcanvas_qt.VQMemoryCanvas(memobj, syms=syms, parent=self)
 
     def setMemWindowName(self, mwname):
-        '''
+        """
         Set the memory window name/title prefix to the given string.
-        '''
+        """
         self.mwname = mwname
         self.setEnviNavName(mwname)
         self.updateMemWindowTitle()
@@ -327,11 +327,10 @@ class VQMemoryWindow(vq_hotkey.HotKeyMixin, EnviNavMixin, vq_save.SaveableWidget
         self.mem_canvas.clearCanvas()
 
     def vqGetSaveState(self):
-        state = {}
-        state['addr_entry'] = str(self.addr_entry.text())
-        state['rend_select'] = str(self.rend_select.currentText())
-        state['size_entry'] = str(self.size_entry.text())
-        state['name'] = self.mwname
+        state = {'addr_entry': str(self.addr_entry.text()),
+                 'rend_select': str(self.rend_select.currentText()),
+                 'size_entry': str(self.size_entry.text()),
+                 'name': self.mwname}
         return state
 
     def vqSetSaveState(self, state):

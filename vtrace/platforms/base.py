@@ -690,15 +690,15 @@ class TracerBase(notifiers.Notifier, PlatformMixinInterface):
             try:
                 notifier.handleEvent(event, trace)
             except:
-                print(('WARNING: Notifier exception for %s' % repr(notifier)))
                 traceback.print_exc()
+                print(('WARNING: Notifier exception for %s' % repr(notifier)))
 
         for notifier in nlist:
             try:
                 notifier.handleEvent(event, trace)
             except:
-                print(('WARNING: Notifier exception for %s' % repr(notifier)))
                 traceback.print_exc()
+                print(('WARNING: Notifier exception for %s' % repr(notifier)))
 
     def _fireStep(self):
         if self.getMode('FastStep', False):

@@ -70,9 +70,9 @@ import vqt.hotkeys as vq_hotkey
 
 
 class VQMainCmdWindow(vq_hotkey.HotKeyMixin, QtGui.QMainWindow):
-    '''
+    """
     A base class for application window's to inherit from.
-    '''
+    """
 
     __cli_widget_class__ = vq_cli.VQCli
 

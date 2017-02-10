@@ -1,13 +1,14 @@
-'''
+"""
 Unified CLI code for things like vivisect and vdb.
-'''
+"""
 
 import os
 import re
 import sys
 import code
-import shlex
 import json
+import shlex
+import binascii
 import optparse
 import traceback
 import threading
@@ -686,12 +687,13 @@ class EnviCli(Cmd):
             self.vprint('searching all memory...')
             res = self.memobj.searchMemory(pattern, regex=options.is_regex)
 
+        h = binascii.hexlify(pattern.encode())
         if len(res) == 0:
-            self.vprint('pattern not found: %s (%s)' % (pattern.encode('hex'), repr(pattern)))
+            self.vprint('pattern not found: %s (%s)' % (h, repr(pattern)))
             return
 
         brend = e_render.ByteRend()
-        self.vprint('matches for: %s (%s)' % (pattern.encode('hex'), repr(pattern)))
+        self.vprint('matches for: %s (%s)' % (h, repr(pattern)))
         for va in res:
             mbase, msize, mperm, mfile = self.memobj.getMemoryMap(va)
             pname = e_mem.reprPerms(mperm)

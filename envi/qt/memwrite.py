@@ -8,9 +8,9 @@ from PyQt4 import QtGui, QtCore
 
 
 class VQLineEdit(QtGui.QLineEdit):
-    '''
+    """
     Has an additional signal to emit a signal on release of every keypress.
-    '''
+    """
     keyReleased = QtCore.pyqtSignal(QtGui.QKeyEvent)
 
     def keyReleaseEvent(self, event):
@@ -39,19 +39,19 @@ class MemNavWidget(QtGui.QWidget):
         self.esize_entry.returnPressed.connect(self.emitUserChangedSignal)
 
     def emitUserChangedSignal(self):
-        '''
+        """
         Emits signal when user manually enters new expressions in the expr or
         size field and presses enter.
-        '''
+        """
         expr = str(self.expr_entry.text())
         size = str(self.esize_entry.text())
         self.userChanged.emit(expr, size)
 
     def setValues(self, expr, esize):
-        '''
+        """
         Called externally to allow programmatic way to update the expr or size
         field. Does not emit the changed signal.
-        '''
+        """
         self.expr_entry.setText(expr)
         self.esize_entry.setText(esize)
 
@@ -60,9 +60,9 @@ class MemNavWidget(QtGui.QWidget):
 
 
 class MemWriteWindow(QtGui.QWidget):
-    '''
+    """
     gui for writemem cli command.
-    '''
+    """
     renderRequest = QtCore.pyqtSignal(str, str)
 
     # button to write memory was clicked (va, bytez)

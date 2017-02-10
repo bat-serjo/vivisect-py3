@@ -5,6 +5,7 @@ memory access API used by all vtoys trace/emulators/workspaces.
 
 import re
 import struct
+import traceback
 import collections
 
 import envi
@@ -271,6 +272,7 @@ class IMemory:
             try:
                 results.extend(self.searchMemoryRange(needle, va, size, regex=regex))
             except:
+                traceback.print_exc()
                 pass  # Some platforms dont let debuggers read non-readable mem
 
         return results
@@ -283,6 +285,9 @@ class IMemory:
         """
         results = []
         memory = self.readMemory(address, size)
+        if isinstance(needle, str):
+            needle = needle.encode()
+
         if regex:
             for match in re.finditer(needle, memory):
                 off = match.start()

@@ -1,7 +1,7 @@
-'''
+"""
 The envi.qt.html module contains the HTML template and javascript
 code used by the renderers (which are based on QtWebKit)
-'''
+"""
 
 template = '''
 <!DOCTYPE html>
