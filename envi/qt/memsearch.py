@@ -116,14 +116,14 @@ class MemSearchDialog(QtGui.QDialog):
         self.updateHexPreview(txt_encoded)
 
     def encodeData(self, txt, encoding):
-        if encoding == 'hex' and (len(txt) % 2) != 0:
-            txt = txt[:-1]  # trim last if odd length
-
         if encoding == 'hex':
+            if (len(txt) % 2) != 0:
+                txt = txt[:-1]  # trim last if odd length
+
             if not all(c in string.hexdigits for c in txt):
                 return None
 
-            return txt.decode(encoding)
+            return bytes.fromhex(txt)
 
         elif encoding == 'regex':
             return None
@@ -131,7 +131,7 @@ class MemSearchDialog(QtGui.QDialog):
         return txt.encode(encoding)
 
     def updateHexPreview(self, bytez):
-        if bytez == None:
+        if bytez is None:
             self.hex_edit.setPlainText('')
             return
 

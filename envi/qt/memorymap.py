@@ -82,7 +82,7 @@ class VQMemoryMapView(vq_tree.VQTreeView):
 
         pattern, fname = dlg.getResults()
 
-        if allmaps == True:
+        if allmaps is True:
             self.do_searchall(pattern, fname=fname)
         else:
             va, size, perms, mname = self.mem.getMemoryMap(va)

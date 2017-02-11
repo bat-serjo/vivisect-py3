@@ -6,7 +6,6 @@ memory access API used by all vtoys trace/emulators/workspaces.
 import re
 import struct
 import traceback
-import collections
 
 import envi
 
@@ -26,10 +25,10 @@ pnames = ['No Access', 'Execute', 'Write', None, 'Read']
 
 
 def getPermName(perm):
-    '''
+    """
     Return the human readable name for a *single* memory
     perm enumeration value.
-    '''
+    """
     return pnames[perm]
 
 
@@ -73,22 +72,22 @@ class IMemory:
             self.setMemArchitecture(arch)
 
     def setMemArchitecture(self, arch):
-        '''
+        """
         Set the hardware architecture for the current memory object.
         ( this controls things like pointer size, and opcode decoding )
 
         Example:
             import envi
             mem.setMemArchitecture( envi.ARCH_I386 )
-        '''
+        """
         archmod = self.imem_archs[arch >> 16]
         self.imem_archs[envi.ARCH_DEFAULT] = archmod
         self.imem_psize = archmod.getPointerSize()
 
     def getMemArchModule(self, arch=envi.ARCH_DEFAULT):
-        '''
+        """
         Get a reference to the default arch module for the memory object.
-        '''
+        """
         return self.imem_archs[arch >> 16]
 
     def getPointerSize(self):
@@ -167,39 +166,39 @@ class IMemory:
         return 0, 0xffffffff
 
     def readMemValue(self, addr, size):
-        bytes = self.readMemory(addr, size)
-        if bytes is None:
+        _bytes = self.readMemory(addr, size)
+        if _bytes is None:
             return None
         # FIXME change this (and all uses of it) to passing in format...
-        if len(bytes) != size:
+        if len(_bytes) != size:
             raise Exception("Read Gave Wrong Length At 0x%.8x (va: 0x%.8x wanted %d got %d)" % (
-                self.getProgramCounter(), addr, size, len(bytes)))
+                self.getProgramCounter(), addr, size, len(_bytes)))
         if size == 1:
-            return struct.unpack("B", bytes)[0]
+            return struct.unpack("B", _bytes)[0]
         elif size == 2:
-            return struct.unpack("<H", bytes)[0]
+            return struct.unpack("<H", _bytes)[0]
         elif size == 4:
-            return struct.unpack("<I", bytes)[0]
+            return struct.unpack("<I", _bytes)[0]
         elif size == 8:
-            return struct.unpack("<Q", bytes)[0]
+            return struct.unpack("<Q", _bytes)[0]
 
     def readMemoryPtr(self, va):
-        '''
+        """
         Read a pointer from memory at the specified address.
 
         Example:
             ptr = t.readMemoryPtr(addr)
-        '''
+        """
         return self.readMemValue(va, self.imem_psize)
 
     def writeMemoryFormat(self, va, fmt, *args):
-        '''
+        """
         Write a python format sequence of variables out to memory after
         serializing using struct pack...
 
         Example:
             trace.writeMemoryFormat(va, '<PBB', 10, 30, 99)
-        '''
+        """
         if self.imem_psize == 4:
             fmt = fmt.replace("P", "I")
         elif self.imem_psize == 8:
@@ -208,23 +207,23 @@ class IMemory:
         self.writeMemory(va, mbytes)
 
     def getMemoryMap(self, va):
-        '''
+        """
         Return a tuple of mapva,size,perms,filename for the memory
         map which contains the specified address (or None).
-        '''
+        """
         for mapva, size, perms, mname in self.getMemoryMaps():
             if mapva <= va < (mapva + size):
-                return (mapva, size, perms, mname)
+                return mapva, size, perms, mname
         return None
 
     def isValidPointer(self, va):
         return self.getMemoryMap(va) is not None
 
     def getMaxReadSize(self, va):
-        '''
+        """
         Return the number of contiguous bytes that can be read from the
         specified va.
-        '''
+        """
         nread = 0
 
         mmap = self.getMemoryMap(va)
@@ -260,24 +259,22 @@ class IMemory:
         maptup = self.getMemoryMap(va)
         if maptup is None:
             return False
-        return bool(maptup[2] & MM_SHAR)
+        return bool(maptup[2] & MM_SHARED)
 
-    def searchMemory(self, needle, regex=False):
+    def searchMemory(self, needle: bytes, regex: bool=False) -> list:
         """
-        A quick cheater way to searchMemoryRange() for each
-        of the current memory maps.
+        searchMemoryRange() for each of the current memory maps.
         """
         results = []
         for va, size, perm, fname in self.getMemoryMaps():
             try:
                 results.extend(self.searchMemoryRange(needle, va, size, regex=regex))
-            except:
+            except Exception:
                 traceback.print_exc()
-                pass  # Some platforms dont let debuggers read non-readable mem
 
         return results
 
-    def searchMemoryRange(self, needle, address, size, regex=False):
+    def searchMemoryRange(self, needle: bytes, address, size, regex: bool=False) -> list:
         """
         Search the specified memory range (address -> size)
         for the string needle.   Return a list of addresses
@@ -304,20 +301,20 @@ class IMemory:
         return results
 
     def parseOpcode(self, va, arch=envi.ARCH_DEFAULT):
-        '''
+        """
         Parse an opcode from the specified virtual address.
 
         Example: op = m.parseOpcode(0x7c773803)
-        '''
+        """
         b = self.readMemory(va, 16)
         return self.imem_archs[arch >> 16].archParseOpcode(b, 0, va)
 
 
 class MemoryCache(IMemory):
-    '''
+    """
     An object which acts like "copy on write" cache for another memory
     object.
-    '''
+    """
 
     def __init__(self, mem, pagesize=4096):
         self.mem = mem
@@ -370,27 +367,27 @@ class MemoryCache(IMemory):
             bytez = bytez[chunksize:]
 
     def clearDirtyPages(self):
-        '''
+        """
         Clear the "dirty cache" allowing tracking of writes *since* this call.
-        '''
+        """
         self.pagedirty.clear()
 
     def isDirtyPage(self, va):
-        '''
+        """
         Return True if the given page is currently "dirty" according to the cache.
-        '''
+        """
         return self.pagedirty.get(va & self.pagemask, False)
 
     def getDirtyPages(self):
-        '''
+        """
         Returns a list of dirty pages as (pageva, pagebytez) tuples.
-        '''
+        """
         return [(va, self.pagecache.get(va)) for va in list(self.pagedirty.keys())]
 
         # def syncDirtyPages(self):
-        # '''
+        # """
         # Write all of the "dirty" pages back to the underlying memory object.
-        # '''
+        # """
 
 
 class MemoryObject(IMemory):
@@ -406,9 +403,9 @@ class MemoryObject(IMemory):
     # FIXME MemoryObject: def allocateMemory(self, size, perms=MM_RWX, suggestaddr=0):
 
     def addMemoryMap(self, va, perms, fname, bytez):
-        '''
+        """
         Add a memory map to this object...
-        '''
+        """
         msize = len(bytez)
         mmap = (va, msize, perms, fname)
         hlpr = [va, va + msize, mmap, bytez]
@@ -416,19 +413,19 @@ class MemoryObject(IMemory):
         return
 
     def getMemorySnap(self):
-        '''
+        """
         Take a memory snapshot which may be restored later.
 
         Example: snap = mem.getMemorySnap()
-        '''
+        """
         return [list(mdef) for mdef in self._map_defs]
 
     def setMemorySnap(self, snap):
-        '''
+        """
         Restore a previously saved memory snapshot.
 
         Example: mem.setMemorySnap(snap)
-        '''
+        """
         self._map_defs = [list(md) for md in snap]
 
     def getMemoryMap(self, va):
@@ -485,9 +482,9 @@ class MemoryObject(IMemory):
 
 
 class MemoryFile:
-    '''
+    """
     A file like object to wrap around a memory object.
-    '''
+    """
 
     def __init__(self, memobj, baseaddr):
         self.baseaddr = baseaddr
@@ -508,10 +505,10 @@ class MemoryFile:
 
 
 def memdiff(bytes1, bytes2):
-    '''
+    """
     Return a list of (offset, size) tuples showing any memory
     differences between the given bytes.
-    '''
+    """
     # Quick/Optimized case...
     if bytes1 == bytes2:
         return []

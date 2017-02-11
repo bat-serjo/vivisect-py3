@@ -501,23 +501,17 @@ class Trace(e_mem.IMemory, e_reg.RegisterContext, e_resolv.SymbolResolver, base.
         self.requireNotRunning()
         self.platformWriteMemory(int(address), bytez)
 
-    def searchMemory(self, needle, regex=False):
+    def searchMemory(self, needle: bytes, regex: bool=False) -> list:
         """
         Search all of process memory for a sequence of bytes.
         """
-        ret = e_mem.IMemory.searchMemory(self, needle, regex=regex)
-        self.setMeta('search', ret)
-        self.setVariable('search', ret)
-        return ret
+        return super(Trace, self).searchMemory(needle, regex)
 
-    def searchMemoryRange(self, needle, address, size, regex=False):
+    def searchMemoryRange(self, needle: bytes, address, size, regex: bool=False) -> list:
         """
         Search a memory range for the specified sequence of bytes
         """
-        ret = e_mem.IMemory.searchMemoryRange(self, needle, address, size, regex=regex)
-        self.setMeta('search', ret)
-        self.setVariable('search', ret)
-        return ret
+        return super(Trace, self).searchMemoryRange(needle, address, size, regex=regex)
 
     def injectso(self, filename):
         """
@@ -532,7 +526,7 @@ class Trace(e_mem.IMemory, e_reg.RegisterContext, e_resolv.SymbolResolver, base.
 
     def ps(self):
         """
-        Return a list of proccesses which are currently running on the
+        Return a list of processes which are currently running on the
         system.
         (pid, name)
         """
@@ -741,7 +735,7 @@ class Trace(e_mem.IMemory, e_reg.RegisterContext, e_resolv.SymbolResolver, base.
     def getFds(self):
         """
         Get a list of (fd, type, bestname) pairs.  This is MOSTLY useful
-        for HUMON consumtion...  or giving HUMONs consumption...
+        for HUMON consumption...  or giving HUMONs consumption...
         """
         self.requireNotRunning()
         if not self.fds:
@@ -751,7 +745,7 @@ class Trace(e_mem.IMemory, e_reg.RegisterContext, e_resolv.SymbolResolver, base.
     def getMemoryMaps(self):
         """
         Return a list of the currently mapped memory for the target
-        process.  This is acomplished by calling the platform's
+        process.  This is accomplished by calling the platform's
         platformGetMaps() mixin method.  This will also cache the
         results until CONTINUE.  The format is (addr, len, perms, file).
         """
@@ -762,7 +756,7 @@ class Trace(e_mem.IMemory, e_reg.RegisterContext, e_resolv.SymbolResolver, base.
 
     def getMemoryFault(self):
         """
-        If the most receent event is a memory access error, this API will
+        If the most recent event is a memory access error, this API will
         return a tuple of (<addr>, <perm>) on supported platforms.  Otherwise,
         a (None, None) will result.
 
@@ -1077,12 +1071,11 @@ class TraceGroup(Notifier, v_util.TraceManager):
     def addTrace(self, proc):
         """
         Add a new tracer to this group the "proc" argument
-        may be either an long() for a pid (which we will attach
-        to) or an already attached (and broken) tracer object.
+        may be either a pid (which we will attach to)
+        or an already attached (and broken) tracer object.
         """
 
-        if (type(proc) == int or
-                    type(proc) == int):
+        if type(proc) == int:
             trace = getTrace()
             self._initTrace(trace)
             self.traces[proc] = trace
