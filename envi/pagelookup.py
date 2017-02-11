@@ -1,8 +1,8 @@
-'''
+"""
 A home for the page lookup construct.  Basically it is a
 python object which implements a similar lookup mechanism
 to the i386 page table lookups...
-'''
+"""
 import collections
 
 
@@ -13,11 +13,11 @@ def pagedict():
 
 
 class PageLookup:
-    '''
+    """
     An object capable of rapid lookups across a sparse address
     space which will also NOT eat *all* the RAMS like a straight
     dictionary full of millions of entries would.
-    '''
+    """
 
     def __init__(self):
         # self._page_dict = {}
@@ -42,10 +42,10 @@ class PageLookup:
 
 
 class MapLookup:
-    '''
+    """
     A specialized lookup object for large densely populated ranges
-    which are layed out in a sparse field space themselves...
-    '''
+    which are layered out in a sparse field space themselves...
+    """
 
     def __init__(self):
         self._maps_list = []

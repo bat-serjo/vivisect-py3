@@ -6,6 +6,8 @@ import vparsers as v_parsers
 from vivisect.const import *
 from vparsers import Elf
 
+MAGIC = b'\x7fELF'
+
 
 def parseFile(vw, filename):
     fd = open(filename, 'rb')

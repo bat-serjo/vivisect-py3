@@ -21,6 +21,7 @@ import envi
 import envi.bits as e_bits
 import envi.bytesig as e_bytesig
 import envi.config as e_config
+import envi.const
 import envi.memory as e_mem
 import envi.symstore.resolver as e_resolv
 import envi.symstore.symcache as e_symcache
@@ -626,7 +627,7 @@ class VivWorkspace(e_mem.MemoryObject, viv_base.VivWorkspaceCore):
         for eva in self.getEntryPoints():
             if self.isFunction(eva):
                 continue
-            if not self.probeMemory(eva, 1, e_mem.MM_EXEC):
+            if not self.probeMemory(eva, 1, envi.const.MM_EXEC):
                 continue
             self.makeFunction(eva)
 
@@ -980,7 +981,7 @@ class VivWorkspace(e_mem.MemoryObject, viv_base.VivWorkspaceCore):
 
                 # If the actual dest is executable, make a code ref fixup
                 # which *removes* the deref flag...
-                if ptrdest and self.probeMemory(ptrdest[0], 1, e_mem.MM_EXEC):
+                if ptrdest and self.probeMemory(ptrdest[0], 1, envi.const.MM_EXEC):
                     self.addXref(va, ptrdest[0], REF_CODE, bflags & ~envi.BR_DEREF)
                 else:
                     self.addXref(va, tova, REF_CODE, bflags)

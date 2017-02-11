@@ -3,21 +3,17 @@ QtGui objects which assist in GUIs which use vtrace parts.
 """
 import traceback
 
-from PyQt4 import Qt, QtCore, QtGui
+from PyQt4 import QtCore, QtGui
 
-import vtrace
-from vtrace.const import *
-
-import envi.qt as envi_qt
-import envi.qt.memory as envi_qt_memory
-import envi.qt.memorymap as envi_qt_memmap
 import envi.memcanvas as e_mcanv
 import envi.memcanvas.renderers as e_mem_rend
-
-import vqt.tree as vq_tree
 import vqt.colors as vq_colors
-
+import vqt.qt.memory as envi_qt_memory
+import vqt.qt.memorymap as envi_qt_memmap
+import vqt.tree as vq_tree
+import vtrace
 from vqt.main import workthread, idlethread, idlethreadsync
+from vtrace.const import *
 
 
 class VQTraceNotifier(vtrace.Notifier):

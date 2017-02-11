@@ -1,5 +1,6 @@
 import string
 
+import envi.const
 import envi.memory as e_mem
 import envi.memcanvas as e_canvas
 import envi.memcanvas.renderers as e_render
@@ -137,7 +138,7 @@ class MemSearchDialog(QtGui.QDialog):
 
         self.canvas.clearCanvas()
         mem = e_mem.MemoryObject()
-        mem.addMemoryMap(0, e_mem.MM_READ, '', bytez)
+        mem.addMemoryMap(0, envi.const.MM_READ, '', bytez)
         self.canvas.mem = mem
         self.canvas.renderMemory(0, len(bytez))
         self.hex_edit.setPlainText(str(self.canvas))

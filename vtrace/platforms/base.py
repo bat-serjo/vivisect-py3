@@ -11,6 +11,7 @@ import threading
 from queue import Queue
 from threading import Thread, currentThread, Lock
 
+import envi.const
 import vtrace
 import platform
 from vtrace import notifiers
@@ -164,7 +165,7 @@ class PlatformMixinInterface:
     def platformProtectMemory(self, va, size, perms):
         raise NotImplementedError
 
-    def platformAllocateMemory(self, size, perms=e_mem.MM_RWX, suggestaddr=0):
+    def platformAllocateMemory(self, size, perms=envi.const.MM_RWX, suggestaddr=0):
         raise NotImplementedError
 
     def platformReadMemory(self, address, size):

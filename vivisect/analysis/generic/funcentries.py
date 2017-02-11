@@ -9,6 +9,7 @@ that the code this finds is dead...
 import traceback
 
 import envi
+import envi.const
 import envi.memory as e_mem
 import vivisect
 
@@ -25,7 +26,7 @@ def analyze(vw):
     for mapva, mapsize, mapflags, fname in vw.getMemoryMaps():
 
         # Segment permissions check for likely code stuff at all
-        if not mapflags & e_mem.MM_EXEC:
+        if not mapflags & envi.const.MM_EXEC:
             continue
 
         i = 0

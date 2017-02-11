@@ -1,15 +1,10 @@
-import vqt.tree as vq_tree
 import vivisect.base as viv_base
-import envi.qt.memory as e_q_memory
-import visgraph.pathcore as vg_path
-import envi.qt.memcanvas as e_q_memcanvas
 import vivisect.qt.ctxmenu as v_q_ctxmenu
-
-from PyQt4 import QtGui, QtCore
-
-from vqt.main import *
-from vqt.common import *
+import vqt.qt.memory as e_q_memory
+import vqt.tree as vq_tree
 from vivisect.const import *
+from vqt.common import *
+from vqt.main import *
 
 
 class VivNavModel(e_q_memory.EnviNavModel):

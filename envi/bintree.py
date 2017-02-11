@@ -2,14 +2,14 @@ import envi.bits as e_bits
 
 
 class BinaryTree:
-    '''
+    """
     A simple binary search tree capable of using integers
     or string representations of binary integers as inputs.
 
     NOTE: the lookup routines assume once a node is found which
     has nodeinfo, we have matched.  It does *not* need to walk
     the rest of the values...
-    '''
+    """
 
     def __init__(self):
         self.basenode = [None, None, None]
@@ -31,11 +31,11 @@ class BinaryTree:
     # e_bits the whole string to a huge int?
 
     def getInt(self, intval, width):
-        '''
+        """
         Get an element back out of the tree.
 
         width is in bits...
-        '''
+        """
         node = self.basenode
         for sh in range(width - 1, -1, -1):
             choice = (intval >> sh) & 1

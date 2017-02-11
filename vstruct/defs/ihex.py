@@ -2,6 +2,7 @@
 '''
 Parser objects for the Intel Hex file format.
 '''
+import envi.const
 import vstruct
 from vstruct.primitives import *
 
@@ -115,7 +116,7 @@ class IHexFile(vstruct.VArray):
             if maps and addr == ( maps[-1][0] + len(maps[-1][3]) ):
                 maps[-1][3] += bytes
             else:
-                maps.append( [ addr, e_mem.MM_RWX, '', bytes ] )
+                maps.append([addr, envi.const.MM_RWX, '', bytes])
 
         return maps
 

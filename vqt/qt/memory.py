@@ -1,19 +1,12 @@
-import re
-import traceback
 from collections import deque
 
-from PyQt4 import QtCore, QtGui
-
-import envi
-import envi.qt.memcanvas as e_memcanvas_qt
 import envi.memcanvas.renderers as e_render
-
-import vqt.tree as vq_tree
 import vqt.hotkeys as vq_hotkey
+import vqt.qt.memcanvas as e_memcanvas_qt
 import vqt.saveable as vq_save
-
-from vqt.main import *
+import vqt.tree as vq_tree
 from vqt.common import *
+from vqt.main import *
 
 
 class EnviNavMixin:

@@ -3,7 +3,6 @@ Similar to the memory subsystem, this is a unified way to
 access information about objects which contain registers
 """
 
-import envi.bits as e_bits
 from envi.const import *
 
 
@@ -17,11 +16,31 @@ class RegisterContext:
         Hand in a register definition which consists of
         a list of (<name>, <width>) tuples.
         """
+
+        self._rctx_dirty = False
+
+        self._rctx_ids = None
+        self._rctx_vals = None
+        self._rctx_masks = None
+        self._rctx_names = None
+        self._rctx_widths = None
+        self._rctx_regdef = None
+
+        # special register for all architectures
+        # the program counter
+        self._rctx_pcindex = None
+        # the stack pointer
+        self._rctx_spindex = None
+        # the status register
+        self._rctx_srindex = None
+
+        self._rctx_regmetas = None
+        self._rctx_statmetas = None
+
+        # initialize some of the attributes
         self.loadRegDef(regdef)
         self.loadRegMetas(metas)
         self.setRegisterIndexes(pcindex, spindex, srindex=srindex)
-
-        self._rctx_dirty = False
 
     def getRegisterSnap(self):
         """
@@ -35,19 +54,19 @@ class RegisterContext:
 
         NOTE: This may only be used under the assumption that the
               RegisterContext has been initialized the same way
-              (like context switches in tracers, or emulaction snaps)
+              (like context switches in tracers, or emulation snaps)
         """
         self._rctx_vals = list(snap)
 
-    def isDirty(self):
+    def isDirty(self) -> bool:
         """
-        Returns true if registers in this context have been modififed
+        Returns true if registers in this context have been modified
         since their import.
         """
         return self._rctx_dirty
 
-    def setIsDirty(self, bool):
-        self._rctx_dirty = bool
+    def setIsDirty(self, on: bool):
+        self._rctx_dirty = on
 
     def setRegisterIndexes(self, pcindex, spindex, srindex=None):
         self._rctx_pcindex = pcindex
@@ -56,18 +75,23 @@ class RegisterContext:
 
     def loadRegDef(self, regdef, defval=0):
         """
-        Load a register definition.  A register definition consists
-        of a list of tuples with the following format:
-        (regname, regwidth)
+        Load a register definition.
+        A register definition consists of a list of tuples
+        with the following format: [(regname, regwidth), ...]
 
         NOTE: All widths in envi RegisterContexts are in bits.
+
+        :param regdef: [(regname, regwidth), ...]
+        :param defval: default value for the registers
+        :return: None
         """
+
         self._rctx_regdef = regdef  # Save this for snaps etc..
-        self._rctx_names = {}
         self._rctx_ids = {}
-        self._rctx_widths = []
+        self._rctx_names = {}
         self._rctx_vals = []
         self._rctx_masks = []
+        self._rctx_widths = []
 
         for i, (name, width) in enumerate(regdef):
             self._rctx_names[name] = i
@@ -76,7 +100,10 @@ class RegisterContext:
             self._rctx_masks.append((2 ** width) - 1)
             self._rctx_vals.append(defval)
 
-    def getRegDef(self):
+    def getRegDef(self) -> list:
+        """
+        :return: The original register definition list.
+        """
         return self._rctx_regdef
 
     def loadRegMetas(self, metas, statmetas=None):
@@ -85,23 +112,27 @@ class RegisterContext:
         registers are defined as registers who exist as a subset of the bits
         in some other "real" register. The argument metas is a list of tuples
         with the following format:
-        (regname, regidx, reg_shift_offset, reg_width)
-        The given example is for the AX register in the i386 subsystem
-        regname: "ax"
-        reg_shift_offset: 0
-        reg_width: 16
+            [(regname, regidx, reg_shift_offset, reg_width), ...]
+
+        The given example is for the AX register in the i386 subsystem:
+        regname: "ax", reg_shift_offset: 0, reg_width: 16
 
         Optionally a set of status meta registers can be loaded as well.
         The argument is a list of tuples with the following format:
-        (regname, regidx, reg_shift_offset, reg_width, description)
+            [(regname, regidx, reg_shift_offset, reg_width, description), ...]
+
+        :param metas: [(regname, regidx, reg_shift_offset, reg_width), ...]
+        :param statmetas: Optional [(regname, regidx, reg_shift_offset, reg_width, description), ...]
+        :return: None
         """
+
         self._rctx_regmetas = metas
         for name, idx, offset, width in metas:
             self.addMetaRegister(name, idx, offset, width)
 
         self._rctx_statmetas = statmetas
 
-    def addMetaRegister(self, name, idx, offset, width):
+    def addMetaRegister(self, name: str, idx: int, offset: int, width: int):
         """
         Meta registers are registers which are really just directly
         addressable parts of already existing registers (eax -> al).
@@ -110,15 +141,31 @@ class RegisterContext:
         register, the width of the meta reg, and it's left shifted (in bits)
         offset into the real register value.  The RegisterContext will take
         care of accesses after that.
+
+        The given example is for the AX register in the i386 subsystem:
+        addMetaRegister(name="ax", idx=0, offset=0, width=16)
+
+        :param name: name of the register as string
+        :param idx: index
+        :param offset: offset from the 0 starting bit of the register
+        :param width: width in bits of the meta register
+        :return:
         """
+
         newidx = (offset << 24) + (width << 16) + idx
         self._rctx_names[name] = newidx
         self._rctx_ids[newidx] = name
 
-    def isMetaRegister(self, index):
+    def isMetaRegister(self, index) -> bool:
+        """
+        Tells if a register at the given index is meta or not.
+        :param index: register index
+        :return: bool
+
+        """
         return (index & 0xffff) != index
 
-    def _rctx_Import(self, sobj):
+    def _rctx_Import(self, sobj: object):
         """
         Given an object with attributes with the same names as
         registers in our context, populate our values from it.
@@ -135,7 +182,7 @@ class RegisterContext:
             if x is not None:
                 self._rctx_vals[idx] = x
 
-    def _rctx_Export(self, sobj):
+    def _rctx_Export(self, sobj: object):
         """
         Given an object with attributes with the same names as
         registers in our context, set the ones he has to match
@@ -148,11 +195,13 @@ class RegisterContext:
             if hasattr(sobj, name):
                 setattr(sobj, name, self._rctx_vals[idx])
 
-    def getRegisterInfo(self, meta=False):
+    def getRegisterInfo(self, meta=False) -> tuple:
         """
         Return an object which can be stored off, and restored
         to re-initialize a register context.  (much like snapshot
         but it takes the definitions with it)
+
+        :return: regdef, regmeta, pcindex, spindex, snap
         """
         regdef = self._rctx_regdef
         regmeta = self._rctx_regmetas
@@ -160,9 +209,16 @@ class RegisterContext:
         spindex = self._rctx_spindex
         snap = self.getRegisterSnap()
 
-        return (regdef, regmeta, pcindex, spindex, snap)
+        return regdef, regmeta, pcindex, spindex, snap
 
-    def setRegisterInfo(self, info):
+    def setRegisterInfo(self, info: tuple):
+        """
+        Loads data in a format as exported from getRegisterInfo
+
+        :param info: regdef, regmeta, pcindex, spindex, snap
+        :return: None
+        """
+
         regdef, regmeta, pcindex, spindex, snap = info
         self.loadRegDef(regdef)
         self.loadRegMetas(regmeta)
@@ -185,9 +241,15 @@ class RegisterContext:
         self.setRegister(self._rctx_pcindex, value)
 
     def getStackCounter(self):
+        """
+        Get the value of the stack counter for this register context.
+        """
         return self.getRegister(self._rctx_spindex)
 
     def setStackCounter(self, value):
+        """
+        Set the value of the stack counter for this register context.
+        """
         self.setRegister(self._rctx_spindex, value)
 
     def hasStatusRegister(self):
@@ -270,7 +332,7 @@ class RegisterContext:
             ret[name] = self.getRegister(idx)
         return ret
 
-    def setRegisters(self, regdict):
+    def setRegisters(self, regdict: dict):
         """
         For any name value pairs in the specified dictionary, set the current
         register values in this context.
@@ -278,7 +340,7 @@ class RegisterContext:
         for name, value in list(regdict.items()):
             self.setRegisterByName(name, value)
 
-    def getRegisterIndex(self, name):
+    def getRegisterIndex(self, name: str):
         """
         Get a register index by name.
         (faster to use the index multiple times)
@@ -330,7 +392,7 @@ class RegisterContext:
         Translate a register value to the meta register value
         (used when getting a meta register)
         """
-        ridx = index & 0xffff
+        # ridx = index & 0xffff
         offset = (index >> 24) & 0xff
         width = (index >> 16) & 0xff
 
@@ -350,7 +412,7 @@ class RegisterContext:
         offset = (index >> 24) & 0xff
         width = (index >> 16) & 0xff
 
-        # FIXME is it faster to generate or look thses up?
+        # FIXME is it faster to generate or look these up?
         mask = (2 ** width) - 1
         mask <<= offset
 
@@ -396,7 +458,7 @@ class RegisterContext:
         Returns the Name of the Containing register (in the case
         of meta-registers) or the name of the register.
         """
-        ridx = self.getRegisterIndex(regname)
+        ridx = self._rctx_names.get(regname)
         if ridx is not None:
             return self.getRegisterName(ridx & RMETA_NMASK)
         return regname

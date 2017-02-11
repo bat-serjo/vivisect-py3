@@ -5,6 +5,7 @@ A module to contain code flow analysis for envi opcode objects...
 import logging
 
 import envi
+import envi.const
 import envi.memory as e_mem
 
 logger = logging.getLogger(__name__)
@@ -33,9 +34,10 @@ class CodeFlowContext(object):
 
     def __init__(self, mem, persist=False, exptable=True, recurse=True):
 
+        self._mem = mem
+
         self._funcs = {}
         self._fcalls = {}
-        self._mem = mem
         self._cf_noret = {}  # noret funcs
         self._cf_noflow = {}  # va's to stop on
 
@@ -51,14 +53,14 @@ class CodeFlowContext(object):
 
     def _cb_opcode(self, va, op, branches):
         """
-        Extend CodeFlowContext and implement this method to recieve
+        Extend CodeFlowContext and implement this method to receive
         a callback for every newly discovered opcode.
         """
         return branches
 
     def _cb_function(self, fva, fmeta):
         """
-        Extend CodeFlowContext and implement this method to recieve
+        Extend CodeFlowContext and implement this method to receive
         a callback for every newly discovered function.  Additionally,
         metadata about the function may be stored in the fmeta dict.
         """
@@ -117,7 +119,7 @@ class CodeFlowContext(object):
 
     def addFunctionDef(self, fva, calls_from):
         """
-        Add a priori knowledge of a function to the code flow
+        Add a priory knowledge of a function to the code flow
         stuff...
         """
         self._fcalls[fva] = calls_from
@@ -135,7 +137,6 @@ class CodeFlowContext(object):
 
         calls_from = {}
         optodo = [((0, va), arch), ]
-        startva = va
         self._cf_blocks.append(va)
         cf_eps = set()
         while len(optodo):
@@ -195,7 +196,7 @@ class CodeFlowContext(object):
 
                     if bflags & envi.BR_DEREF:
 
-                        if not self._mem.probeMemory(bva, self._mem.psize, e_mem.MM_READ):
+                        if not self._mem.probeMemory(bva, self._mem.psize, envi.const.MM_READ):
                             continue
 
                         # Before we update bva, lets check if its in noret...
@@ -204,7 +205,7 @@ class CodeFlowContext(object):
 
                         bva = self._mem.readMemoryFormat(bva, '<P')[0]
 
-                    if not self._mem.probeMemory(bva, 1, e_mem.MM_EXEC):
+                    if not self._mem.probeMemory(bva, 1, envi.const.MM_EXEC):
                         continue
 
                     if bflags & envi.BR_PROC:

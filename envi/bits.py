@@ -6,7 +6,7 @@ import struct
 
 MAX_WORD = 32  # usually no more than 8, 16 is for SIMD register support
 
-# Masks to use for unsigned anding to size
+# Masks to use for unsigned and-ing to size
 u_maxes = [(2 ** (8 * i)) - 1 for i in range(MAX_WORD + 1)]
 u_maxes[0] = 0  # powers of 0 are 1, but we need 0
 bu_maxes = [(2 ** (i)) - 1 for i in range(8 * MAX_WORD + 1)]
@@ -104,12 +104,12 @@ def msb(value, size):
 
 
 def is_signed_half_carry(value, size, src):
-    '''
+    """
     BCD carry/borrow in the second most important nibble:
         32bit   - bit 27
         16bit   - bit 11
         8bit    - bit 3
-    '''
+    """
     bitsize = (size << 3) - 5
     mask = 1 << bitsize
 
@@ -253,9 +253,9 @@ def hex(value, size=None):
 
 
 def binrepr(intval, bitwidth=None):
-    '''
+    """
     Return a string of one's and zero's for the given value.
-    '''
+    """
     ret = []
     while intval:
         ret.append(str(intval & 0x1))
@@ -268,17 +268,17 @@ def binrepr(intval, bitwidth=None):
 
 
 def binary(binstr):
-    '''
+    """
     Decode a binary string of 1/0's into a python number
-    '''
+    """
     return int(binstr, 2)
 
 
 def binbytes(binstr):
-    '''
+    """
     Decode a binary string of 1/0's into a python binary
     string.
-    '''
+    """
     if len(binstr) % 8 != 0:
         raise Exception('Byte padded binary strings only for now!')
     bytes = ''
@@ -289,12 +289,12 @@ def binbytes(binstr):
 
 
 def parsebits(bytes, offset, bitoff, bitsize):
-    '''
+    """
     Parse bitsize bits from the bit offset bitoff beginning
     at offset bytes.
 
     Example: 
-    '''
+    """
     val = 0
     cnt = 0
     while cnt < bitsize:
@@ -312,7 +312,7 @@ def parsebits(bytes, offset, bitoff, bitsize):
 
 
 def masktest(s):
-    '''
+    """
     Specify a bit mask with the following syntax:
     '110100xxx00xx' to return a tester callback which will
     determine if an integer value meets the mask.
@@ -325,7 +325,7 @@ def masktest(s):
     NOTE: For performance reasons, it is recommeneded that
     masktest be used to initialize a static list of tests
     that are re-used rather than reconstructed.
-    '''
+    """
     maskin = binary(s.replace('0', '1').replace('x', '0'))
     matchval = binary(s.replace('x', '0'))
 

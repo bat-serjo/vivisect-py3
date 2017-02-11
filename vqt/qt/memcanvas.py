@@ -1,16 +1,13 @@
 import html
 
-import vqt.main as vq_main
-import envi.qt.html as e_q_html
-import envi.qt.jquery as e_q_jquery
-import envi.memcanvas as e_memcanvas
-
-from PyQt4 import QtGui
-from PyQt4 import QtCore
 from PyQt4 import QtWebKit
 
-from vqt.main import *
+import envi.memcanvas as e_memcanvas
+import vqt.main as vq_main
+import vqt.qt.html as e_q_html
+import vqt.qt.jquery as e_q_jquery
 from vqt.common import *
+from vqt.main import *
 
 
 class LoggerPage(QtWebKit.QWebPage):

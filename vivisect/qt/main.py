@@ -1,32 +1,27 @@
 import os
 
-import vstruct.qt as vs_qt
 import envi.expression as e_expr
-import envi.qt.config as e_q_config
-
-import vqt.main as vq_main
-import vqt.colors as vq_colors
-import vqt.qpython as vq_python
-import vqt.application as vq_app
-
-import vivisect.cli as viv_cli
 import vivisect.base as viv_base
-import vivisect.vdbext as viv_vdbext
-import vivisect.remote.share as viv_share
+import vivisect.cli as viv_cli
 import vivisect.extensions as viv_extensions
-
-import vivisect.qt.tips as viv_q_tips
-import vivisect.qt.views as viv_q_views
-import vivisect.qt.memory as viv_q_memory
-import vivisect.qt.remote as viv_q_remote
-import vivisect.qt.ustruct as viv_q_ustruct
 import vivisect.qt.funcgraph as viv_q_funcgraph
 import vivisect.qt.funcviews as viv_q_funcviews
+import vivisect.qt.memory as viv_q_memory
+import vivisect.qt.remote as viv_q_remote
 import vivisect.qt.symboliks as viv_q_symboliks
-
-
-from vqt.common import *
+import vivisect.qt.tips as viv_q_tips
+import vivisect.qt.ustruct as viv_q_ustruct
+import vivisect.qt.views as viv_q_views
+import vivisect.remote.share as viv_share
+import vivisect.vdbext as viv_vdbext
+import vqt.application as vq_app
+import vqt.colors as vq_colors
+import vqt.main as vq_main
+import vqt.qpython as vq_python
+import vqt.qt.config as e_q_config
+import vstruct.qt as vs_qt
 from vivisect.const import *
+from vqt.common import *
 
 dock_top = QtCore.Qt.TopDockWidgetArea
 dock_right = QtCore.Qt.RightDockWidgetArea

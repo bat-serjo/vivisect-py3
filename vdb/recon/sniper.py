@@ -2,6 +2,7 @@
 Specialized breakpoints which identify dangerous calling
 mechanisms and tag them.
 """
+import envi.const
 import envi.memory as e_mem
 import vtrace.breakpoints as vt_breakpoints
 
@@ -36,7 +37,7 @@ class SniperDynArgBreak(vt_breakpoints.Breakpoint):
     def notify(self, event, trace):
         arg = getStackArg(trace, self._argidx)
         self.fastbreak = True
-        if trace.probeMemory(arg, 1, e_mem.MM_WRITE):
+        if trace.probeMemory(arg, 1, envi.const.MM_WRITE):
             print('SNIPER: %s TOOK DYNAMIC ARG IDX %d (0x%.8x)' % (self._symname, self._argidx, arg))
             self.fastbreak = False
 

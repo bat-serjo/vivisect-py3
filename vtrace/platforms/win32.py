@@ -11,6 +11,7 @@ from ctypes import *
 
 import envi
 import envi.bits as e_bits
+import envi.const
 import envi.memory as e_mem
 import envi.symstore.resolver as e_resolv
 import envi.symstore.symcache as e_symcache
@@ -185,24 +186,24 @@ PAGE_WRITECOMBINE = 0x400
 
 # Map win32 permissions to envi permissions
 perm_lookup = {
-    PAGE_NOACCESS:0,
-    PAGE_READONLY:e_mem.MM_READ,
-    PAGE_READWRITE: e_mem.MM_READ | e_mem.MM_WRITE,
-    PAGE_WRITECOPY: e_mem.MM_READ | e_mem.MM_WRITE,
-    PAGE_EXECUTE: e_mem.MM_EXEC,
-    PAGE_EXECUTE_READ: e_mem.MM_EXEC | e_mem.MM_READ,
-    PAGE_EXECUTE_READWRITE: e_mem.MM_EXEC | e_mem.MM_READ | e_mem.MM_WRITE,
-    PAGE_EXECUTE_WRITECOPY: e_mem.MM_EXEC | e_mem.MM_READ | e_mem.MM_WRITE,
+    PAGE_NOACCESS:          0,
+    PAGE_READONLY:          envi.const.MM_READ,
+    PAGE_READWRITE:         envi.const.MM_READ | envi.const.MM_WRITE,
+    PAGE_WRITECOPY:         envi.const.MM_READ | envi.const.MM_WRITE,
+    PAGE_EXECUTE:           envi.const.MM_EXEC,
+    PAGE_EXECUTE_READ:      envi.const.MM_EXEC | envi.const.MM_READ,
+    PAGE_EXECUTE_READWRITE: envi.const.MM_EXEC | envi.const.MM_READ | envi.const.MM_WRITE,
+    PAGE_EXECUTE_WRITECOPY: envi.const.MM_EXEC | envi.const.MM_READ | envi.const.MM_WRITE,
 }
 
 # To get win32 permssions from envi permissions
 perm_rev_lookup = {
-    0:PAGE_NOACCESS,
-    e_mem.MM_READ:PAGE_READONLY,
-    e_mem.MM_READ|e_mem.MM_WRITE:PAGE_READWRITE,
-    e_mem.MM_EXEC:PAGE_EXECUTE,
-    e_mem.MM_EXEC|e_mem.MM_READ:PAGE_EXECUTE_READ,
-    e_mem.MM_EXEC|e_mem.MM_READ|e_mem.MM_WRITE:PAGE_EXECUTE_READWRITE,
+    0:                                                             PAGE_NOACCESS,
+    envi.const.MM_READ:                                            PAGE_READONLY,
+    envi.const.MM_READ | envi.const.MM_WRITE:                      PAGE_READWRITE,
+    envi.const.MM_EXEC:                                            PAGE_EXECUTE,
+    envi.const.MM_EXEC | envi.const.MM_READ:                       PAGE_EXECUTE_READ,
+    envi.const.MM_EXEC | envi.const.MM_READ | envi.const.MM_WRITE: PAGE_EXECUTE_READWRITE,
 }
 
 # Memory States
@@ -1180,7 +1181,7 @@ def GetModuleFileNameEx(phandle, mhandle):
     psapi.GetModuleFileNameExW(phandle, mhandle, addressof(buf), 1024)
     return buf.value
 
-av_einfo_perms = [e_mem.MM_READ, e_mem.MM_WRITE, None, None, None, None, None, None, e_mem.MM_EXEC]
+av_einfo_perms = [envi.const.MM_READ, envi.const.MM_WRITE, None, None, None, None, None, None, envi.const.MM_EXEC]
 
 class WindowsMixin:
 
@@ -1387,7 +1388,7 @@ class WindowsMixin:
         if ret == 0:
             raiseWin32Error("kernel32.VirtualProtectEx")
 
-    def platformAllocateMemory(self, size, perms=e_mem.MM_RWX, suggestaddr=0):
+    def platformAllocateMemory(self, size, perms=envi.const.MM_RWX, suggestaddr=0):
         pval = perm_rev_lookup.get(perms, PAGE_EXECUTE_READWRITE)
         ret = kernel32.VirtualAllocEx(self.phandle,
                 suggestaddr, size, MEM_COMMIT, pval)

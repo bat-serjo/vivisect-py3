@@ -26,12 +26,10 @@ def getusername():
 
 
 compattypes = {
-    int: (int, int),
-    str: (str, str),
+    int: (int,),
+    str: (str,),
     bool: (bool,),
-    int: (int, int),
-    str: (str, str),
-    type(None): (int, str, bool, int, str),
+    type(None): (int, str, bool, ),
 }
 
 CONFIG_PATH = 0

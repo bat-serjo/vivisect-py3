@@ -1034,11 +1034,11 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
             elif opt == '-Q':
                 quiet = True
 
-        if (count == None
-            and taddr == None
-            and until == None
-            and toret == False
-            and tobrn == False):
+        if (count is None
+            and taddr is None
+            and until is None
+            and toret is False
+            and tobrn is False):
             count = 1
 
         oldmode = self.getMode('FastStep')
@@ -1055,10 +1055,9 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
                     break
 
                 op = t.parseOpcode(pc)
-
                 sym = t.getSymByAddr(pc)
 
-                if sym != None and not quiet:
+                if sym is not None and not quiet:
                     self.canvas.addVaText(repr(sym), pc)
                     self.canvas.addText(':\n')
 

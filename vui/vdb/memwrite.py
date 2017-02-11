@@ -1,4 +1,4 @@
-import envi.qt.memwrite as e_qt_mw
+import vqt.qt.memwrite as e_qt_mw
 import vui.vdb.base
 from vqt.main import *
 

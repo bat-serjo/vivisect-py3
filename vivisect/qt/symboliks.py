@@ -1,23 +1,18 @@
 import itertools
-import traceback
 
-import vqt.tree as vq_tree
-import vqt.saveable as vq_save
-import envi.qt.memory as e_q_memory
-import envi.qt.memcanvas as e_q_memcanvas
-import vivisect.qt.ctxmenu as v_q_ctxmenu
-import vivisect.tools.graphutil as viv_graph
-import vivisect.symboliks.common as viv_sym_common
-import vivisect.symboliks.effects as viv_sym_effects
 import vivisect.symboliks.analysis as viv_sym_analysis
-import vivisect.symboliks.expression as viv_sym_expression
+import vivisect.symboliks.common as viv_sym_common
 import vivisect.symboliks.constraints as viv_sym_constraints
-
-from PyQt4 import QtGui, QtCore
-
-from vqt.main import *
-from vqt.basics import *
+import vivisect.symboliks.effects as viv_sym_effects
+import vivisect.symboliks.expression as viv_sym_expression
+import vivisect.tools.graphutil as viv_graph
+import vqt.qt.memcanvas as e_q_memcanvas
+import vqt.qt.memory as e_q_memory
+import vqt.saveable as vq_save
+import vqt.tree as vq_tree
 from vivisect.const import *
+from vqt.basics import *
+from vqt.main import *
 
 
 class VivSymbolikPathsModel(vq_tree.VQTreeModel):

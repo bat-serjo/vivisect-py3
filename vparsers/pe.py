@@ -1,6 +1,7 @@
 import io as StringIO
 import os
 
+import envi.const
 import envi.memory as e_mem
 import envi.symstore.symcache as e_symcache
 import vivisect
@@ -10,6 +11,8 @@ import vstruct
 import vtrace.platforms.win32 as vt_win32
 from vivisect.const import *
 from vparsers import PE
+
+MAGIC = b"MZ"
 
 
 # PE Machine field values
@@ -153,7 +156,7 @@ def loadPeIntoWorkspace(vw, pe, filename=None):
     if secrem != 0:
         header += b"\x00" * (secalign - secrem)
 
-    vw.addMemoryMap(baseaddr, e_mem.MM_READ, fname, header)
+    vw.addMemoryMap(baseaddr, envi.const.MM_READ, fname, header)
     vw.addSegment(baseaddr, len(header), "PE_Header", fname)
 
     hstruct = vw.makeStructure(baseaddr, "pe.IMAGE_DOS_HEADER")
@@ -200,7 +203,7 @@ def loadPeIntoWorkspace(vw, pe, filename=None):
 
         chars = sec.Characteristics
         if chars & PE.IMAGE_SCN_MEM_READ:
-            mapflags |= e_mem.MM_READ
+            mapflags |= envi.const.MM_READ
 
             isrsrc = (sec.VirtualAddress == ddir.VirtualAddress)
             if isrsrc and not loadrsrc:
@@ -209,16 +212,16 @@ def loadPeIntoWorkspace(vw, pe, filename=None):
             # If it's for an older system, just about anything
             # is executable...
             if not vw.config.viv.parsers.pe.nx and subsys_majver < 6 and not isrsrc:
-                mapflags |= e_mem.MM_EXEC
+                mapflags |= envi.const.MM_EXEC
 
         if chars & PE.IMAGE_SCN_MEM_READ:
-            mapflags |= e_mem.MM_READ
+            mapflags |= envi.const.MM_READ
         if chars & PE.IMAGE_SCN_MEM_WRITE:
-            mapflags |= e_mem.MM_WRITE
+            mapflags |= envi.const.MM_WRITE
         if chars & PE.IMAGE_SCN_MEM_EXECUTE:
-            mapflags |= e_mem.MM_EXEC
+            mapflags |= envi.const.MM_EXEC
         if chars & PE.IMAGE_SCN_CNT_CODE:
-            mapflags |= e_mem.MM_EXEC
+            mapflags |= envi.const.MM_EXEC
 
         secrva = sec.VirtualAddress
         secvsize = sec.VirtualSize
@@ -230,15 +233,15 @@ def loadPeIntoWorkspace(vw, pe, filename=None):
         # If the section is part of BaseOfCode->SizeOfCode
         # force execute perms...
         if codebase <= secrva < codervamax:
-            mapflags |= e_mem.MM_EXEC
+            mapflags |= envi.const.MM_EXEC
 
         # If the entry point is in this section, force execute
         # permissions.
         if secrva <= entryrva < secrvamax:
-            mapflags |= e_mem.MM_EXEC
+            mapflags |= envi.const.MM_EXEC
 
-        if not vw.config.viv.parsers.pe.nx and subsys_majver < 6 and mapflags & e_mem.MM_READ:
-            mapflags |= e_mem.MM_EXEC
+        if not vw.config.viv.parsers.pe.nx and subsys_majver < 6 and mapflags & envi.const.MM_READ:
+            mapflags |= envi.const.MM_EXEC
 
         if sec.VirtualSize == 0 or sec.SizeOfRawData == 0:
             if idx + 1 >= len(pe.sections):
@@ -315,7 +318,7 @@ def loadPeIntoWorkspace(vw, pe, filename=None):
         vw.addRelocation(rva + baseaddr, vtype)
 
     for rva, lname, iname in pe.getImports():
-        if vw.probeMemory(rva + baseaddr, 4, e_mem.MM_READ):
+        if vw.probeMemory(rva + baseaddr, 4, envi.const.MM_READ):
             vw.makeImport(rva + baseaddr, lname, iname)
 
     # Tell vivisect about ntdll functions that don't exit...
@@ -333,7 +336,7 @@ def loadPeIntoWorkspace(vw, pe, filename=None):
         try:
             vw.setVaSetRow('pe:ordinals', (eva, ord))
             vw.addExport(eva, EXP_UNTYPED, name, fname)
-            if vw.probeMemory(eva, 1, e_mem.MM_EXEC):
+            if vw.probeMemory(eva, 1, envi.const.MM_EXEC):
                 vw.addEntryPoint(eva)
         except Exception as e:
             vw.vprint('addExport Failed: %s.%s (0x%.8x): %s' % (fname, name, eva, e))

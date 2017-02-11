@@ -1,6 +1,6 @@
-'''
+"""
 A couple useful thread related toys...
-'''
+"""
 import time
 import threading
 import functools
@@ -8,12 +8,12 @@ import collections
 
 
 def firethread(func):
-    '''
+    """
     A decorator which fires a thread to do the given call.
 
     NOTE: This means these methods may not return anything
     and callers may not expect sync behavior!
-    '''
+    """
 
     def dothread(*args, **kwargs):
         thr = threading.Thread(target=func, args=args, kwargs=kwargs)
@@ -26,11 +26,11 @@ def firethread(func):
 
 
 def maintthread(stime):
-    '''
+    """
     A decorator which will act as a maintenance loop by calling
     back the wrapped function ( in a thread fired for this purpose )
     every "stime" seconds.
-    '''
+    """
 
     def maintwrap(func):
 
@@ -57,11 +57,11 @@ class QueueShutdown(Exception): pass
 
 
 class ChunkQueue:
-    '''
+    """
     This is a Queue like object which returns *all* pending items
     when requested to minimize round tripping.  It's also keeps track
     of client checkins to help identify "abandonment" behaviors.
-    '''
+    """
 
     def __init__(self, items=None):
         self.shut = False
@@ -81,20 +81,26 @@ class ChunkQueue:
         return now > (self.last + dtime)
 
     def append(self, x):
-        if self.shut: raise QueueShutdown()
+        if self.shut:
+            raise QueueShutdown()
+
         with self.lock:
             self.items.append(x)
             self.event.set()
 
     def prepend(self, x):
         # NOTE: this is heavy, use judiciously
-        if self.shut: raise QueueShutdown()
+        if self.shut:
+            raise QueueShutdown()
+
         with self.lock:
             self.items.insert(0, x)
             self.event.set()
 
     def extend(self, x):
-        if self.shut: raise QueueShutdown()
+        if self.shut:
+            raise QueueShutdown()
+
         with self.lock:
             self.items.extend(x)
             self.event.set()
@@ -111,7 +117,8 @@ class ChunkQueue:
             pass
 
     def put(self, item):
-        if self.shut: raise QueueShutdown()
+        if self.shut:
+            raise QueueShutdown()
         self.append(item)
 
     def get(self, timeout=None):
@@ -120,13 +127,16 @@ class ChunkQueue:
             if self.items:
                 return self._get_items()
 
-            if self.shut: raise QueueShutdown()
+            if self.shut:
+                raise QueueShutdown()
 
             # Clear the event so we can wait...
             self.event.clear()
 
         self.event.wait(timeout=timeout)
-        if self.shut: raise QueueShutdown()
+        if self.shut:
+            raise QueueShutdown()
+
         with self.lock:
             self.last = time.time()
             if not self.items and self.shut:
@@ -143,16 +153,17 @@ class ChunkQueue:
 
 
 class EnviQueue:
-    '''
+    """
     A deterministic Queue that doesn't suck.
-    '''
+    """
 
     def __init__(self, items=None):
         self.shut = False
         self.last = time.time()
         self.lock = threading.Lock()
         self.event = threading.Event()
-        if items == None:
+
+        if items is None:
             items = []
         self.items = collections.deque(items)
 
@@ -165,19 +176,22 @@ class EnviQueue:
         self.event.set()
 
     def append(self, x):
-        if self.shut: raise QueueShutdown()
+        if self.shut:
+            raise QueueShutdown()
         with self.lock:
             self.items.append(x)
             self.event.set()
 
     def prepend(self, x):
-        if self.shut: raise QueueShutdown()
+        if self.shut:
+            raise QueueShutdown()
         with self.lock:
             self.items.appendleft(x)
             self.event.set()
 
     def extend(self, x):
-        if self.shut: raise QueueShutdown()
+        if self.shut:
+            raise QueueShutdown()
         with self.lock:
             self.items.extend(x)
             self.event.set()
@@ -186,7 +200,8 @@ class EnviQueue:
         return len(self.items)
 
     def __iter__(self):
-        if self.shut: raise QueueShutdown()
+        if self.shut:
+            raise QueueShutdown()
         try:
             while True:
                 ret = self.get()
@@ -202,7 +217,8 @@ class EnviQueue:
         self.last = start
 
         while True:
-            if self.shut: raise QueueShutdown()
+            if self.shut:
+                raise QueueShutdown()
 
             with self.lock:
                 if self.items:

@@ -1,23 +1,17 @@
-import vqt.hotkeys as vq_hotkey
-import vqt.saveable as vq_save
-import envi.qt.memory as e_mem_qt
-import envi.qt.memory as e_qt_memory
-import envi.qt.memcanvas as e_qt_memcanvas
+from PyQt4.QtCore import pyqtSignal, QPoint
 
 import visgraph.layouts.dynadag as vg_dynadag
-
 import vivisect.base as viv_base
-import vivisect.renderers as viv_rend
-import vivisect.qt.memory as vq_memory
 import vivisect.qt.ctxmenu as vq_ctxmenu
+import vivisect.qt.memory as vq_memory
+import vivisect.renderers as viv_rend
 import vivisect.tools.graphutil as viv_graphutil
-
-from PyQt4.QtCore import pyqtSignal, QPoint
-from PyQt4 import QtCore, QtGui, QtWebKit
-from vqt.main import idlethread, idlethreadsync, eatevents, vqtconnect, workthread, vqtevent
-
+import vqt.hotkeys as vq_hotkey
+import vqt.qt.memcanvas as e_qt_memcanvas
+import vqt.qt.memory as e_qt_memory
+import vqt.saveable as vq_save
 from vqt.common import *
-from vivisect.const import *
+from vqt.main import idlethread, eatevents, workthread, vqtevent
 
 
 class VQVivFuncgraphCanvas(vq_memory.VivCanvasBase):

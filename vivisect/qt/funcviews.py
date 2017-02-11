@@ -1,12 +1,9 @@
 """
 Views related to information about a given function.
 """
-from PyQt4 import QtCore, QtGui
 
-import envi.qt.memcanvas as e_q_memcanvas
-import vivisect.qt.ctxmenu as viv_q_ctxmenu
 import visgraph.renderers.qgraphtree as vg_qgraphtree
-
+import vivisect.qt.ctxmenu as viv_q_ctxmenu
 from vqt.basics import *
 
 

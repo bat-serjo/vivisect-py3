@@ -1,16 +1,15 @@
 '''
 A unified context menu builder for all address context clicks.
 '''
-from PyQt4 import QtGui,QtCore
 
 import envi
 import envi.bits as e_bits
-import envi.qt.memcanvas as e_q_memcanvas
 import vivisect.analysis.generic.codeblocks as vagc
-
-from vqt.common import *
+import vqt.qt.memcanvas as e_q_memcanvas
 from envi.threads import *
 from vivisect.const import *
+from vqt.common import *
+
 
 def cmpoffset(x,y):
     return cmp(x[0], y[0])

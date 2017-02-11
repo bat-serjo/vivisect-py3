@@ -1,26 +1,12 @@
-import envi
-import envi.qt as envi_qt
-import envi.bits as e_bits
-import envi.qt.memory as e_mem_qt
-import envi.qt.memcanvas as e_mem_canvas
-
-import vstruct.qt as vs_qt
-
-import vqt.main as vq_main
-import vqt.hotkeys as vq_hotkey
-import vqt.menubuilder as vq_menu
-
 import vivisect.base as viv_base
-import vivisect.renderers as viv_rend
-import vivisect.qt.views as viv_q_views
 import vivisect.qt.ctxmenu as viv_q_ctxmenu
-import vivisect.qt.funcviews as viv_q_funcviews
-
-from PyQt4 import QtCore, QtGui, QtWebKit
+import vivisect.qt.views as viv_q_views
+import vivisect.renderers as viv_rend
+import vqt.hotkeys as vq_hotkey
+import vqt.qt.memcanvas as e_mem_canvas
+import vqt.qt.memory as e_mem_qt
 from envi.threads import firethread
-
 from vqt.main import *
-from vivisect.const import *
 
 
 class VivCanvasBase(vq_hotkey.HotKeyMixin, e_mem_canvas.VQMemoryCanvas):

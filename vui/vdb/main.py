@@ -1,22 +1,21 @@
 import cmd
-import vdb
 import collections
 
-import vui.vdb.memwrite
-import vui.vdb.registers
-import vui.vdb.threads
-
 import envi.cli
-import envi.qt.config
+import vdb
 import vqt.application as vq_app
 import vqt.cli
 import vqt.colors
 import vqt.hotkeys as vq_hotkeys
 import vqt.main
 import vqt.qpython
+import vqt.qt.config
 import vqt.shortcut
-import vui.vdb.memory
 import vui.qtrace
+import vui.vdb.memory
+import vui.vdb.memwrite
+import vui.vdb.registers
+import vui.vdb.threads
 from vqt.basics import *
 from vqt.main import *
 from vtrace.const import *
@@ -323,7 +322,7 @@ class VdbWindow(vq_app.VQMainCmdWindow):
         if aconfig is not None:
             configs.append(('vdb:%s' % arch, aconfig))
 
-        self._cfg_widget = envi.qt.config.EnviConfigTabs(configs)
+        self._cfg_widget = vqt.qt.config.EnviConfigTabs(configs)
         self._cfg_widget.show()
 
     @vq_hotkeys.hotkey('vdb:view:python')

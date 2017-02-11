@@ -2,6 +2,8 @@ import envi
 import vparsers as v_parsers
 import vstruct.defs.ihex as v_ihex
 
+MAGIC = b':'
+
 
 def parseFile(vw, filename):
     arch = vw.config.viv.parsers.ihex.arch

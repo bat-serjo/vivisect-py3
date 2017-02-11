@@ -1,7 +1,5 @@
-from PyQt4 import QtCore, QtGui
-
-import envi.qt.memcanvas
-import envi.qt.memory
+import vqt.qt.memcanvas
+import vqt.qt.memory
 import vui.qtrace
 from vqt.common import *
 from vqt.main import *
@@ -16,7 +14,7 @@ class VDBACT:
         workthread(self.db.onecmd)(self.cmdline)
 
 
-class VdbMemoryCanvas(envi.qt.memcanvas.VQMemoryCanvas):
+class VdbMemoryCanvas(vqt.qt.memcanvas.VQMemoryCanvas):
     # We get self.db set by our memory window smash...
 
     def initMemWindowMenu(self, va, menu):
@@ -58,7 +56,7 @@ class VdbMemoryCanvas(envi.qt.memcanvas.VQMemoryCanvas):
         smenu_patch.addAction('Copy Bytes To Clipboard (All Window Bytes)',
                               ACT(self._menuCopyBytesToClipBoard, va, currend, True))
 
-        return envi.qt.memcanvas.VQMemoryCanvas.initMemWindowMenu(self, va, menu)
+        return vqt.qt.memcanvas.VQMemoryCanvas.initMemWindowMenu(self, va, menu)
 
     def menuLeftClick(self):
         """
@@ -131,10 +129,10 @@ class VdbMemoryCanvas(envi.qt.memcanvas.VQMemoryCanvas):
         self.renderMemory(self._canv_beginva, totalsize)
 
 
-class VdbMemoryWindow(envi.qt.memory.VQMemoryWindow, vui.qtrace.VQTraceNotifier):
+class VdbMemoryWindow(vqt.qt.memory.VQMemoryWindow, vui.qtrace.VQTraceNotifier):
     def __init__(self, db, dbt, parent=None, expr=None, sizeexpr=None, rend=None, **kwargs):
         vui.qtrace.VQTraceNotifier.__init__(self, trace=dbt)
-        envi.qt.memory.VQMemoryWindow.__init__(self, dbt, syms=dbt, parent=parent, **kwargs)
+        vqt.qt.memory.VQMemoryWindow.__init__(self, dbt, syms=dbt, parent=parent, **kwargs)
 
         for rname in db.canvas.getRendererNames():
             self.mem_canvas.addRenderer(rname, db.canvas.getRenderer(rname))

@@ -91,15 +91,13 @@ gdb_reg_defs = {
 exit_types = ('X', 'W')
 
 
-def pkt(cmd):
-    return '$%s#%.2x' % (cmd, csum(cmd))
+def pkt(cmd: bytes):
+    return b'$'+cmd+b'#' + ('%.2x' % csum(cmd)).encode()
 
 
-def csum(bytes):
-    sum = 0
-    for b in bytes:
-        sum += ord(b)
-    return sum & 0xff
+def csum(_bytes: bytes):
+    _sum = sum(_bytes)
+    return _sum & 0xff
 
 
 SIGINT = 2
@@ -137,7 +135,7 @@ class GdbStubMixin:
         self._gdbSetArch(self.getMeta('Architecture'))
 
     def _recvUntil(self, c):
-        ret = ''
+        ret = b''
         while not ret.endswith(c):
             x = self._gdb_sock.recv(1)
             if len(x) == 0:
@@ -145,7 +143,7 @@ class GdbStubMixin:
             ret += x
         return ret
 
-    def _recvPkt(self):
+    def _recvPkt(self) -> bytes:
 
         with self._gdb_rx_lock:
 
@@ -153,21 +151,21 @@ class GdbStubMixin:
             if len(b) == 0:
                 raise GdbServerDisconnected()
 
-            if b != '$':
+            if b != b'$':
                 raise Exception('Invalid Pkt Beginning! ->%s<-' % b)
 
-            bytes = self._recvUntil('#')
-            bytes = bytes[:-1]
+            _bytes = self._recvUntil(b'#')
+            _bytes = _bytes[:-1]
 
             isum = int(self._gdb_sock.recv(2), 16)
-            ssum = csum(bytes)
+            ssum = csum(_bytes)
             if isum != ssum:
                 raise Exception('Invalid Checksum! his: 0x%.2x ours: 0x%.2x' % (isum, ssum))
 
-            self._gdb_sock.sendall('+')
+            self._gdb_sock.sendall(b'+')
 
             # print 'RECV: ->%s<-' % bytes
-            return bytes
+            return _bytes
 
     def _gdbAddMemBreak(self, addr, size):
         resp = self._cmdTransact('Z0,%x,%x' % (addr, size))
@@ -178,15 +176,19 @@ class GdbStubMixin:
         self._raiseIfError(resp)
 
     def _cmdTransact(self, cmd):
+        if isinstance(cmd, str):
+            cmd = cmd.encode()
+
         with self._gdb_tns_lock:
             self._sendPkt(cmd)
             return self._recvPkt()
 
-    def _sendPkt(self, cmd):
+    def _sendPkt(self, cmd: bytes):
         # print 'SEND: ->%s<-' % cmd
         with self._gdb_tx_lock:
             self._gdb_sock.sendall(pkt(cmd))
             b = self._gdb_sock.recv(1)
+            b = b.decode()
             if b != '+':
                 raise Exception('Retrans! ->%s<-' % b)
 
@@ -218,13 +220,13 @@ class GdbStubMixin:
 
     def _monitorCommand(self, cmd):
         resp = ''
-        cmd = 'qRcmd,%s' % cmd.encode('hex')
+        cmd = b'qRcmd,' + bytes.fromhex(cmd)
         pkt = self._cmdTransact(cmd)
-        while not pkt.startswith('OK'):
+        while not pkt.startswith(b'OK'):
             self._raiseIfError(pkt)
-            if not pkt.startswith('O'):
-                return pkt.decode('hex')
-            resp += pkt[1:].decode('hex')
+            if not pkt.startswith(b'O'):
+                return pkt.decode()
+            resp += pkt[1:].decode()
             pkt = self._recvPkt()
         return resp
 
@@ -273,13 +275,13 @@ class GdbStubMixin:
         # breaking...
         if not self.attaching:
             self.breaking = True
-        self._gdb_sock.sendall('\x03')
+        self._gdb_sock.sendall(b'\x03')
 
     def platformWait(self):
         while True:
             pkt = self._recvPkt()
-            if pkt.startswith('O'):
-                print('GDBSTUB SAID: %s' % pkt[1:].decode('hex'))
+            if pkt.startswith(b'O'):
+                print('GDBSTUB SAID: %s' % pkt[1:].decode())
                 continue
             break
         return pkt
@@ -465,15 +467,15 @@ class GdbStubMixin:
         self._sendPkt('qfThreadInfo')
         tbytes = self._recvPkt()
 
-        while tbytes.startswith('m'):
+        while tbytes.startswith(b'm'):
 
-            if tbytes.find(','):
-                for bval in tbytes[1:].split(','):
+            if tbytes.find(b','):
+                for bval in tbytes[1:].split(b','):
                     ret[int(bval, 16)] = 0
             else:
-                ret[int(tbytes[1:], 16)] = 0
+                ret[int(tbytes[1:].decode(), 16)] = 0
 
-            self._sendPkt('qsThreadInfo')
+            self._sendPkt(b'qsThreadInfo')
             tbytes = self._recvPkt()
 
         return ret

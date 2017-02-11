@@ -18,6 +18,7 @@ class z80RegOper(envi.RegisterOper):
     def __init__(self, reg):
         self.reg = reg
 
+
 class z80ImmOper(envi.ImmedOper):
     def __init__(self, imm):
         self.imm = imm
@@ -25,8 +26,10 @@ class z80ImmOper(envi.ImmedOper):
     def repr(self, op):
         return '%.4xH' % self.imm
 
+
 class z80ConstOper(z80ImmOper):
     pass
+
 
 class z80RegMem(envi.DerefOper):
     def __init__(self, reg, disp = 0):
@@ -41,8 +44,10 @@ class z80RegMem(envi.DerefOper):
             return '(%s - %d)' % (rname, abs(self.disp))
         return '(%s)' % rname
 
+
 class z80Opcode(envi.Opcode):
     pass
+
 
 class z80Disasm:
 
@@ -52,15 +57,18 @@ class z80Disasm:
 
     def disasm(self, bytez, offset, va):
         row = sigtree.getSignature(bytez, offset)
-        if row == None:
+        if row is None:
             raise envi.InvalidInstruction(bytez=bytez[offset:offset+8], va=va)
+
         sigmask, mnem, o1type, o1info, o2type, o2info, oplen, immoff, iflags = row
         #ret = i386Opcode(va, optype, mnem, prefixes, (offset-startoff)+operoffset, operands, iflags)
         opers = []
-        if o1type != None:
+        if o1type is not None:
             opers.append(self._buildOper(bytez, offset, immoff, o1type, o1info))
-        if o2type != None:
+
+        if o2type is not None:
             opers.append(self._buildOper(bytez, offset, immoff, o2type, o2info))
+
         return z80Opcode(va, 0, mnem, 0, oplen, opers, iflags)
 
     def _buildOper(self, bytez, offset, immoff, otype, oinfo):

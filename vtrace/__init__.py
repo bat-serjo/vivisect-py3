@@ -46,6 +46,7 @@ import pickle as pickle
 
 import envi
 import envi.bits as e_bits
+import envi.const
 import envi.memory as e_mem
 import envi.registers as e_reg
 import envi.expression as e_expr
@@ -465,7 +466,7 @@ class Trace(e_mem.IMemory, e_reg.RegisterContext, e_resolv.SymbolResolver, base.
 
     #######################################################################
 
-    def allocateMemory(self, size, perms=e_mem.MM_RWX, suggestaddr=0):
+    def allocateMemory(self, size, perms=envi.const.MM_RWX, suggestaddr=0):
         """
         Allocate a chunk of memory inside the target process' address
         space.  Memory wil be mapped rwx unless otherwise specified with

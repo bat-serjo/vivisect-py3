@@ -6,6 +6,7 @@ import os
 import ctypes
 import ctypes.util as cutil
 
+import envi.const
 import envi.memory as e_mem
 import envi.cli as e_cli
 
@@ -431,13 +432,13 @@ class FreeBSDMixin:
                 fname = maptup[12].strip()
 
             if permstr[0] == 'r':
-                perms |= e_mem.MM_READ
+                perms |= envi.const.MM_READ
 
             if permstr[1] == 'w':
-                perms |= e_mem.MM_WRITE
+                perms |= envi.const.MM_WRITE
 
             if permstr[2] == 'x':
-                perms |= e_mem.MM_EXEC
+                perms |= envi.const.MM_EXEC
 
             ret.append((base, max-base, perms, fname))
 

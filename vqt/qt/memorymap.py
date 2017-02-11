@@ -2,12 +2,11 @@ from PyQt4 import QtCore, QtGui
 
 import envi.cli as e_cli
 import envi.memcanvas
-import envi.qt.memdump
-import envi.qt.memsearch
-
-from vqt.common import ACT
-import vqt.tree as vq_tree
 import envi.memory as e_mem
+import vqt.qt.memdump
+import vqt.qt.memsearch
+import vqt.tree as vq_tree
+from vqt.common import ACT
 
 
 class VQMemoryMapView(vq_tree.VQTreeView):
@@ -66,7 +65,7 @@ class VQMemoryMapView(vq_tree.VQTreeView):
         clipboard.setText(bytez.encode('hex'))
 
     def menuSaveBytesToFile(self, va, size):
-        dlg = envi.qt.memdump.MemDumpDialog(va, size=size)
+        dlg = vqt.qt.memdump.MemDumpDialog(va, size=size)
         if dlg.exec_() != QtGui.QDialog.Accepted:
             return
 
@@ -76,7 +75,7 @@ class VQMemoryMapView(vq_tree.VQTreeView):
             f.write(bytez)
 
     def menuSearchMaps(self, va, size, allmaps=False):
-        dlg = envi.qt.memsearch.MemSearchDialog()
+        dlg = vqt.qt.memsearch.MemSearchDialog()
         if dlg.exec_() != QtGui.QDialog.Accepted:
             return
 

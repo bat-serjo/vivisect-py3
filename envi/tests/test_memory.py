@@ -1,12 +1,13 @@
 import unittest
 
+import envi.const
 import envi.memory as e_mem
 
 class EnviMemoryTest(unittest.TestCase):
 
     def test_envi_memory_cache(self):
         mem = e_mem.MemoryObject()
-        mem.addMemoryMap(0x41410000, e_mem.MM_RWX, 'stack', 'B'*16384)
+        mem.addMemoryMap(0x41410000, envi.const.MM_RWX, 'stack', 'B' * 16384)
 
         cache = e_mem.MemoryCache(mem)
         self.assertEqual(cache.readMemory(0x41410041, 30), 'B' * 30)
