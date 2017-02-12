@@ -4,37 +4,44 @@ import varchs.i386 as e_i386
 # NOTE: all REX_R registers must *directly* follow their 3 bit variants
 #       in the table below
 amd64regs = [
-    ("rax",64),("rcx",64),("rdx",64),("rbx",64),("rsp",64),("rbp",64),("rsi",64),("rdi",64),
+    ("rax", 64), ("rcx", 64), ("rdx", 64), ("rbx", 64), ("rsp", 64), ("rbp", 64), ("rsi", 64), ("rdi", 64),
     # The amd64 extended GP regs
-    ("r8",64),("r9",64),("r10",64),("r11",64),("r12",64),("r13",64),("r14",64),("r15",64),
+    ("r8", 64), ("r9", 64), ("r10", 64), ("r11", 64), ("r12", 64), ("r13", 64), ("r14", 64), ("r15", 64),
 
-    ("mm0",64),("mm1",64), ("mm2",64), ("mm3",64), ("mm4",64), ("mm5",64), ("mm6",64), ("mm7",64),
+    ("mm0", 64), ("mm1", 64), ("mm2", 64), ("mm3", 64), ("mm4", 64), ("mm5", 64), ("mm6", 64), ("mm7", 64),
 
     # SIMD registers
-    ("ymm0",256),("ymm1",256),("ymm2",256),("ymm3",256),("ymm4",256),("ymm5",256),("ymm6",256),("ymm7",256),
+    ("ymm0", 256), ("ymm1", 256), ("ymm2", 256), ("ymm3", 256), ("ymm4", 256), ("ymm5", 256), ("ymm6", 256),
+    ("ymm7", 256),
     # The amd64 eytended SIMD regs...
-    ("ymm8",256),("ymm9",256),("ymm10",256),("ymm11",256),("ymm12",256),("ymm13",256),("ymm14",256),("ymm15",256),
+    ("ymm8", 256), ("ymm9", 256), ("ymm10", 256), ("ymm11", 256), ("ymm12", 256), ("ymm13", 256), ("ymm14", 256),
+    ("ymm15", 256),
 
-    #("xmm0",128),("xmm1",128),("xmm2",128),("xmm3",128),("xmm4",128),("xmm5",128),("xmm6",128),("xmm7",128),
+    # ("xmm0",128),("xmm1",128),("xmm2",128),("xmm3",128),("xmm4",128),("xmm5",128),("xmm6",128),("xmm7",128),
     ## The amd64 extended SIMD regs...
-    #("xmm8",128),("xmm9",128),("xmm10",128),("xmm11",128),("xmm12",128),("xmm13",128),("xmm14",128),("xmm15",128),
+    # ("xmm8",128),("xmm9",128),("xmm10",128),("xmm11",128),("xmm12",128),("xmm13",128),("xmm14",128),("xmm15",128),
 
     # Debug registers
-    ("debug0",64),("debug1",64),("debug2",64),("debug3",64),("debug4",64),("debug5",64),("debug6",64),("debug7",64),
+    ("debug0", 64), ("debug1", 64), ("debug2", 64), ("debug3", 64), ("debug4", 64), ("debug5", 64), ("debug6", 64),
+    ("debug7", 64),
     # Extended Debug registers (REX.R)
-    ("debug8",64),("debug9",64),("debug10",64),("debug11",64),("debug12",64),("debug13",64),("debug14",64),("debug15",64),
+    ("debug8", 64), ("debug9", 64), ("debug10", 64), ("debug11", 64), ("debug12", 64), ("debug13", 64), ("debug14", 64),
+    ("debug15", 64),
 
     # Control registers
-    ("ctrl0",64),("ctrl1",64),("ctrl2",64),("ctrl3",64),("ctrl4",64),("ctrl5",64),("ctrl6",64),("ctrl7",64),
+    ("ctrl0", 64), ("ctrl1", 64), ("ctrl2", 64), ("ctrl3", 64), ("ctrl4", 64), ("ctrl5", 64), ("ctrl6", 64),
+    ("ctrl7", 64),
     # Extended Control registers (REX.R)
-    ("ctrl8",64),("ctrl9",64),("ctrl10",64),("ctrl11",64),("ctrl12",64),("ctrl13",64),("ctrl14",64),("ctrl15",64),
+    ("ctrl8", 64), ("ctrl9", 64), ("ctrl10", 64), ("ctrl11", 64), ("ctrl12", 64), ("ctrl13", 64), ("ctrl14", 64),
+    ("ctrl15", 64),
 
     # Test registers
-    ("test0", 32),("test1", 32),("test2", 32),("test3", 32),("test4", 32),("test5", 32),("test6", 32),("test7", 32),
+    ("test0", 32), ("test1", 32), ("test2", 32), ("test3", 32), ("test4", 32), ("test5", 32), ("test6", 32),
+    ("test7", 32),
     # Segment registers
-    ("es", 16),("cs",16),("ss",16),("ds",16),("fs",16),("gs",16),
+    ("es", 16), ("cs", 16), ("ss", 16), ("ds", 16), ("fs", 16), ("gs", 16),
     # FPU Registers
-    ("st0", 128),("st1", 128),("st2", 128),("st3", 128),("st4", 128),("st5", 128),("st6", 128),("st7", 128),
+    ("st0", 128), ("st1", 128), ("st2", 128), ("st3", 128), ("st4", 128), ("st5", 128), ("st6", 128), ("st7", 128),
 
     # Leftovers ;)
     # MS doesn't support rflags in Context structure
@@ -82,8 +89,8 @@ amd64meta = [
     ("dil", REG_RDI, 0, 8),
 
     # The new GP regs are accessible in all modes.
-    ("r8d",  REG_R8,  0, 32),
-    ("r9d",  REG_R9,  0, 32),
+    ("r8d", REG_R8, 0, 32),
+    ("r9d", REG_R9, 0, 32),
     ("r10d", REG_R10, 0, 32),
     ("r11d", REG_R11, 0, 32),
     ("r12d", REG_R12, 0, 32),
@@ -91,8 +98,8 @@ amd64meta = [
     ("r14d", REG_R14, 0, 32),
     ("r15d", REG_R15, 0, 32),
 
-    ("r8w",  REG_R8,  0, 16),
-    ("r9w",  REG_R9,  0, 16),
+    ("r8w", REG_R8, 0, 16),
+    ("r9w", REG_R9, 0, 16),
     ("r10w", REG_R10, 0, 16),
     ("r11w", REG_R11, 0, 16),
     ("r12w", REG_R12, 0, 16),
@@ -100,8 +107,8 @@ amd64meta = [
     ("r14w", REG_R14, 0, 16),
     ("r15w", REG_R15, 0, 16),
 
-    ("r8l",  REG_R8,  0, 8),
-    ("r9l",  REG_R9,  0, 8),
+    ("r8l", REG_R8, 0, 8),
+    ("r9l", REG_R9, 0, 8),
     ("r10l", REG_R10, 0, 8),
     ("r11l", REG_R11, 0, 8),
     ("r12l", REG_R12, 0, 8),
@@ -132,12 +139,13 @@ statmetas = []
 # have to rebuild this because the register index is different inside this
 # scope.  rebuild with the REG_EFLAGS index inside this module.
 for name, idx, offset, width, desc in e_i386.statmetas:
-    statmetas.append( (name, REG_EFLAGS, offset, width, desc) )
+    statmetas.append((name, REG_EFLAGS, offset, width, desc))
 
 e_reg.addLocalStatusMetas(l, amd64meta, statmetas, 'EFLAGS')
 e_reg.addLocalMetas(l, amd64meta)
 
 RMETA_LOW32 = 0x00200000
+
 
 class Amd64RegisterContext(e_reg.RegisterContext):
     def __init__(self):
@@ -151,4 +159,3 @@ class Amd64RegisterContext(e_reg.RegisterContext):
         if (index & 0xffff0000) == RMETA_LOW32:
             index = index & 0xffff
         e_reg.RegisterContext.setRegister(self, index, value)
-

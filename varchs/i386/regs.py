@@ -3,19 +3,19 @@ Home of the i386 module's register specs/code.
 """
 import envi.registers as e_reg
 
-## Definitions for some of the i386 MSRs from intel...
-MSR_DEBUGCTL             = 0x01d9 # Intel p4 and forward, debug behavior control
-MSR_DEBUGCTL_LBR         = 0x0001 # last branch recording (in msr's)
-MSR_DEBUGCTL_BTF         = 0x0002 # single-step on branches (break on branch)
-MSR_DEBUGCTL_TR          = 0x0004 # enable sending "branch trace messages" !!
-MSR_DEBUGCTL_BTS         = 0x0008 # enable logging BTMs to circular buffer
-MSR_DEBUGCTL_BTINT       = 0x0010 # Branch-trace-interrupt (gen interrupt on BTS full)
-MSR_DEBUGCTL_BTS_OFF_OS  = 0x0020 # disable ring0 branch trace store
-MSR_DEBUGCTL_BTS_OFF_USR = 0x0040 # disable non-ring0 branch trace store
+# Definitions for some of the i386 MSRs from intel...
+MSR_DEBUGCTL             = 0x01d9  # Intel p4 and forward, debug behavior control
+MSR_DEBUGCTL_LBR         = 0x0001  # last branch recording (in msr's)
+MSR_DEBUGCTL_BTF         = 0x0002  # single-step on branches (break on branch)
+MSR_DEBUGCTL_TR          = 0x0004  # enable sending "branch trace messages" !!
+MSR_DEBUGCTL_BTS         = 0x0008  # enable logging BTMs to circular buffer
+MSR_DEBUGCTL_BTINT       = 0x0010  # Branch-trace-interrupt (gen interrupt on BTS full)
+MSR_DEBUGCTL_BTS_OFF_OS  = 0x0020  # disable ring0 branch trace store
+MSR_DEBUGCTL_BTS_OFF_USR = 0x0040  # disable non-ring0 branch trace store
 
-MSR_SYSENTER_EIP         = 0x0176 # Where is EIP at sysenter?
+MSR_SYSENTER_EIP         = 0x0176  # Where is EIP at sysenter?
 
-IA32_DS_AREA_MSR         = 0x0600 # pointer to the configured debug storage area
+IA32_DS_AREA_MSR         = 0x0600  # pointer to the configured debug storage area
 
 i386regs = [
     ("eax",32),("ecx",32),("edx",32),("ebx",32),("esp",32),("ebp",32),("esi",32),("edi",32),
@@ -37,10 +37,11 @@ i386regs = [
     ("eflags", 32), ("eip", 32),
 ]
 
+
 def getRegOffset(regs, regname):
     # NOTE: dynamically calculate this on import so we are less
     # likely to fuck it up...
-    for i,(name,width) in enumerate(regs):
+    for i, (name, width) in enumerate(regs):
         if name == regname:
             return i
     raise Exception("getRegOffset doesn't know about: %s" % regname)
@@ -82,14 +83,16 @@ statmetas = [
         ('OF', REG_EFLAGS, 11, 1, 'Overflow Flag'),
         ]
 
+
 def getEflagsFields(regval):
     ret = []
-    for name,_,shift,bits,desc in statmetas:
-        ret.append( (name, regval >> shift & 1) )
+    for name, _, shift, bits, desc in statmetas:
+        ret.append((name, regval >> shift & 1))
     return ret
 
 e_reg.addLocalStatusMetas(l, i386meta, statmetas, 'EFLAGS')
 e_reg.addLocalMetas(l, i386meta)
+
 
 class i386RegisterContext(e_reg.RegisterContext):
     def __init__(self):

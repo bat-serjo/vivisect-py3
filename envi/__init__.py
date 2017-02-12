@@ -3,9 +3,9 @@ The Envi framework allows architecture abstraction through the use of the
 ArchitectureModule, Opcode, Operand, and Emulator objects.
 """
 
-import platform
-import struct
 import types
+import struct
+import platform
 
 # TODO: move into const.py
 # Parsed Opcode Formats
@@ -78,10 +78,10 @@ class ArchitectureModule:
     _plat_def_calls = {}
 
     def __init__(self, archname, maxinst=32, endian=ENDIAN_LSB):
+        self._endian = endian
         self._arch_id = getArchByName(archname)
         self._arch_name = archname
         self._arch_maxinst = maxinst
-        self.setEndian(endian)
 
     def getArchId(self):
         """
@@ -561,7 +561,7 @@ class Emulator(e_reg.RegisterContext, e_mem.MemoryObject):
     """
     The Emulator class is mostly "Abstract" in the java
     Interface sense.  The emulator should be able to
-    be extended for the architecutures which are included
+    be extended for the architectures which are included
     in the envi framework.  You *must* mix in
     an instance of your architecture abstraction module.
 
@@ -732,7 +732,7 @@ class Emulator(e_reg.RegisterContext, e_mem.MemoryObject):
     def getCallArgs(self, count, cc):
         """
         Emulator implementors can implement this method to allow
-        analysis modules a platform/architecture independant way
+        analysis modules a platform/architecture independent way
         to get stack/reg/whatever args.
 
         Usage: getCallArgs(3, "stdcall") -> (0, 32, 0xf00)
@@ -746,7 +746,7 @@ class Emulator(e_reg.RegisterContext, e_mem.MemoryObject):
     def execCallReturn(self, value, cc, argc=0):
         """
         Emulator implementors can implement this method to allow
-        analysis modules a platform/architecture independant way
+        analysis modules a platform/architecture independent way
         to set a function return value. (this should also take
         care of any argument cleanup or other return time tasks
         for the calling convention)
@@ -781,7 +781,7 @@ class Emulator(e_reg.RegisterContext, e_mem.MemoryObject):
             return None
         if len(bytes) != size:
             raise Exception("Read Gave Wrong Length At 0x%.8x (va: 0x%.8x wanted %d got %d)" % (
-            self.getProgramCounter(), addr, size, len(bytes)))
+                            self.getProgramCounter(), addr, size, len(bytes)))
         if size == 1:
             return struct.unpack("B", bytes)[0]
         elif size == 2:
@@ -837,18 +837,18 @@ class Emulator(e_reg.RegisterContext, e_mem.MemoryObject):
         return self.intSubBase(subtra, minuend, ssize, msize)
 
     def intSubBase(self, subtrahend, minuend, ssize, msize):
-        '''
+        """
         Base for integer subtraction.  
         Segmented such that order of operands can easily be overridden by 
         subclasses.  Does not set flags (arch-specific), and doesn't set
         the dest operand.  That's up to the instruction implementation.
 
-        So we can either do a BUNCH of crazyness with xor and shifting to
+        So we can either do a BUNCH of craziness with xor and shifting to
         get the necessary flags here, *or* we can just do both a signed and
         unsigned sub and use the results.
 
         Math vocab refresher: Subtrahend - Minuend = Difference
-        '''
+        """
         usubtra = e_bits.unsigned(subtrahend, ssize)
         uminuend = e_bits.unsigned(minuend, msize)
 
@@ -872,7 +872,7 @@ class Emulator(e_reg.RegisterContext, e_mem.MemoryObject):
         dst = self.getOperValue(op, 1)
 
         # FIXME PDE and flags
-        if src == None:
+        if src is None:
             self.undefFlags()
             self.setOperValue(op, 1, None)
             return
@@ -896,7 +896,7 @@ class Emulator(e_reg.RegisterContext, e_mem.MemoryObject):
         src2 = self.getOperValue(op, 1)
 
         # PDE
-        if src1 == None or src2 == None:
+        if src1 is None or src2 is None:
             self.undefFlags()
             self.setOperValue(op, 1, None)
             return
@@ -907,7 +907,7 @@ class Emulator(e_reg.RegisterContext, e_mem.MemoryObject):
 
 
 class CallingConvention(object):
-    '''
+    """
     Base class for all calling conventions. You must define class locals that
     define the fields below.
 
@@ -957,7 +957,7 @@ class CallingConvention(object):
         CC_STACK    - Ret, Retval or Arg use stack memory at offset #
         CC_STACK_INF- the rest of Args use stack memory starting at #
 
-    '''
+    """
     pad = 0
     align = 4
     delta = 0  # FIXME: possible duplicate use with pad
@@ -973,24 +973,24 @@ class CallingConvention(object):
     # retval_def = (CC_REG, REG_EAX)
 
     def getNumStackArgs(self, emu, argc):
-        '''
+        """
         Returns the number of stack arguments.
-        '''
+        """
         rargs = [v for (t, v) in self.arg_def if t == CC_REG]
         return max(argc - len(rargs), 0)
 
     def getStackArgOffset(self, emu, argc):
-        '''
+        """
         Returns the number of bytes from RET to the first Stack Arg
-        '''
+        """
         return self.pad + self.align
 
     def getPreCallArgs(self, emu, argc):
-        '''
+        """
         Returns a list of the arguments passed to the function.
 
         Expects to be called at call/jmp to function entrypoint.
-        '''
+        """
         args = []
         sp = emu.getStackCounter()
         sp += self.pad
@@ -1017,11 +1017,11 @@ class CallingConvention(object):
         return args
 
     def getCallArgs(self, emu, argc):
-        '''
+        """
         Returns a list of the arguments passed to the function.
 
         Expects to be called at the function entrypoint.
-        '''
+        """
         sp = emu.getStackCounter()
         emu.setStackCounter(sp + self.align)
         args = self.getPreCallArgs(emu, argc)
@@ -1029,11 +1029,11 @@ class CallingConvention(object):
         return args
 
     def setPreCallArgs(self, emu, args):
-        '''
+        """
         Writes arguments to appropriate locations.  No allocation is performed.
 
         Expects to be called at call/jmp to function entrypoint.
-        '''
+        """
         cur_arg = 0
         argc = len(args)
         sp = emu.getStackCounter()
@@ -1061,21 +1061,21 @@ class CallingConvention(object):
                 raise Exception('unknown argument type')
 
     def setCallArgs(self, emu, args):
-        '''
+        """
         Writes arguments to appropriate locations.  No allocation is performed.
 
         Expects to be called at the function entrypoint.
-        '''
+        """
         emu.setStackCounter(emu.getStackCounter() + self.align)
         self.setPreCallArgs(emu, args)
         emu.setStackCounter(emu.getStackCounter() - self.align)
 
     def getReturnAddress(self, emu):
-        '''
+        """
         Returns the return address.
 
         Expects to be called at the function entrypoint.
-        '''
+        """
         rtype, rvalue = self.retaddr_def
         if rtype == CC_REG:
             ra = emu.getRegister(rvalue)
@@ -1088,11 +1088,11 @@ class CallingConvention(object):
         return ra
 
     def getReturnValue(self, emu):
-        '''
+        """
         Returns the return value.
 
         Expects to be called after the function return.
-        '''
+        """
         rtype, rvalue = self.retval_def
         if rtype == CC_REG:
             rv = emu.getRegister(rvalue)
@@ -1105,11 +1105,11 @@ class CallingConvention(object):
         return rv
 
     def setReturnAddress(self, emu, ra):
-        '''
+        """
         Sets the return address.
 
         Expects to be called at the function entrypoint.
-        '''
+        """
         rtype, rvalue = self.retaddr_def
         if rtype == CC_REG:
             emu.setRegister(rvalue, ra)
@@ -1120,9 +1120,9 @@ class CallingConvention(object):
             raise Exception('unknown argument type')
 
     def setReturnValue(self, emu, rv):
-        '''
+        """
         Sets the return value.
-        '''
+        """
         rtype, rvalue = self.retval_def
         if rtype == CC_REG:
             emu.setRegister(rvalue, rv)
@@ -1133,9 +1133,9 @@ class CallingConvention(object):
             raise Exception('unknown argument type')
 
     def allocateReturnAddress(self, emu):
-        '''
+        """
         Allocates space on the stack for the return address.
-        '''
+        """
         rtype, rvalue = self.retaddr_def
         if rtype != CC_STACK:
             return 0
@@ -1146,9 +1146,9 @@ class CallingConvention(object):
         return self.align
 
     def allocateArgSpace(self, emu, argc):
-        '''
+        """
         Allocates space on the stack for arguments.
-        '''
+        """
         num_stackargs = self.getNumStackArgs(emu, argc)
         sp = emu.getStackCounter()
         sp -= self.pad
@@ -1156,9 +1156,9 @@ class CallingConvention(object):
         emu.setStackCounter(sp)
 
     def allocateCallSpace(self, emu, argc):
-        '''
+        """
         Allocates space on the stack for arguments and the return address.
-        '''
+        """
         self.allocateReturnAddress(emu)
         self.allocateArgSpace(emu, argc)
 
@@ -1167,7 +1167,7 @@ class CallingConvention(object):
         return delta + self.align * argc
 
     def deallocateCallSpace(self, emu, argc, precall=False):
-        '''
+        """
         Removes space on the stack made for the arguments and the return
         address depending on the flags value of the calling convention.
 
@@ -1175,7 +1175,7 @@ class CallingConvention(object):
 
         Set precall=True if the calling convention has not allocated
         return address space ( ie, the "call" was not executed ).
-        '''
+        """
         delta = self.delta
 
         rtype, rvalue = self.retaddr_def
@@ -1205,50 +1205,50 @@ class CallingConvention(object):
         return delta
 
     def setCallArgsRet(self, emu, args=None, ra=None):
-        '''
+        """
         Modifies the arguments and return address. No allocation is performed.
 
         If the return address is None, sets return address to instruction
         after the address currently set as the return address.
 
         Expects to be called at the function entrypoint.
-        '''
+        """
         self.setCallArgs(emu, args)
 
-        if ra != None:
+        if ra is not None:
             self.setReturnAddress(emu, ra)
 
     def setupCall(self, emu, args=None, ra=None):
-        '''
+        """
         Sets up a function with the given args and the specified return
         address.  Allocates space for the arguments and the return address,
         sets the args and return address.
 
         If the return address is None, sets return address to the current
         program counter.
-        '''
+        """
         argv = []
-        if args != None:
+        if args is not None:
             argv.extend(args)
 
         argc = len(argv)
 
-        if ra == None:
+        if ra is None:
             ra = emu.getProgramCounter()
 
         self.allocateCallSpace(emu, argc)
         self.setCallArgsRet(emu, args=args, ra=ra)
 
     def executeCall(self, emu, va, args=None, ra=None):
-        '''
+        """
         Calls setupCall and then directly sets the program counter to the
         specified address.
-        '''
+        """
         self.setupCall(emu, args=args, ra=ra)
         emu.setProgramCounter(va)
 
     def execCallReturn(self, emu, value, argc):
-        '''
+        """
         Forces a function to return the specified value.
 
         Reads the return address from the stack, deallocates the stack space
@@ -1256,7 +1256,7 @@ class CallingConvention(object):
         counter to the previously read return address.
 
         Expects to be called at the function entrypoint.
-        '''
+        """
         sp = emu.getStackCounter()
         ip = self.getReturnAddress(emu)
         self.deallocateCallSpace(emu, argc)
@@ -1292,16 +1292,16 @@ arch_xlate_64 = {
 
 
 def getArchByName(archname):
-    '''
+    """
     Get the architecture constant by the humon name.
-    '''
+    """
     return arch_by_name.get(archname)
 
 
 def getArchById(archid):
-    '''
+    """
     Get the architecture name by the constant.
-    '''
+    """
     return arch_names.get(archid)
 
 
@@ -1318,7 +1318,7 @@ def getCurrentArch():
     elif width == 8:
         ret = arch_xlate_64.get(mach)
 
-    if ret == None:
+    if ret is None:
         raise ArchNotImplemented(mach)
 
     return ret
@@ -1334,7 +1334,7 @@ def getArchModule(name=None):
     i386 - Intel i386
     amd64 - The new 64bit AMD spec.
     """
-    if name == None:
+    if name is None:
         name = getCurrentArch()
 
     # Some builds have x86 (py2.6) and some have other stuff...
@@ -1367,10 +1367,10 @@ def getArchModule(name=None):
 
 
 def getArchModules(default=ARCH_DEFAULT):
-    '''
+    """
     Retrieve a default array of arch modules ( where index 0 is
     also the "named" or "default" arch module.
-    '''
+    """
     import varchs.h8 as e_h8
     import varchs.arm as e_arm
     import varchs.i386 as e_i386
