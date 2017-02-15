@@ -469,12 +469,12 @@ class EnviCli(Cmd):
         return int(e_expr.evaluate(expr, l))
 
     def do_binstr(self, line):
-        '''
+        """
         Display a binary representation of the given value expression
         (padded to optional width in bits)
 
         Usage: binstr <val_expr> [<bitwidth_expr>]
-        '''
+        """
         argv = splitargs(line)
         if len(argv) == 0:
             return self.do_help('binstr')
@@ -755,12 +755,12 @@ class EnviCli(Cmd):
         self.vprint('wrote %d bytes.' % len(mem))
 
     def do_memcmp(self, line):
-        '''
+        """
         Compare memory at the given locations.  Outputs a set of
         differences showing bytes at their given offsets....
 
         Usage: memcmp <addr_expr1> <addr_expr2> <size_expr>
-        '''
+        """
         if len(line) == 0:
             return self.do_help('memcmp')
 

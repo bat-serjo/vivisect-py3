@@ -1445,7 +1445,7 @@ class VivWorkspace(e_mem.MemoryObject, viv_base.VivWorkspaceCore):
     def getCodeBlock(self, va):
         """
         Return the codeblock which contains the given va.  A "codeblock"
-        is a location compatable tuple: (va, size, funcva)
+        is a location compatible tuple: (va, size, funcva)
         """
         return self.blockmap.getMapLookup(va)
 

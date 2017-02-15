@@ -1,12 +1,8 @@
-import struct
 import unittest
 
-import envi.registers as e_reg
 import varchs.h8 as e_h8
 import vivisect
-from envi import IF_RET, IF_NOFALL, IF_BRANCH, IF_CALL, IF_COND
 from varchs.h8 import *
-
 
 # OPHEX, VA, repr, flags, emutests
 instrs = [

@@ -22,6 +22,7 @@ Current signature ideas:
 NOTE: Initial signature code consists entirely of the envi
 bytesig module and byte/mask sets for known function signatures.
 """
+from vivisect.const import *
 
 
 class Signature:
@@ -29,9 +30,6 @@ class Signature:
     A function/procedure signature.
     """
     pass
-
-
-from vivisect.const import *
 
 
 def genSigAndMask(vw, funcva):
@@ -43,7 +41,7 @@ def genSigAndMask(vw, funcva):
 
     fsize = 0
 
-    # Figgure out the size of the first linear chunk
+    # Figure out the size of the first linear chunk
     # in this function...
     cb = vw.getCodeBlock(funcva)
     while cb is not None:
@@ -56,15 +54,15 @@ def genSigAndMask(vw, funcva):
     if fsize == 0:
         raise Exception("0 length function??!?1")
 
-    bytes = vw.readMemory(funcva, fsize)
+    _bytes = vw.readMemory(funcva, fsize)
 
-    sig = ""
-    mask = ""
+    sig = b""
+    mask = b""
     i = 0
     while i < fsize:
         rtype = vw.getRelocation(funcva + i)
         if rtype is None:
-            sig += bytes[i]
+            sig += _bytes[i:i+1]
             mask += b"\xff"
             i += 1
         elif rtype == RTYPE_BASERELOC:

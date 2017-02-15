@@ -1107,7 +1107,7 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
                 hits += 1
 
                 # If we have passed a conditional branch...
-                if tobrn == True and hits != 0:
+                if tobrn is True and hits != 0:
 
                     if op.iflags & envi.IF_CALL:
                         break
@@ -1123,7 +1123,7 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
                     if getout:
                         break
 
-                if count != None and hits >= count:
+                if count is not None and hits >= count:
                     break
 
                 if t.getCurrentSignal() is not None:

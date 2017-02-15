@@ -1,7 +1,7 @@
-'''
+"""
 The envi.memcanvas module is the home of the base MemoryRenderer object and
 MemoryCanvas objects.
-'''
+"""
 
 import sys
 import traceback
@@ -77,11 +77,11 @@ class MemoryCanvas(object):
         self.addText(msg)
 
     def setNavCallback(self, callback):
-        '''
+        """
         Set a navigation "callback" that will be called with
         a memory expression as it's first argument anytime the
         canvas recieves user input which desires nav...
-        '''
+        """
         self._canv_navcallback = callback
 
     def addRenderer(self, name, rend):
@@ -184,10 +184,10 @@ class MemoryCanvas(object):
         pass
 
     def _isRendered(self, va, maxva):
-        '''
+        """
         Returns true if any part of the current render overlaps
         with the specified region.
-        '''
+        """
         if self._canv_beginva is None:
             return False
 
@@ -203,9 +203,9 @@ class MemoryCanvas(object):
         return True
 
     def _loc_helper(self, va):
-        '''
+        """
         allows subclassess to make the starting VA make more contextual sense.
-        '''
+        """
         return (va, 0)
 
     def renderMemoryUpdate(self, va, size):
@@ -381,9 +381,9 @@ class StringMemoryCanvas(MemoryCanvas):
 
 
 class CanvasMethodProxy(object):
-    '''
+    """
     Target for teecanvas.
-    '''
+    """
 
     def __init__(self, canvases, name):
         self.canvases = canvases
@@ -396,14 +396,14 @@ class CanvasMethodProxy(object):
 
 
 class TeeCanvas(object):
-    '''
+    """
     Replaces the canvas on an object (temporarily) with a proxy canvas that
     forwards requests to other canvases.
 
     Example usage:
     with TeeCanvas(self, (self.canvas, canvas2)) as tc:
         self.onecmd(command)
-    '''
+    """
 
     def __init__(self, target, canvases):
         self.target = target
@@ -414,14 +414,14 @@ class TeeCanvas(object):
         return CanvasMethodProxy(self.canvases, name)
 
     def __enter__(self):
-        '''
+        """
         replace the canvas of the target with ourselves.
-        '''
+        """
         self.ocanvas = self.target.canvas
         self.target.canvas = self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        '''
+        """
         restore the canvas of the target.
-        '''
+        """
         self.target.canvas = self.ocanvas

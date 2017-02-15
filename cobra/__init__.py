@@ -81,19 +81,19 @@ class CobraPickleException(CobraException):
 
 
 class CobraAuthException(CobraException):
-    '''Raised when specified auth data is rejected'''
+    """Raised when specified auth data is rejected"""
     pass
 
 
 class CobraPermDenied(CobraException):
-    '''Raised when a call/setattr/getattr is not allowed'''
+    """Raised when a call/setattr/getattr is not allowed"""
 
 
 class CobraErrorException(Exception):
-    '''
+    """
     Raised when we receive a COBRA_ERROR message and the current options
     dont support serializing exception objects.
-    '''
+    """
 
 
 def connectSocket(host, port, timeout=None):
@@ -127,10 +127,10 @@ def getLocalInfo():
 
 
 def getUserInfo():
-    '''
+    """
     Get the cobra authenticated username of the current user
     ( or None if no user was authenticated )
-    '''
+    """
     return getattr(currentThread(), "_cobra_authuser", None)
 
 
@@ -306,27 +306,27 @@ class SocketBuilder:
         self.sslkey = None
 
     def setTimeout(self, timeout):
-        '''
+        """
         Set the timeout for newly created sockets.
-        '''
+        """
         self.timeout = timeout
 
     def setSslEnabled(self, status):
         self.ssl = status
 
     def setSslCa(self, crtfile):
-        '''
+        """
         Set the SSL Certificate Authority for this socket builder.
 
         ( This enables checking the server's presented cert )
-        '''
+        """
         self.ssl = True
         self.sslca = crtfile
 
     def setSslClientCert(self, crtfile, keyfile):
-        '''
+        """
         Set the cert/key used by this client to negotiate SSL.
-        '''
+        """
         self.ssl = True
         self.sslcrt = crtfile
         self.sslkey = keyfile
@@ -482,7 +482,7 @@ class CobraClientSocket(CobraSocket):
 
 class CobraDaemon(ThreadingTCPServer):
     def __init__(self, host="", port=COBRA_PORT, sslcrt=None, sslkey=None, sslca=None, msgpack=False, json=False):
-        '''
+        """
         Construct a cobra daemon object.
 
         Parameters:
@@ -494,7 +494,7 @@ class CobraDaemon(ThreadingTCPServer):
         sslcrt / sslkey     - Specify sslcrt and sslkey to enable SSL server side
         sslca               - Specify an SSL CA key to use validating client certs
 
-        '''
+        """
         self.thr = None
         self.run = True
         self.shared = {}
@@ -552,16 +552,16 @@ class CobraDaemon(ThreadingTCPServer):
         self.cansetattr = status
 
     def setSslCa(self, crtfile):
-        '''
+        """
         Set the SSL Certificate Authority by this server.
         ( to validate client certs )
-        '''
+        """
         self.sslca = crtfile
 
     def setSslServerCert(self, crtfile, keyfile):
-        '''
+        """
         Set the cert/key used by this server to negotiate SSL.
-        '''
+        """
         self.sslcrt = crtfile
         self.sslkey = keyfile
 
@@ -587,7 +587,7 @@ class CobraDaemon(ThreadingTCPServer):
             raise
 
     def setAuthModule(self, authmod):
-        '''
+        """
         Enable an authentication module for this server
         ( all connections *must* be authenticated through the authmod )
 
@@ -598,26 +598,26 @@ class CobraDaemon(ThreadingTCPServer):
             authmod = c_a_shadow.ShadowFileAuth('passwdfile.txt')
             cdaemon = CobraDaemon()
             cdaemon.setAuthModule()
-        '''
+        """
         self.authmod = authmod
 
     def getSharedObject(self, name):
         return self.shared.get(name, None)
 
     def getSharedObjects(self):
-        '''
+        """
         Return a list of (name, obj) for the currently shared objects.
 
         Example:
             for name,obj in daemon.getSharedObjects():
                 print('%s: %r' % (name,obj))
-        '''
+        """
         return list(self.shared.items())
 
     def getSharedName(self, obj):
-        '''
+        """
         If this object is shared already, get the name...
-        '''
+        """
         for name, sobj in list(self.shared.items()):
             if sobj == obj:
                 return name
@@ -940,7 +940,7 @@ def chopCobraUri(uri):
 
 
 class CobraProxy:
-    '''
+    """
     A proxy object for remote objects shared with Cobra
 
     A few optional keyword arguments are handled by all cobra protocols:
@@ -955,7 +955,7 @@ class CobraProxy:
 
     msgpack=1
     authinfo=<base64( json( <authinfo dict> ))>
-    '''
+    """
 
     def __init__(self, URI, retrymax=None, timeout=None, **kwargs):
 
@@ -1036,9 +1036,9 @@ class CobraProxy:
         self._cobra_methods = data
 
     def cobraAuthenticate(self, authinfo):
-        '''
+        """
         Re-authenticate to the server ( and store auth info for reconnect ).
-        '''
+        """
         with self._cobra_getsock() as csock:
             mtype, rver, data = csock.cobraTransaction(COBRA_AUTH, '', authinfo)
         if mtype == COBRA_AUTH:
@@ -1096,9 +1096,9 @@ class CobraProxy:
                                  pool=self._cobra_sockpool)
 
     def __dir__(self):
-        '''
+        """
         return a list of proxied method names
-        '''
+        """
         return list(self._cobra_methods.keys())
 
     def __getstate__(self):
@@ -1178,24 +1178,24 @@ class CobraProxy:
 
 
 def addSocketBuilder(host, port, builder):
-    '''
+    """
     Register a global socket builder which should be used
     when constructing sockets to the given host/port.
-    '''
+    """
     socket_builders[(host, port)] = builder
 
 
 def getSocketBuilder(host, port):
-    '''
+    """
     Retrieve the registered socket builder for the given host/port.
-    '''
+    """
     return socket_builders.get((host, port))
 
 
 def initSocketBuilder(host, port):
-    '''
+    """
     Retrieve or initialize a socket builder for the host/port.
-    '''
+    """
     builder = socket_builders.get((host, port))
     if builder == None:
         builder = SocketBuilder(host, port)
@@ -1232,11 +1232,11 @@ def unshareObject(name):
 
 
 def swapCobraObject(uri, newname):
-    '''
+    """
     Parse out the object name from a given cobra
     URI and return a newly constructed URI for
     the shared object <newname> on the same server.
-    '''
+    """
     scheme, host, port, name, urlparams = chopCobraUri(uri)
     paramstr = ''
     if urlparams:

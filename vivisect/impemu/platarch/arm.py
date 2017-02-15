@@ -23,7 +23,7 @@ class ArmWorkspaceEmulator(v_i_emulator.WorkspaceEmulator, ArmEmulator):
         to return once that location is hit.
         """
 
-        if tmode != None:
+        if tmode is not None:
             # we're forcing thumb or arm mode... update the flag
             self.setFlag(PSR_T_bit, tmode)
 
@@ -46,7 +46,7 @@ class ArmWorkspaceEmulator(v_i_emulator.WorkspaceEmulator, ArmEmulator):
             self.setProgramCounter(va)
 
             # Check if we are beyond our loop max...
-            if maxloop != None:
+            if maxloop is not None:
                 lcount = vg_path.getPathLoopCount(self.curpath, 'bva', va)
                 if lcount > maxloop:
                     continue
@@ -62,7 +62,7 @@ class ArmWorkspaceEmulator(v_i_emulator.WorkspaceEmulator, ArmEmulator):
                     return
 
                 # Check straight hit count...
-                if maxhit != None:
+                if maxhit is not None:
                     h = hits.get(starteip, 0)
                     h += 1
                     if h > maxhit:
@@ -71,7 +71,7 @@ class ArmWorkspaceEmulator(v_i_emulator.WorkspaceEmulator, ArmEmulator):
 
                 # If we ran out of path (branches that went
                 # somewhere that we couldn't follow?
-                if self.curpath == None:
+                if self.curpath is None:
                     break
 
                 try:

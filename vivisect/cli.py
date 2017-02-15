@@ -33,6 +33,7 @@ import envi.memcanvas.renderers as e_render
 
 from vivisect.const import *
 
+
 class VivCli(e_cli.EnviCli, vivisect.VivWorkspace):
 
     def __init__(self):
@@ -62,7 +63,7 @@ class VivCli(e_cli.EnviCli, vivisect.VivWorkspace):
         """
         if not line:
             self.vprint("Report Modules")
-            for descr,modname in viv_reports.listReportModules():
+            for descr, modname in viv_reports.listReportModules():
                 self.vprint("%32s %s" % (modname, descr))
             return
 
@@ -80,19 +81,19 @@ class VivCli(e_cli.EnviCli, vivisect.VivWorkspace):
 
         for va, pri, info in mod.report(self):
             name = self.getName(va)
-            if name == None:
+            if name is None:
                 name = self.arch.pointerString(va)
             self.canvas.addVaText(name, va)
             self.canvas.addText(": %s\n" % info)
 
     def do_pathcount(self, line):
-        '''
+        """
         Mostly for testing the graph stuff... this will likely be removed.
 
         (does not count paths with loops currently...)
 
         Usage: pathcount <func_expr>
-        '''
+        """
         fva = self.parseExpression(line)
         if not self.isFunction(fva):
             self.vprint('Not a function!')
@@ -101,17 +102,16 @@ class VivCli(e_cli.EnviCli, vivisect.VivWorkspace):
         g = v_t_graph.buildFunctionGraph(self, fva)
         # Lets find the "bottom" nodes...
         endblocks = []
-        for nid,ninfo in g.getNodes():
+        for nid, ninfo in g.getNodes():
             if len(g.getRefsFrom(nid)) == 0:
-                endblocks.append((nid,ninfo))
+                endblocks.append((nid, ninfo))
 
-        for nid,ninfo in endblocks:
+        for nid, ninfo in endblocks:
             paths = list(g.pathSearch(0, toid=nid))
             self.vprint('paths to 0x%.8x: %d' % (ninfo.get('cbva'), len(paths)))
-        
 
     def do_symboliks(self, line):
-        '''
+        """
         Use the new symboliks subsystem. (NOTE: i386 only for a bit...)
 
         Usage: symboliks [ options ]
@@ -119,17 +119,17 @@ class VivCli(e_cli.EnviCli, vivisect.VivWorkspace):
         -A  Run the emu and show the state of the machine for all found paths
             to the given address
 
-        '''
+        """
 
         watchaddr = None
 
         argv = e_cli.splitargs(line)
         try:
-            opts,argv = getopt(argv, 'A:')
+            opts, argv = getopt(argv, 'A:')
         except Exception as e:
             return self.do_help('symboliks')
 
-        for opt,optarg in opts:
+        for opt, optarg in opts:
             if opt == '-A':
                 watchaddr = self.parseExpression(optarg)
 
@@ -181,21 +181,21 @@ class VivCli(e_cli.EnviCli, vivisect.VivWorkspace):
             self.vprint('RETURN',emu.getFunctionReturn().reduce())
 
     def do_names(self, line):
-        '''
+        """
         Show any names which contain the given argument.
 
         Usage: names <name_regex>
 
         FIXME unify do_sym from vdb into symbol context!
-        '''
+        """
         if not line:
             return self.do_help('names')
 
         import re
         regex = re.compile(line, re.I)
-        for va,name in self.getNames():
+        for va, name in self.getNames():
             if regex.search(name):
-                self.vprint('0x%.8x: %s' % (va,name))
+                self.vprint('0x%.8x: %s' % (va, name))
 
     def do_save(self, line):
         """
@@ -224,7 +224,7 @@ class VivCli(e_cli.EnviCli, vivisect.VivWorkspace):
         Usage: imports [fname]
         """
         self.canvas.addText("Imports:\n")
-        for va,size,ltype,tinfo in self.getImports():
+        for va, size, ltype, tinfo in self.getImports():
             # FIXME warn them...
             if not tinfo.startswith(line):
                 continue
@@ -235,7 +235,7 @@ class VivCli(e_cli.EnviCli, vivisect.VivWorkspace):
             self.canvas.addText("\n")
 
     def do_fscope(self, line):
-        '''
+        """
         The fscope command can be used to enumerate things from the
         scope of one function and down it's calling graph.
 
@@ -247,20 +247,20 @@ class VivCli(e_cli.EnviCli, vivisect.VivWorkspace):
         Example: fscope -I kernel32.CreateFileW
                  (Show imports called by CreateFileW and down...)
 
-        '''
+        """
         showimp = False
         showstr = False
 
         argv = e_cli.splitargs(line)
         try:
-            opts,args = getopt(argv, 'IS')
+            opts, args = getopt(argv, 'IS')
         except Exception as e:
             return self.do_help('fscope')
 
         if not len(args) or not len(opts):
             return self.do_help('fscope')
 
-        for opt,optarg in opts:
+        for opt, optarg in opts:
             if opt == '-I':
                 showimp = True
             elif opt == '-S':
@@ -294,17 +294,17 @@ class VivCli(e_cli.EnviCli, vivisect.VivWorkspace):
         edict = {}
         for va, etype, name, filename in self.getExports():
             l = edict.get(filename)
-            if l == None:
+            if l is None:
                 l = []
                 edict[filename] = l
             l.append((name, va))
 
         if line:
             x = edict.get(line)
-            if x == None:
+            if x is None:
                 self.vprint("Unknown fname: %s" % line)
                 return
-            edict = {line:x}
+            edict = {line: x}
 
         fnames = list(edict.keys())
         fnames.sort()
@@ -323,14 +323,14 @@ class VivCli(e_cli.EnviCli, vivisect.VivWorkspace):
 
     def do_filemeta(self, line):
 
-        '''
+        """
         Show/List file metadata.
 
         Usage: filemeta [ fname [ keyname ] ]
 
         Example: filemeta kernel32
         Example: filemeta kernel32 md5
-        '''
+        """
 
         argv = e_cli.splitargs(line)
         if len(argv) == 0:
@@ -385,7 +385,7 @@ class VivCli(e_cli.EnviCli, vivisect.VivWorkspace):
 
         addr = self.parseExpression(line)
         l = self.getLocation(addr)
-        if l == None:
+        if l is None:
             s = self.arch.pointerString(addr)
             self.vprint("Unknown location: %s" % s)
         r = self.reprLocation(l)
@@ -503,13 +503,13 @@ class VivCli(e_cli.EnviCli, vivisect.VivWorkspace):
                 argv = vg_path.getNodeProp(pnode, 'argv')
                 callva = vg_path.getNodeProp(pnode, 'cva')
                 argidx = vg_path.getNodeProp(pnode, 'argidx')
-                if callva != None:
+                if callva is not None:
                     aval, amagic = argv[argidx]
                     arepr = '0x%.8x' % aval
-                    if amagic != None:
+                    if amagic is not None:
                         arepr = repr(amagic)
                     frepr = 'UNKNOWN'
-                    if fva != None:
+                    if fva is not None:
                         frepr = '0x%.8x' % fva
                     self.vprint('func: %s calls at: 0x%.8x with his own: %s' % (frepr, callva, arepr))
             self.vprint("="*80)
@@ -565,7 +565,6 @@ class VivCli(e_cli.EnviCli, vivisect.VivWorkspace):
             self.vprint("None!")
             return
 
-
     def do_vampsig(self, line):
         """
         Generate a vamp signature string for the given function's first block.
@@ -576,20 +575,20 @@ class VivCli(e_cli.EnviCli, vivisect.VivWorkspace):
         va = self.parseExpression(line)
 
         fva = self.getFunction(va)
-        if fva == None:
+        if fva is None:
             self.vprint("Invalid Function Address: 0x%.8x (%s)" % (va, line))
 
-        sig,mask = viv_vamp.genSigAndMask(self, fva)
-        self.vprint("SIGNATURE: %s" % sig.encode("hex"))
-        self.vprint("MASK: %s" % mask.encode("hex"))
+        sig, mask = viv_vamp.genSigAndMask(self, fva)
+        self.vprint("SIGNATURE: %s" % sig.hex())
+        self.vprint("MASK: %s" % mask.hex())
 
     def do_vdb(self, line):
-        '''
+        """
         Execute vdb GUI from within vivisect (allowing special hooks between them...)
         (Optionally, specify a host to use for remote vdb debugging)
 
         Usage: vdb [<remote_host>]
-        '''
+        """
         if line:
             try:
                 socket.gethostbyname(line)
