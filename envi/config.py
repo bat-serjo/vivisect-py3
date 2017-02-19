@@ -63,9 +63,9 @@ class ConfigInvalidOption(Exception):
         return 'Invalid Config Option: %s' % self.optname
 
 
-class EnviConfig:
+class VConfig:
     """
-    EnviConfig basically works like a multi-layer dictionary that
+    VConfig basically works like a multi-layer dictionary that
     loads and stores config data.
 
     Set a config parameter:     cfg['foo'] = 'bar'
@@ -200,7 +200,7 @@ class EnviConfig:
     def getSubConfig(self, name, add=True):
         subcfg = self.cfgsubsys.get(name)
         if subcfg is None and add:
-            subcfg = EnviConfig()
+            subcfg = VConfig()
             self.cfgsubsys[name] = subcfg
             subcfg.autosave = self.autosave
             # Monkey patch the save method...
@@ -310,7 +310,7 @@ if __name__ == '__main__':
             'baz': ('one', 'two', 'three'),
         }
     }
-    cfg = EnviConfig(defaults=defaults)
+    cfg = VConfig(defaults=defaults)
 
     print(cfg.woot + 20)
     print(cfg.foosub.bar)

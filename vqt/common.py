@@ -1,5 +1,5 @@
 # Some common GUI helpers
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtWidgets, QtCore
 
 
 class ACT:
@@ -129,9 +129,9 @@ class VqtModel(QtCore.QAbstractItemModel):
         # return mdata
 
 
-class VqtView(QtGui.QTreeView):
+class VqtView(QtWidgets.QTreeView):
     def __init__(self, parent=None):
-        QtGui.QTreeView.__init__(self, parent=parent)
+        super(VqtView, self).__init__(parent=parent)
         self.setAlternatingRowColors(True)
         self.setSortingEnabled(True)
 
@@ -150,9 +150,9 @@ class VqtView(QtGui.QTreeView):
         return ret
 
     def setModel(self, model):
-        smodel = QtGui.QSortFilterProxyModel(parent=self)
+        smodel = QtCore.QSortFilterProxyModel(parent=self)
         smodel.setSourceModel(model)
-        ret = QtGui.QTreeView.setModel(self, smodel)
+        ret = super(VqtView, self).setModel(smodel)
         c = len(model.columns)
         for i in range(c):
             self.resizeColumnToContents(i)

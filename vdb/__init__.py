@@ -215,7 +215,7 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
 
         # Load up the config
         cfgfile = os.path.join(self.vdbhome, 'vdb.json')
-        self.config = e_config.EnviConfig(filename=cfgfile, defaults=defconfig)
+        self.config = e_config.VConfig(filename=cfgfile, defaults=defconfig)
 
         self.setupSignalLookups()
 

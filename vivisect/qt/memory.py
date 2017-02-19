@@ -50,7 +50,8 @@ class VivCanvasBase(vq_hotkey.HotKeyMixin, e_mem_canvas.VQMemoryCanvas):
         self._applyColorMap(einfo)
 
     def _applyColorMap(self, cmap):
-
+        # --CLEAR--
+        return
         frame = self.page().mainFrame()
         style = frame.findFirstElement('#cmapstyle')
 
@@ -232,6 +233,7 @@ class VivCanvasBase(vq_hotkey.HotKeyMixin, e_mem_canvas.VQMemoryCanvas):
 
 class VQVivMemoryCanvas(VivCanvasBase):
     def wheelEvent(self, event):
+        return
         frame = self.page().mainFrame()
 
         sbcur = frame.scrollBarValue(QtCore.Qt.Vertical)
@@ -256,6 +258,7 @@ class VQVivMemoryCanvas(VivCanvasBase):
         return e_mem_canvas.VQMemoryCanvas.wheelEvent(self, event)
 
     def _clearColorMap(self):
+        return
         frame = self.page().mainFrame()
         style = frame.findFirstElement('#cmapstyle')
         style.setInnerXml('')
@@ -269,15 +272,15 @@ class VQVivMemoryCanvas(VivCanvasBase):
         viv_q_ctxmenu.buildContextMenu(self.vw, va=va, menu=menu, nav=nav)
 
     def _loc_helper(self, va):
-        '''
+        """
         we assume we're being handed a valid va since renderMemory checks for valid MemoryMap
-        '''
+        """
         nloc = self.mem.getLocation(va)
         if nloc is None:
             return va, 0
 
         nva, nvsz, nvt, nvti = nloc
-        return (nva, va - nva)
+        return nva, va - nva
 
 
 class VQVivMemoryView(e_mem_qt.VQMemoryWindow, viv_base.VivEventCore):
@@ -302,7 +305,7 @@ class VQVivMemoryView(e_mem_qt.VQMemoryWindow, viv_base.VivEventCore):
         menu = e_mem_qt.VQMemoryWindow.getRendToolsMenu(self)
         if self.vw.server:
 
-            leadact = QtGui.QAction('lead', menu, checkable=True)
+            leadact = QtWidgets.QAction('lead', menu, checkable=True)
 
             def leadToggle():
                 self._leading = not self._leading

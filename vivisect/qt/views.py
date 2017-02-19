@@ -12,10 +12,10 @@ class VivNavModel(e_q_memory.EnviNavModel):
 
 
 class VivView(VqtView, viv_base.VivEventCore):
-    '''
+    """
     In any vivisect list/tree view, the first column will be
     an address expression.  Other than that, all bets are off.
-    '''
+    """
 
     def __init__(self, vw, parent=None):
         VqtView.__init__(self, parent=parent)
@@ -60,7 +60,7 @@ def getLocView(vw, loctypes, title, parent=None):
     return vw.getVivGui().vqDockWidget(view, floating=True)
 
 
-class VQVivTreeView(vq_tree.VQTreeView, viv_base.VivEventCore):
+class VQVivTreeView(viv_base.VivEventCore, vq_tree.VQTreeView):
     window_title = "VivTreeView"
     _viv_navcol = 0
 
@@ -88,7 +88,7 @@ class VQVivTreeView(vq_tree.VQTreeView, viv_base.VivEventCore):
             return True
 
     def contextMenuEvent(self, event):
-        menu = QtGui.QMenu(parent=self)
+        menu = QtWidgets.QMenu(parent=self)
         idxlist = self.selectedIndexes()
         if not idxlist:
             return
@@ -113,7 +113,7 @@ class VQVivTreeView(vq_tree.VQTreeView, viv_base.VivEventCore):
             self.model().vqDelRow(node)
 
     def vivSetData(self, va, col, val):
-        '''
+        """
         Set a row/col in the data model.  This will quietly fail
         if we don't contain a row for the va (makes users not need
         to check...)
@@ -121,7 +121,7 @@ class VQVivTreeView(vq_tree.VQTreeView, viv_base.VivEventCore):
         Example: view.vivSetData(0x41414141, 2, 'Woot Function')
 
         NOTE: This is for use by the VWE_ event callback handlers!
-        '''
+        """
         pnode = self._viv_va_nodes.get(va)
         if not pnode:
             return
@@ -257,7 +257,7 @@ class VQVivFunctionsView(VQVivTreeView):
         fva, fmeta = einfo
         self.vivAddFunction(fva)
 
-    def VWE_DELFUNCTION(self, vw, event, efino):
+    def VWE_DELFUNCTION(self, vw, event, einfo):
         fva, fmeta = einfo
         self.vivDelRow(fva)
 

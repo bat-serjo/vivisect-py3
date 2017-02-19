@@ -1,4 +1,4 @@
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtWidgets, QtGui
 
 
 class FieldAdder:
@@ -23,9 +23,9 @@ class FieldAdder:
     def _addDynActions(self):
         self.clear()
         for name in self._dyn_callback():
-            act = QtGui.QAction(name, self)
+            act = QtWidgets.QAction(name, self)
             cb = ActionCall(self._dyn_callback, name)
-            act.connect(act, QtCore.SIGNAL('triggered()'), cb)
+            act.triggered.connect(cb)
             self.addAction(act)
 
     def addDynMenu(self, pathstr, callback):
@@ -46,32 +46,33 @@ class FieldAdder:
         plist = pathstr.split(self.splitchar)
         menu = self._addMenuFields(plist)
         menu._dyn_callback = callback
-        menu.connect(menu, QtCore.SIGNAL('aboutToShow()'), menu._addDynActions)
+        menu.aboutToShow.connect(menu._addDynActions)
 
     def addField(self, pathstr, callback=None, args=(), tip=None):
         plist = pathstr.split(self.splitchar)
         kid = self._addMenuFields(plist[:-1])
 
         acall = ActionCall(callback, *args)
-        action = QtGui.QAction(plist[-1], kid)
-        action.connect(action, QtCore.SIGNAL('triggered()'), acall)
+        action = QtWidgets.QAction(plist[-1], kid)
+        action.triggered.connect(acall)
 
-        if tip: action.setStatusTip(tip)
+        if tip:
+            action.setStatusTip(tip)
 
         kid.addAction(action)
 
         return kid
 
 
-class VQMenuBar(FieldAdder, QtGui.QMenuBar):
+class VQMenuBar(FieldAdder, QtWidgets.QMenuBar):
     def __init__(self, parent=None, splitchar='.'):
-        QtGui.QMenuBar.__init__(self, parent=parent)
+        QtWidgets.QMenuBar.__init__(self, parent=parent)
         FieldAdder.__init__(self, splitchar=splitchar)
 
 
-class VQMenu(FieldAdder, QtGui.QMenu):
+class VQMenu(FieldAdder, QtWidgets.QMenu):
     def __init__(self, name, parent=None, splitchar='.'):
-        QtGui.QMenu.__init__(self, name, parent=parent)
+        QtWidgets.QMenu.__init__(self, name, parent=parent)
         FieldAdder.__init__(self, splitchar=splitchar)
 
 

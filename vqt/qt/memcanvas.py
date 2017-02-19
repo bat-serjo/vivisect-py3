@@ -1,39 +1,43 @@
 import html
 
-from PyQt4 import QtWebKit
+from PyQt5 import QtWebEngineWidgets, QtWebChannel
 
-import envi.memcanvas as e_memcanvas
-import vqt.main as vq_main
+from vqt.main import *
+from vqt.common import *
+
 import vqt.qt.html as e_q_html
 import vqt.qt.jquery as e_q_jquery
-from vqt.common import *
-from vqt.main import *
+
+import envi.memcanvas as e_memcanvas
 
 
-class LoggerPage(QtWebKit.QWebPage):
+class LoggerPage(QtWebEngineWidgets.QWebEnginePage):
     def javaScriptConsoleMessage(self, msg, line, source):
         print('%s line %d: %s' % (source, line, msg))
 
 
-class VQMemoryCanvas(QtWebKit.QWebView, e_memcanvas.MemoryCanvas):
+class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWebEngineWidgets.QWebEngineView):
     def __init__(self, mem, syms=None, parent=None):
-        QtWebKit.QWebView.__init__(self, parent=parent)
         e_memcanvas.MemoryCanvas.__init__(self, mem, syms=syms)
+        QtWebEngineWidgets.QWebEngineView.__init__(self, parent=parent)
 
         self._canv_cache = None
         self._canv_curva = None
         self._canv_rendtagid = '#memcanvas'
         self._canv_rend_middle = False
 
-        self.setPage(LoggerPage())
+        # self._page = LoggerPage()
+        # self._web_channel = QtWebChannel.QWebChannel(self._page)
+        # self.setPage(self._page)
+        # self.page().setWebChannel(self._web_channel)
 
         htmlpage = e_q_html.template.replace('{{{jquery}}}', e_q_jquery.jquery_2_1_0)
-        self.setContent(htmlpage)
+        self.setContent(htmlpage.encode())
 
-        frame = self.page().mainFrame()
-        frame.evaluateJavaScript(e_q_jquery.jquery_2_1_0)
-        frame.addToJavaScriptWindowObject('vnav', self)
-        frame.contentsSizeChanged.connect(self._frameContentsSizeChanged)
+        # self.page().runJavaScript(e_q_jquery.jquery_2_1_0)
+        # self._web_channel.registerObject('vnav', self)
+        ## self.page().addToJavaScriptWindowObject('vnav', self)
+        # self.page().contentsSizeChanged.connect(self._frameContentsSizeChanged)
 
         # Allow our parent to handle these...
         self.setAcceptDrops(False)
@@ -67,15 +71,16 @@ class VQMemoryCanvas(QtWebKit.QWebView, e_memcanvas.MemoryCanvas):
 
     @idlethread
     def _scrollToVa(self, va):
-        vq_main.eatevents()  # Let all render events go first
-        self.page().mainFrame().scrollToAnchor('viv:0x%.8x' % va)
-        # self._selectVa(va)
+        eatevents()  # Let all render events go first
+        # self.page().mainFrame().scrollToAnchor('viv:0x%.8x' % va)
+        ## self._selectVa(va)
 
     @idlethread
     def _selectVa(self, va):
-        frame = self.page().mainFrame()
-        frame.evaluateJavaScript('selectva("0x%.8x")' % va)
-        frame.evaluateJavaScript('scrolltoid("a_%.8x")' % va)
+        return
+        # frame = self.page().mainFrame()
+        # frame.evaluateJavaScript('selectva("0x%.8x")' % va)
+        # frame.evaluateJavaScript('scrolltoid("a_%.8x")' % va)
 
     def _beginRenderMemory(self, va, size, rend):
         self._canv_cache = ''
@@ -93,18 +98,18 @@ class VQMemoryCanvas(QtWebKit.QWebView, e_memcanvas.MemoryCanvas):
     def _beginUpdateVas(self, valist):
 
         self._canv_cache = ''
-        frame = self.page().mainFrame()
-        elem = frame.findFirstElement('a#a_%.8x' % valist[0][0])
-        elem.prependOutside('<update id="updatetmp"></update>')
+        # frame = self.page().mainFrame()
+        # elem = frame.findFirstElement('a#a_%.8x' % valist[0][0])
+        # elem.prependOutside('<update id="updatetmp"></update>')
 
-        for va, size in valist:
-            elem = frame.findFirstElement('a#a_%.8x' % va)
-            elem.removeFromDocument()
+        # for va, size in valist:
+        #     elem = frame.findFirstElement('a#a_%.8x' % va)
+        #     elem.removeFromDocument()
 
     def _endUpdateVas(self):
-        elem = self.page().mainFrame().findFirstElement('update#updatetmp')
-        elem.appendOutside(self._canv_cache)
-        elem.removeFromDocument()
+        # elem = self.page().mainFrame().findFirstElement('update#updatetmp')
+        # elem.appendOutside(self._canv_cache)
+        # elem.removeFromDocument()
         self._canv_cache = None
 
     def _beginRenderPrepend(self):
@@ -112,9 +117,9 @@ class VQMemoryCanvas(QtWebKit.QWebView, e_memcanvas.MemoryCanvas):
         self._canv_ppjump = self._canv_rendvas[0][0]
 
     def _endRenderPrepend(self):
-        frame = self.page().mainFrame()
-        elem = frame.findFirstElement(self._canv_rendtagid)
-        elem.prependInside(self._canv_cache)
+        # frame = self.page().mainFrame()
+        # elem = frame.findFirstElement(self._canv_rendtagid)
+        # elem.prependInside(self._canv_cache)
         self._canv_cache = None
         self._scrollToVa(self._canv_ppjump)
 
@@ -122,9 +127,9 @@ class VQMemoryCanvas(QtWebKit.QWebView, e_memcanvas.MemoryCanvas):
         self._canv_cache = ''
 
     def _endRenderAppend(self):
-        frame = self.page().mainFrame()
-        elem = frame.findFirstElement(self._canv_rendtagid)
-        elem.appendInside(self._canv_cache)
+        # frame = self.page().mainFrame()
+        # elem = frame.findFirstElement(self._canv_rendtagid)
+        # elem.appendInside(self._canv_cache)
         self._canv_cache = None
 
     def getNameTag(self, name, typename='name'):
@@ -157,9 +162,18 @@ class VQMemoryCanvas(QtWebKit.QWebView, e_memcanvas.MemoryCanvas):
     # NOTE: doing append / scroll separately allows render to catch up
     @idlethread
     def _appendInside(self, text):
-        frame = self.page().mainFrame()
-        elem = frame.findFirstElement(self._canv_rendtagid)
-        elem.appendInside(text)
+        return
+        # frame = self.page().mainFrame()
+        page = self.page()
+
+        def printpage(content):
+            print(content)
+
+        page.toHtml(printpage)
+        # page.runJavaScript()
+        # elem = self.page().obj.findChild(self._canv_rendtagid)
+        # elem = frame.findFirstElement(self._canv_rendtagid)
+        # elem.appendInside(text)
 
     def _add_raw(self, text):
         # If we are in a call to renderMemory, cache til the end.
@@ -182,14 +196,16 @@ class VQMemoryCanvas(QtWebKit.QWebView, e_memcanvas.MemoryCanvas):
 
     @idlethreadsync
     def clearCanvas(self):
-        frame = self.page().mainFrame()
-        elem = frame.findFirstElement(self._canv_rendtagid)
-        elem.setInnerXml('')
+        # --CLEAR--
+        return
+        # frame = self.page().mainFrame()
+        # elem = frame.findFirstElement(self._canv_rendtagid)
+        # elem.setInnerXml('')
 
     def contextMenuEvent(self, event):
 
         va = self._canv_curva
-        menu = QtGui.QMenu()
+        menu = QtWidgets.QMenu()
         if self._canv_curva:
             self.initMemWindowMenu(va, menu)
 
@@ -202,10 +218,10 @@ class VQMemoryCanvas(QtWebKit.QWebView, e_memcanvas.MemoryCanvas):
         initMemSendtoMenu('0x%.8x' % va, menu)
 
     def _menuSaveToHtml(self):
-        fname = QtGui.QFileDialog.getSaveFileName(self, 'Save As HTML...')
-        if fname is not None:
-            _html = self.page().mainFrame().toHtml()
-            open(fname, 'w').write(_html)
+        fname = QtWidgets.QFileDialog.getSaveFileName(self, 'Save As HTML...')
+        # if fname is not None:
+            # _html = self.page().mainFrame().toHtml()
+            # open(fname, 'w').write(_html)
 
 
 def getNavTargetNames():

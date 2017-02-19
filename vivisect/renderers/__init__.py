@@ -1,9 +1,10 @@
 """
 A package for any of the vivisect workspace renderers.
 """
-import envi
 import string
-import urllib.request, urllib.parse, urllib.error
+import urllib.parse
+import urllib.error
+import urllib.request
 
 import envi.cli as e_cli
 import envi.memcanvas as e_canvas

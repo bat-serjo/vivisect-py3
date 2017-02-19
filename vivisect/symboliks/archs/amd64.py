@@ -2,6 +2,7 @@ import varchs.amd64 as e_amd64
 import vivisect.symboliks.analysis as vsym_analysis
 import vivisect.symboliks.archs.i386 as vsym_i386
 import vivisect.symboliks.callconv as vsym_callconv
+
 from varchs.amd64 import VMCS_NAMES
 from vivisect.symboliks.common import *
 

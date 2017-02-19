@@ -8,21 +8,22 @@ they are probably really pointers...
 import vivisect
 from vivisect.const import *
 
+
 def handleArray(vw, plist):
     tlist = []
 
-    for va,targ in plist:
-        if vw.getLocation(va) == None:
+    for va, targ in plist:
+        if vw.getLocation(va) is None:
             vw.makePointer(va)
         loctup = vw.getLocation(targ)
-        if loctup != None:
+        if loctup is not None:
             ltype = loctup[L_LTYPE]
             if ltype not in tlist:
                 tlist.append(ltype)
-        
-def analyze(vw):
 
-    #FIXME this won't do anything on a second pass and it might be good if it did
+
+def analyze(vw):
+    # FIXME this won't do anything on a second pass and it might be good if it did
     align = vw.arch.getPointerSize()
     rlen = vw.config.viv.analysis.pointertables.table_min_len
 
@@ -35,8 +36,8 @@ def analyze(vw):
 
             # If we maybe hit a pointer in the middle
             if lastva != va - align:
-                nloc = vw.getLocation(lastva+align)
-                while nloc != None:
+                nloc = vw.getLocation(lastva + align)
+                while nloc is not None:
                     if nloc[L_LTYPE] != LOC_POINTER:
                         break
                     lva = nloc[L_VA]
@@ -48,7 +49,7 @@ def analyze(vw):
                     handleArray(vw, plist)
                 plist = []
 
-        plist.append((va,pval))
+        plist.append((va, pval))
 
     # Handle possible last plist
     if len(plist) > rlen:

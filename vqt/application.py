@@ -1,7 +1,7 @@
 import os
-import json
+import traceback
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 import vqt.cli as vq_cli
 import vqt.main as vq_main
@@ -10,9 +10,9 @@ import vqt.hotkeys as vq_hotkeys
 import vqt.menubuilder as vq_menu
 
 
-class VQDockWidget(vq_hotkeys.HotKeyMixin, QtGui.QDockWidget):
+class VQDockWidget(vq_hotkeys.HotKeyMixin, QtWidgets.QDockWidget):
     def __init__(self, parent):
-        QtGui.QDockWidget.__init__(self, parent)
+        QtWidgets.QDockWidget.__init__(self, parent)
         vq_hotkeys.HotKeyMixin.__init__(self)
         self.addHotKey('ctrl+enter', 'mem:undockmaximize')
         self.addHotKeyTarget('mem:undockmaximize', self._hotkey_undock_maximize)
@@ -32,7 +32,7 @@ class VQDockWidget(vq_hotkeys.HotKeyMixin, QtGui.QDockWidget):
         # If he sets his window title, we want to...
         self.setWindowTitle(widget.windowTitle())
         widget.setWindowTitle = self.setWindowTitle
-        QtGui.QDockWidget.setWidget(self, widget)
+        QtWidgets.QDockWidget.setWidget(self, widget)
 
     def closeEvent(self, event):
 
@@ -66,10 +66,7 @@ class VQDockWidget(vq_hotkeys.HotKeyMixin, QtGui.QDockWidget):
         self.raise_()
 
 
-import vqt.hotkeys as vq_hotkey
-
-
-class VQMainCmdWindow(vq_hotkey.HotKeyMixin, QtGui.QMainWindow):
+class VQMainCmdWindow(QtWidgets.QMainWindow, vq_hotkeys.HotKeyMixin):
     """
     A base class for application window's to inherit from.
     """
@@ -77,9 +74,8 @@ class VQMainCmdWindow(vq_hotkey.HotKeyMixin, QtGui.QMainWindow):
     __cli_widget_class__ = vq_cli.VQCli
 
     def __init__(self, appname, cmd):
-
-        QtGui.QMainWindow.__init__(self)
-        vq_hotkey.HotKeyMixin.__init__(self)
+        QtWidgets.QMainWindow.__init__(self)
+        vq_hotkeys.HotKeyMixin.__init__(self)
 
         self._vq_appname = appname
         self._vq_dockwidgets = []
@@ -141,6 +137,7 @@ class VQMainCmdWindow(vq_hotkey.HotKeyMixin, QtGui.QMainWindow):
                         d.vqRestoreState(settings, name)
                         d.show()
                 except Exception as e:
+                    traceback.print_exc()
                     print(('Error Building: %s: %s' % (clsname, e)))
 
         # Once dock widgets are loaded, we can restoreState
@@ -179,7 +176,7 @@ class VQMainCmdWindow(vq_hotkey.HotKeyMixin, QtGui.QMainWindow):
     def closeEvent(self, event):
         self.vqSaveGuiSettings(self._vq_settings)
         self._vq_cli.input.saveHistory(self._vq_histfile)
-        QtGui.QMainWindow.closeEvent(self, event)
+        super(VQMainCmdWindow, self).closeEvent(event)
 
     def vqGetDockWidgets(self):
         return list(self._vq_dockwidgets)

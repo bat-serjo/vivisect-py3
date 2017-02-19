@@ -1,4 +1,6 @@
+
 import os
+import traceback
 
 import envi.expression as e_expr
 import vivisect.base as viv_base
@@ -95,7 +97,7 @@ class VQVivMainWindow(vq_app.VQMainCmdWindow, viv_base.VivEventDist):
         if curname is None:
             curname = ''
 
-        name, ok = QtGui.QInputDialog.getText(parent, 'Enter...', 'Name', text=curname)
+        name, ok = QtWidgets.QInputDialog.getText(parent, 'Enter...', 'Name', text=curname)
         if ok:
             name = str(name)
             if self.vw.vaByName(name):
@@ -111,14 +113,14 @@ class VQVivMainWindow(vq_app.VQMainCmdWindow, viv_base.VivEventDist):
         if curcomment is None:
             curcomment = ''
 
-        comment, ok = QtGui.QInputDialog.getText(parent, 'Enter...', 'Comment', text=curcomment)
+        comment, ok = QtWidgets.QInputDialog.getText(parent, 'Enter...', 'Comment', text=curcomment)
         if ok:
             self.vw.setComment(va, str(comment))
 
     def addVaXref(self, va, parent=None):
         if parent is None:
             parent = self
-        xtova, ok = QtGui.QInputDialog.getText(parent, 'Enter...', 'Make Code Xref 0x%x -> ' % va)
+        xtova, ok = QtWidgets.QInputDialog.getText(parent, 'Enter...', 'Make Code Xref 0x%x -> ' % va)
         if ok:
             try:
                 val = self.vw.parseExpression(str(xtova))
@@ -130,12 +132,12 @@ class VQVivMainWindow(vq_app.VQMainCmdWindow, viv_base.VivEventDist):
                 self.vw.vprint(repr(e))
 
     def setFuncLocalName(self, fva, offset, atype, aname):
-        newname, ok = QtGui.QInputDialog.getText(self, 'Enter...', 'Local Name')
+        newname, ok = QtWidgets.QInputDialog.getText(self, 'Enter...', 'Local Name')
         if ok:
             self.vw.setFunctionLocal(fva, offset, LSYM_NAME, (atype, str(newname)))
 
     def setFuncArgName(self, fva, idx, atype, aname):
-        newname, ok = QtGui.QInputDialog.getText(self, 'Enter...', 'Argument Name')
+        newname, ok = QtWidgets.QInputDialog.getText(self, 'Enter...', 'Argument Name')
         if ok:
             self.vw.setFunctionArg(fva, idx, atype, str(newname))
 
@@ -155,14 +157,14 @@ class VQVivMainWindow(vq_app.VQMainCmdWindow, viv_base.VivEventDist):
     def addBookmark(self, va, parent=None):
         if parent is None:
             parent = self
-        bname, ok = QtGui.QInputDialog.getText(parent, 'Enter...', 'Bookmark Name')
+        bname, ok = QtWidgets.QInputDialog.getText(parent, 'Enter...', 'Bookmark Name')
         if ok:
             self.vw.setVaSetRow('Bookmarks', (va, str(bname)))
 
     def _menuEditPrefs(self):
-        configs = []
-        configs.append(('Vivisect', self.vw.config.viv))
-        configs.append(('Vdb', self.vw.config.vdb))
+        configs = [('Vivisect', self.vw.config.viv),
+                   ('Vdb', self.vw.config.vdb)]
+
         self._cfg_widget = e_q_config.EnviConfigTabs(configs)
         self._cfg_widget.show()
 
@@ -233,6 +235,7 @@ class VQVivMainWindow(vq_app.VQMainCmdWindow, viv_base.VivEventDist):
                         d.vqRestoreState(settings, name)
                         d.show()
                 except Exception as e:
+                    traceback.print_exc()
                     print(('Error Building: %s: %s' % (clsname, e)))
 
         # Once dock widgets are loaded, we can restoreState
@@ -293,8 +296,8 @@ class VQVivMainWindow(vq_app.VQMainCmdWindow, viv_base.VivEventDist):
         self.vw.vprint('complete!')
 
     def _menuFileSaveAs(self):
-        fname = QtGui.QFileDialog.getSaveFileName(self, 'Save As...')
-        if fname == None:
+        fname = QtWidgets.QFileDialog.getSaveFileName(self, 'Save As...')
+        if fname is None:
             return
         self.vw.setMeta('StorageName', fname)
         self._menuFileSave(fullsave=True)
@@ -303,16 +306,16 @@ class VQVivMainWindow(vq_app.VQMainCmdWindow, viv_base.VivEventDist):
         viv_q_remote.saveToServer(self.vw, parent=self)
 
     def _menuViewLayoutsLoad(self):
-        fname = QtGui.QFileDialog.getOpenFileName(self, 'Load Layout')
-        if fname == None:
+        fname = QtWidgets.QFileDialog.getOpenFileName(self, 'Load Layout')
+        if fname is None:
             return
 
         settings = QtCore.QSettings(fname, QtCore.QSettings.IniFormat)
         self.vqRestoreGuiSettings(settings)
 
     def _menuViewLayoutsSave(self):
-        fname = QtGui.QFileDialog.getSaveFileName(self, 'Save Layout')
-        if fname == None:
+        fname = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Layout')
+        if fname is None:
             return
 
         settings = QtCore.QSettings(fname, QtCore.QSettings.IniFormat)
@@ -323,7 +326,7 @@ class VQVivMainWindow(vq_app.VQMainCmdWindow, viv_base.VivEventDist):
 
     def _menuToolsStructNames(self):
         nsinfo = vs_qt.selectStructNamespace()
-        if nsinfo != None:
+        if nsinfo is not None:
             nsname, modname = nsinfo
             self.vw.vprint('Adding struct namespace: %s' % nsname)
             self.vw.addStructureModule(nsname, modname)

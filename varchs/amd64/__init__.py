@@ -2,6 +2,7 @@
 The envi architecture module for the AMD 64 platform.
 """
 import struct
+
 import envi
 from envi.const import *
 import envi.bits as e_bits
@@ -11,6 +12,7 @@ import varchs.i386 as e_i386
 
 from varchs.amd64.regs import *
 from varchs.amd64.disasm import *
+from varchs.amd64.vmcslookup import *
 
 # NOTE: The REX prefixes don't end up with displayed names
 # NOTE: the REX prefix must be the *last* non escape (0f) prefix

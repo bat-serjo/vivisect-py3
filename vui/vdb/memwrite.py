@@ -8,7 +8,7 @@ class VdbMemWriteWindow(vui.vdb.base.VdbWidgetWindow):
         vui.vdb.base.VdbWidgetWindow.__init__(self, db, dbt, parent=parent)
 
         self.memWriteWidget = e_qt_mw.MemWriteWindow(expr=expr, esize=esize, emu=dbt, parent=parent)
-        vbox = QtGui.QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(self.memWriteWidget)
         self.setLayout(vbox)
 

@@ -6,8 +6,6 @@ MemoryCanvas objects.
 import sys
 import traceback
 
-import envi
-import envi.memory as e_mem
 import envi.symstore.resolver as e_resolv
 
 
@@ -47,7 +45,7 @@ class MemoryRenderer(object):
         raise Exception("Implement render!")
 
 
-class MemoryCanvas(object):
+class MemoryCanvas:
     """
     A memory canvas is a place where the textual representation
     of memory will be displayed. The methods implemented here show
@@ -206,7 +204,7 @@ class MemoryCanvas(object):
         """
         allows subclassess to make the starting VA make more contextual sense.
         """
-        return (va, 0)
+        return va, 0
 
     def renderMemoryUpdate(self, va, size):
 

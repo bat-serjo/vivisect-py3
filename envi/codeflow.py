@@ -5,8 +5,6 @@ A module to contain code flow analysis for envi opcode objects...
 import logging
 
 import envi
-import envi.const
-import envi.memory as e_mem
 
 logger = logging.getLogger(__name__)
 

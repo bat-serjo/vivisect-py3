@@ -9,7 +9,7 @@ class VdbRegistersWindow(vui.vdb.base.VdbWidgetWindow):
 
         self.regsWidget = vui.qtrace.RegistersView(trace=dbt, parent=parent)
 
-        vbox = QtGui.QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(self.regsWidget)
         self.setLayout(vbox)
 
@@ -19,7 +19,7 @@ class VdbRegistersWindow(vui.vdb.base.VdbWidgetWindow):
         vqtconnect(self.vqLoad, 'vdb:setthread')
 
     def vqLoad(self):
-        '''
+        """
         the widgets in RegistersView already register for notifications.
-        '''
+        """
         self.regsWidget.reglist.vqLoad()

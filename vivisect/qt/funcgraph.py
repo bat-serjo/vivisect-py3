@@ -1,4 +1,8 @@
-from PyQt4.QtCore import pyqtSignal, QPoint
+import itertools
+import collections
+
+from PyQt5 import QtGui
+from PyQt5.QtCore import pyqtSignal, QPoint
 
 import visgraph.layouts.dynadag as vg_dynadag
 import vivisect.base as viv_base
@@ -25,7 +29,7 @@ class VQVivFuncgraphCanvas(vq_memory.VivCanvasBase):
         self.curs = QtGui.QCursor()
 
     def wheelEvent(self, event):
-        mods = QtGui.QApplication.keyboardModifiers()
+        mods = QtWidgets.QApplication.keyboardModifiers()
         if mods == QtCore.Qt.ShiftModifier:
             delta = event.delta()
             factord = delta / 1000.0
@@ -36,7 +40,7 @@ class VQVivFuncgraphCanvas(vq_memory.VivCanvasBase):
         return e_qt_memcanvas.VQMemoryCanvas.wheelEvent(self, event)
 
     def mouseMoveEvent(self, event):
-        mods = QtGui.QApplication.keyboardModifiers()
+        mods = QtWidgets.QApplication.keyboardModifiers()
         if mods == QtCore.Qt.ShiftModifier:
             x = event.globalX()
             y = event.globalY()
@@ -45,7 +49,7 @@ class VQVivFuncgraphCanvas(vq_memory.VivCanvasBase):
                 dy = -(y - self.lastpos[1])
                 # dx = x - self.lastpos[0]
                 # dy = y - self.lastpos[1]
-                self.page().mainFrame().scroll(dx, dy)
+                # self.page().mainFrame().scroll(dx, dy)
 
                 self.curs.setPos(*self.basepos)
             else:
@@ -59,30 +63,32 @@ class VQVivFuncgraphCanvas(vq_memory.VivCanvasBase):
 
     def renderMemory(self, va, size, rend=None):
         # For the funcgraph canvas, this will be called once per code block
+        # --CLEAR--
+        return
 
-        # Check if we have a codeblock element already...
-        frame = self.page().mainFrame()
-        canvelem = frame.findFirstElement('#memcanvas')
-
-        elem = frame.findFirstElement('#codeblock_%.8x' % va)
-        if elem.isNull():
-            # Lets add a codeblock element for this
-            canvelem.appendInside('<div class="codeblock" id="codeblock_%.8x"></div>' % va)
-
-        self._canv_rendtagid = '#codeblock_%.8x' % va
-
-        ret = super(VQVivFuncgraphCanvas, self).renderMemory(va, size, rend=rend)
-        # ret = self.renderMemory(va, size, rend=rend)
-
-        self._canv_rendtagid = '#memcanvas'
-
-        return ret
+        # # Check if we have a codeblock element already...
+        # frame = self.page().mainFrame()
+        # canvelem = frame.findFirstElement('#memcanvas')
+        #
+        # elem = frame.findFirstElement('#codeblock_%.8x' % va)
+        # if elem.isNull():
+        #     # Lets add a codeblock element for this
+        #     canvelem.appendInside('<div class="codeblock" id="codeblock_%.8x"></div>' % va)
+        #
+        # self._canv_rendtagid = '#codeblock_%.8x' % va
+        #
+        # ret = super(VQVivFuncgraphCanvas, self).renderMemory(va, size, rend=rend)
+        # # ret = self.renderMemory(va, size, rend=rend)
+        #
+        # self._canv_rendtagid = '#memcanvas'
+        #
+        # return ret
 
     def contextMenuEvent(self, event):
         if self._canv_curva:
             menu = vq_ctxmenu.buildContextMenu(self.vw, va=self._canv_curva, parent=self)
         else:
-            menu = QtGui.QMenu(parent=self)
+            menu = QtWidgets.QMenu(parent=self)
 
         self.viewmenu = menu.addMenu('view   ')
         self.viewmenu.addAction("Save frame to HTML", ACT(self._menuSaveToHtml))
@@ -113,10 +119,10 @@ class VQVivFuncgraphCanvas(vq_memory.VivCanvasBase):
         Sets the view reticle to an absolute scroll position
         """
         point = QPoint(x, y)
-        self.page().mainFrame().setScrollPosition(point)
+        # self.page().mainFrame().setScrollPosition(point)
 
 
-funcgraph_js = '''
+funcgraph_js = """
 svgns = "http://www.w3.org/2000/svg";
 
 function createSvgElement(ename, attrs) {
@@ -198,14 +204,11 @@ function drawSvgLine(svgid, lineid, points) {
 
     svgelem.appendChild(lelem);
 }
-'''
-
-import itertools
-import collections
+"""
 
 
 class VQVivFuncgraphView(vq_hotkey.HotKeyMixin, e_qt_memory.EnviNavMixin,
-                         QtGui.QWidget, vq_save.SaveableWidget,
+                         QtWidgets.QWidget, vq_save.SaveableWidget,
                          viv_base.VivEventCore):
     _renderDoneSignal = pyqtSignal()
 
@@ -219,7 +222,7 @@ class VQVivFuncgraphView(vq_hotkey.HotKeyMixin, e_qt_memory.EnviNavMixin,
         self._last_viewpt = None
         self.history = collections.deque((), 100)
 
-        QtGui.QWidget.__init__(self, parent=vwqgui)
+        QtWidgets.QWidget.__init__(self, parent=vwqgui)
         vq_hotkey.HotKeyMixin.__init__(self)
         viv_base.VivEventCore.__init__(self, vw)
         e_qt_memory.EnviNavMixin.__init__(self)
@@ -227,18 +230,18 @@ class VQVivFuncgraphView(vq_hotkey.HotKeyMixin, e_qt_memory.EnviNavMixin,
 
         self._renderDoneSignal.connect(self._refresh_cb)
 
-        self.top_box = QtGui.QWidget(parent=self)
-        hbox = QtGui.QHBoxLayout(self.top_box)
-        hbox.setMargin(2)
+        self.top_box = QtWidgets.QWidget(parent=self)
+        hbox = QtWidgets.QHBoxLayout(self.top_box)
+        hbox.setContentsMargins(2, 2, 2, 2)
         hbox.setSpacing(4)
 
-        self.histmenu = QtGui.QMenu(parent=self)
+        self.histmenu = QtWidgets.QMenu(parent=self)
         self.histmenu.aboutToShow.connect(self._histSetupMenu)
 
-        self.hist_button = QtGui.QPushButton('History', parent=self.top_box)
+        self.hist_button = QtWidgets.QPushButton('History', parent=self.top_box)
         self.hist_button.setMenu(self.histmenu)
 
-        self.addr_entry = QtGui.QLineEdit(parent=self.top_box)
+        self.addr_entry = QtWidgets.QLineEdit(parent=self.top_box)
 
         self.mem_canvas = VQVivFuncgraphCanvas(vw, syms=vw, parent=self)
         self.mem_canvas.setNavCallback(self.enviNavGoto)
@@ -254,8 +257,8 @@ class VQVivFuncgraphView(vq_hotkey.HotKeyMixin, e_qt_memory.EnviNavMixin,
         hbox.addWidget(self.hist_button)
         hbox.addWidget(self.addr_entry)
 
-        vbox = QtGui.QVBoxLayout(self)
-        vbox.setMargin(4)
+        vbox = QtWidgets.QVBoxLayout(self)
+        vbox.setContentsMargins(4, 4, 4, 4)
         vbox.setSpacing(4)
         vbox.addWidget(self.top_box)
         vbox.addWidget(self.mem_canvas, stretch=100)
@@ -327,7 +330,7 @@ class VQVivFuncgraphView(vq_hotkey.HotKeyMixin, e_qt_memory.EnviNavMixin,
         that have changed since last update, and be fast, so we can update
         after every change.
         """
-        self._last_viewpt = self.mem_canvas.page().mainFrame().scrollPosition()
+        # self._last_viewpt = self.mem_canvas.page().mainFrame().scrollPosition()
         self.clearText()
         self.fva = None
         self._renderMemory()
@@ -390,13 +393,16 @@ class VQVivFuncgraphView(vq_hotkey.HotKeyMixin, e_qt_memory.EnviNavMixin,
             self.setWindowTitle('%s: %s (0x----)' % (ename, expr))
 
     def _buttonSaveAs(self):
-        frame = self.mem_canvas.page().mainFrame()
-        elem = frame.findFirstElement('#mainhtml')
-        h = elem.toOuterXml()
-        # h = frame.toHtml()
-        open('test.html', 'wb').write(str(h))
+        pass
+        # frame = self.mem_canvas.page().mainFrame()
+        # elem = frame.findFirstElement('#mainhtml')
+        # h = elem.toOuterXml()
+        ## h = frame.toHtml()
+        # open('test.html', 'wb').write(str(h))
 
     def renderFunctionGraph(self, fva, graph=None):
+        # --CLEAR--
+        return
 
         self.fva = fva
         # self.graph = self.vw.getFunctionGraph(fva)
@@ -481,7 +487,7 @@ class VQVivFuncgraphView(vq_hotkey.HotKeyMixin, e_qt_memory.EnviNavMixin,
 
         fva = self.vw.getFunction(addr)
         if fva == self.fva:
-            self.mem_canvas.page().mainFrame().scrollToAnchor('viv:0x%.8x' % addr)
+            # self.mem_canvas.page().mainFrame().scrollToAnchor('viv:0x%.8x' % addr)
             self.updateWindowTitle()
             return
 
@@ -501,6 +507,8 @@ class VQVivFuncgraphView(vq_hotkey.HotKeyMixin, e_qt_memory.EnviNavMixin,
         self.mem_canvas.setRenderer('Viv')
 
     def clearText(self):
+        # --CLEAR--
+        return
         # Pop the svg and reset #memcanvas
         frame = self.mem_canvas.page().mainFrame()
         if self.fva:
@@ -512,10 +520,10 @@ class VQVivFuncgraphView(vq_hotkey.HotKeyMixin, e_qt_memory.EnviNavMixin,
         memelem.setInnerXml(' ')
 
     def _hotkey_paintUp(self, va=None):
-        '''
+        """
         Paint the VA's from the selected basic block up to all possible 
         non-looping starting points.
-        '''
+        """
         graph = viv_graphutil.buildFunctionGraph(self.vw, self.fva, revloop=True)
         startva = self.mem_canvas._canv_curva
         if startva is None:

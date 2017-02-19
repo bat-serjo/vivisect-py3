@@ -5,7 +5,7 @@ import types
 import traceback
 
 from threading import Thread
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui
 
 from vqt.main import idlethread
 from vqt.basics import *
@@ -33,14 +33,14 @@ class ScriptThread(Thread):
             scripterr(str(e), traceback.format_exc())
 
 
-class VQPythonView(QtGui.QWidget):
+class VQPythonView(QtWidgets.QWidget):
     def __init__(self, locals=None, parent=None):
         if locals is None:
             locals = {}
 
         self._locals = locals
 
-        QtGui.QWidget.__init__(self, parent=parent)
+        QtWidgets.QWidget.__init__(self, parent=parent)
 
         self._textWidget = QtGui.QTextEdit(parent=self)
         self._botWidget = QtGui.QWidget(parent=self)

@@ -151,7 +151,7 @@ class EnviCli(Cmd):
             symobj = e_resolv.SymbolResolver()
 
         if config is None:
-            config = e_config.EnviConfig(defaults=cfgdefs)
+            config = e_config.VConfig(defaults=cfgdefs)
 
         # Force it to be there if its not
         config.getSubConfig('cli')

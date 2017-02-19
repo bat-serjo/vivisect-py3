@@ -9,13 +9,10 @@ from getopt import getopt
 import vtrace
 import vivisect
 import vivisect.vamp as viv_vamp
-import vivisect.impemu as viv_imp
 import vivisect.vector as viv_vector
 import vivisect.reports as viv_reports
 
 # FIXME modular arch specific commands!
-import vivisect.symboliks as viv_symb
-#import vivisect.symboliks.archs.i386 as viv_sym_i386
 
 import vivisect.tools.fscope as v_t_fscope
 import vivisect.tools.graphutil as v_t_graph
@@ -26,12 +23,12 @@ import vtrace.envitools as vt_envitools
 
 import vdb
 
-import envi
 import envi.cli as e_cli
 import envi.expression as e_expr
 import envi.memcanvas.renderers as e_render
 
 from vivisect.const import *
+import vivisect.renderers as viv_rend
 
 
 class VivCli(e_cli.EnviCli, vivisect.VivWorkspace):
@@ -43,7 +40,6 @@ class VivCli(e_cli.EnviCli, vivisect.VivWorkspace):
         self.canvas.addRenderer("u_int_16", e_render.ShortRend())
         self.canvas.addRenderer("u_int_32", e_render.LongRend())
         self.canvas.addRenderer("u_int_64", e_render.QuadRend())
-        import vivisect.renderers as viv_rend
         self.canvas.addRenderer("viv", viv_rend.WorkspaceRenderer(self))
         self.prompt = "viv> "
         self.addScriptPathEnvVar('VIV_SCRIPT_PATH')

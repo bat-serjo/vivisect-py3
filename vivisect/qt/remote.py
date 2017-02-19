@@ -1,4 +1,4 @@
-from PyQt4 import Qt, QtCore, QtGui
+from PyQt5 import QtWidgets
 
 import vqt.main as vq_main
 import vqt.tree as vq_tree
@@ -9,8 +9,10 @@ import vivisect.remote.server as viv_server
 
 from vqt.basics import *
 
+
 class WorkspaceListModel(vq_tree.VQTreeModel):
     columns = ('Name',)
+
 
 class WorkspaceListView(vq_tree.VQTreeView):
     def __init__(self, workspaces, parent=None):
@@ -20,25 +22,25 @@ class WorkspaceListView(vq_tree.VQTreeView):
         for wsname in workspaces:
             model.append((wsname,))
 
-class VivServerDialog(QtGui.QDialog):
 
+class VivServerDialog(QtWidgets.QDialog):
     def __init__(self, workspaces, parent=None):
-        QtGui.QDialog.__init__(self, parent=parent)
+        super(VivServerDialog, self).__init__(parent=parent)
         self.setWindowTitle('Select a workspace...')
 
         self.wsname = None
         self.wslist = WorkspaceListView(workspaces, parent=self)
 
-        self.buttons = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel)
-        self.buttons.accepted.connect( self.accept )
-        self.buttons.rejected.connect( self.reject )
+        self.buttons = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+        self.buttons.accepted.connect(self.accept)
+        self.buttons.rejected.connect(self.reject)
 
         layout = VBox()
         layout.addWidget(self.wslist)
         layout.addWidget(self.buttons)
         self.setLayout(layout)
 
-        self.wslist.doubleClicked.connect( self.workspaceActivated )
+        self.wslist.doubleClicked.connect(self.workspaceActivated)
 
     def getWorkspaceName(self):
         self.exec_()
@@ -54,12 +56,12 @@ class VivServerDialog(QtGui.QDialog):
                 self.wsname = row.rowdata[0]
                 break
 
-        return QtGui.QDialog.accept(self)
+        return super(VivServerDialog, self).accept()
 
-class VivSaveServerDialog(QtGui.QDialog):
 
+class VivSaveServerDialog(QtWidgets.QDialog):
     def __init__(self, vw, parent=None):
-        QtGui.QDialog.__init__(self, parent=parent)
+        super(VivSaveServerDialog, self).__init__(parent=parent)
         self.setWindowTitle('Save to Workspace Server...')
         self.vw = vw
         try:
@@ -67,20 +69,20 @@ class VivSaveServerDialog(QtGui.QDialog):
         except AttributeError:
             server = "visi.kenshoto.com"
 
-        self.wsname = QtGui.QLineEdit(vw.getMeta('StorageName',''), parent=self)
-        self.wsserver = QtGui.QLineEdit(server, parent=self)
-        self.setdef = QtGui.QCheckBox(parent=self)
+        self.wsname = QtWidgets.QLineEdit(vw.getMeta('StorageName', ''), parent=self)
+        self.wsserver = QtWidgets.QLineEdit(server, parent=self)
+        self.setdef = QtWidgets.QCheckBox(parent=self)
 
-        self.buttons = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel)
-        self.buttons.accepted.connect( self.accept )
-        self.buttons.rejected.connect( self.reject )
+        self.buttons = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+        self.buttons.accepted.connect(self.accept)
+        self.buttons.rejected.connect(self.reject)
 
-        serverlayout = QtGui.QHBoxLayout()
+        serverlayout = QtWidgets.QHBoxLayout()
         serverlayout.addWidget(self.wsserver)
-        serverlayout.addWidget(QtGui.QLabel('Make Default:'))
+        serverlayout.addWidget(QtWidgets.QLabel('Make Default:'))
         serverlayout.addWidget(self.setdef)
 
-        layout = QtGui.QFormLayout()
+        layout = QtWidgets.QFormLayout()
         layout.addRow('Workspace Name', self.wsname)
         layout.addRow('Workspace Server', serverlayout)
         layout.addWidget(self.buttons)
@@ -88,23 +90,23 @@ class VivSaveServerDialog(QtGui.QDialog):
 
     def getNameAndServer(self):
         if not self.exec_():
-            return (None,None)
+            return None, None
         wsname = str(self.wsname.text())
         wsserver = str(self.wsserver.text())
-        return (wsname,wsserver)
+        return wsname, wsserver
 
     def accept(self, *args, **kwargs):
-        QtGui.QDialog.accept(self, *args, **kwargs)
+        QtWidgets.QDialog.accept(self, *args, **kwargs)
         if self.setdef.isChecked():
             cfg = self.vw.config.getSubConfig("remote")
             cfg['server'] = str(self.wsserver.text())
             self.vw.config.saveConfigFile()
 
-# FIXME: should we combine the VivConnectServerDialog with the VivSaveServerDialog?  there are like 10 lines different.
-class VivConnectServerDialog(QtGui.QDialog):
 
+# FIXME: should we combine the VivConnectServerDialog with the VivSaveServerDialog?  there are like 10 lines different.
+class VivConnectServerDialog(QtWidgets.QDialog):
     def __init__(self, vw, parent=None):
-        QtGui.QDialog.__init__(self, parent=parent)
+        super(VivConnectServerDialog, self).__init__(parent=parent)
         self.setWindowTitle('Workspace Server...')
         self.vw = vw
         try:
@@ -112,19 +114,19 @@ class VivConnectServerDialog(QtGui.QDialog):
         except AttributeError:
             server = "visi.kenshoto.com"
 
-        self.wsserver = QtGui.QLineEdit(server, parent=self)
-        self.setdef = QtGui.QCheckBox(parent=self)
+        self.wsserver = QtWidgets.QLineEdit(server, parent=self)
+        self.setdef = QtWidgets.QCheckBox(parent=self)
 
-        self.buttons = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel)
-        self.buttons.accepted.connect( self.accept )
-        self.buttons.rejected.connect( self.reject )
+        self.buttons = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+        self.buttons.accepted.connect(self.accept)
+        self.buttons.rejected.connect(self.reject)
 
-        serverlayout = QtGui.QHBoxLayout()
+        serverlayout = QtWidgets.QHBoxLayout()
         serverlayout.addWidget(self.wsserver)
-        serverlayout.addWidget(QtGui.QLabel('Make Default:'))
+        serverlayout.addWidget(QtWidgets.QLabel('Make Default:'))
         serverlayout.addWidget(self.setdef)
 
-        layout = QtGui.QFormLayout()
+        layout = QtWidgets.QFormLayout()
         layout.addRow('Workspace Server', serverlayout)
         layout.addWidget(self.buttons)
         self.setLayout(layout)
@@ -136,7 +138,7 @@ class VivConnectServerDialog(QtGui.QDialog):
         return wsserver
 
     def accept(self, *args, **kwargs):
-        QtGui.QDialog.accept(self, *args, **kwargs)
+        super(VivConnectServerDialog, self).accept(*args, **kwargs)
         if self.setdef.isChecked():
             cfg = self.vw.config.getSubConfig("remote")
             cfg['server'] = str(self.wsserver.text())
@@ -147,13 +149,14 @@ class VivConnectServerDialog(QtGui.QDialog):
 def openServerAndWorkspace(vw, parent=None):
     dia = VivConnectServerDialog(vw, parent=parent)
     host = dia.getServer()
-    if host == None:
+    if host is None:
         return
 
     connServerAndWorkspace(vw, str(host), parent=parent)
 
+
 @vq_main.workthread
-def connServerAndWorkspace(vw, host,parent=None):
+def connServerAndWorkspace(vw, host, parent=None):
     # NOTE: do *not* touch parent (or vdb) in here!
     try:
         server = viv_server.connectToServer(host)
@@ -163,14 +166,16 @@ def connServerAndWorkspace(vw, host,parent=None):
         vw.vprint('Server Error: %s' % e)
         return
 
+
 @vq_main.idlethread
 def selectServerWorkspace(vw, server, workspaces, parent=None):
     dia = VivServerDialog(workspaces, parent=parent)
     workspace = dia.getWorkspaceName()
-    if workspace == None:
+    if workspace is None:
         return
 
     loadServerWorkspace(vw, server, workspace)
+
 
 @vq_main.workthread
 def loadServerWorkspace(oldvw, server, workspace):
@@ -179,12 +184,14 @@ def loadServerWorkspace(oldvw, server, workspace):
     import vivisect.qt.main as viv_q_main
     viv_q_main.runqt(vw, closeme=oldvw.getVivGui())
 
+
 @vq_main.idlethread
 def saveToServer(vw, parent=None):
     dia = VivSaveServerDialog(vw, parent=parent)
-    wsname,wsserver = dia.getNameAndServer()
-    vw.vprint('Saving to Workspace Server: %s (%s)' % (wsserver,wsname))
+    wsname, wsserver = dia.getNameAndServer()
+    vw.vprint('Saving to Workspace Server: %s (%s)' % (wsserver, wsname))
     sendServerWorkspace(vw, wsname, wsserver)
+
 
 @e_threads.firethread
 def sendServerWorkspace(vw, wsname, wsserver):
@@ -198,14 +205,14 @@ def sendServerWorkspace(vw, wsname, wsserver):
 
     vw.setMeta('WorkspaceServer', wsserver)
 
+
 def openSharedWorkspace(vw, parent=None):
-    '''
+    """
     Open a workspace shared by a vivisect peer.
-    '''
-    hostport, ok = QtGui.QInputDialog.getText(parent, 'Shared Workspace...', 'host:port')
+    """
+    hostport, ok = QtWidgets.QInputDialog.getText(parent, 'Shared Workspace...', 'host:port')
     if not ok:
         return
 
     uri = 'cobra://%s/vivisect.remote.client?msgpack=1' % hostport
     c_remoteapp.execRemoteApp(uri)
-

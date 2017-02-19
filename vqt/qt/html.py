@@ -110,6 +110,12 @@ div.codeblock:hover {
 <script language="javascript">
 {{{jquery}}}
 
+var vnav;
+new QWebChannel(qt.webChannelTransport, function (channel) {
+            // now you retrieve your object
+            vnav = channel.objects.TheNameOfTheObjectUsed;
+        });
+
 var selclass = "name"
 function nameclick(elem) {
     var elem = $(elem)

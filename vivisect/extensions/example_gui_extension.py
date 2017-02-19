@@ -1,4 +1,4 @@
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui, QtCore
 from vqt.main import idlethread
 from vqt.basics import VBox
 

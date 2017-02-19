@@ -1,4 +1,4 @@
-from PyQt4 import QtCore, QtGui
+import vqt.tree
 
 QMOD_CTRL = 0x04000000
 QMOD_SHIFT = 0x02000000
@@ -26,7 +26,7 @@ def hotkey(targname):
     return hotkeydecor
 
 
-class HotKeyMixin(object):
+class HotKeyMixin:
     def __init__(self):
         self._vq_hotkeys = {}
         self._vq_hotkey_targets = {}
@@ -38,16 +38,16 @@ class HotKeyMixin(object):
                 self.addHotKeyTarget(hktarg, obj)
 
     def addHotKeyTarget(self, hkname, callback, *args, **kwargs):
-        '''
+        """
         Add a new hotkey "target".  This allows applications to specify what
         capabilities they'd like to expose for hotkey binding.
 
         w.addHotKeyTarget('go', trace.run)
-        '''
+        """
         self._vq_hotkey_targets[hkname] = (callback, args, kwargs)
 
     def getHotKeyTargets(self):
-        '''
+        """
         Retrieve a list of the known hotkey targets for this widget.
 
         Example:
@@ -55,43 +55,43 @@ class HotKeyMixin(object):
             for tname in w.getHotKeyTargets():
                 print('Found Hotkey Target: %s' % tname)
 
-        '''
+        """
         return list(self._vq_hotkey_targets.keys())
 
     def isHotKeyTarget(self, targname):
-        '''
+        """
         Check if the given hotkey target name is valid.
-        '''
-        return self._vq_hotkey_targets.get(targname) != None
+        """
+        return self._vq_hotkey_targets.get(targname) is not None
 
     def getHotKeys(self):
-        '''
+        """
         Retrieve a list of (hotkey,target) tuples.
-        '''
+        """
         return list(self._vq_hotkeys.items())
 
     def addHotKey(self, keystr, hktarg):
-        '''
+        """
         Bind a given key sequence (by string) to the given hotkey
         target.
-        '''
+        """
         self._vq_hotkeys[keystr] = hktarg
 
     def delHotKey(self, keystr):
-        '''
+        """
         Remove a configured hotkey string.
 
         Example:
             w.delHotKey('ctrl+s')
-        '''
+        """
         self._vq_hotkeys.pop(keystr, None)
 
     def loadHotKeys(self, settings):
-        '''
+        """
         Load hotkey keystr/targets from the given QSettings.
 
         ( hotkey:<target>=<keystr> )
-        '''
+        """
         for tname in self.getHotKeyTargets():
 
             keyobj = settings.value('hotkey:%s' % tname)
@@ -100,9 +100,9 @@ class HotKeyMixin(object):
                 self.addHotKey(keyobj.toString(), tname)
 
     def getHotKeyFromEvent(self, event):
-        '''
+        """
         A utility to retrieve the keystr from a QT keystroke event.
-        '''
+        """
         key = event.key()
         txt = str(event.text())
 
@@ -139,12 +139,9 @@ class HotKeyMixin(object):
 
         return False
 
-    def keyPressEvent(self, event):
-        if not self.eatKeyPressEvent(event):
-            return super(HotKeyMixin, self).keyPressEvent(event)
-
-
-import vqt.tree
+    # def keyPressEvent(self, event):
+    #     if not self.eatKeyPressEvent(event):
+    #         return super().keyPressEvent(event)
 
 
 class HotKeyEditor(vqt.tree.VQTreeView):

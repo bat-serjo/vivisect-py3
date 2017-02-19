@@ -62,7 +62,7 @@ class VivWorkspace(e_mem.MemoryObject, viv_base.VivWorkspaceCore):
         self.psize = None  # Used so much, optimization is appropriate
 
         cfgpath = os.path.join(self.vivhome, 'viv.json')
-        self.config = e_config.EnviConfig(filename=cfgpath, defaults=defconfig, docs=docconfig)
+        self.config = e_config.VConfig(filename=cfgpath, defaults=defconfig, docs=docconfig)
 
         # Ideally, *none* of these are modified except by _handleFOO funcs...
         self.segments = []
@@ -177,9 +177,9 @@ class VivWorkspace(e_mem.MemoryObject, viv_base.VivWorkspaceCore):
         mod = self.loadModule(mname)
         mod.loadWorkspace(self, wsname)
         self.setMeta("StorageName", wsname)
-        # The event list thusfar came *only* from the load...
+        # The event list thus far came *only* from the load...
         self._createSaveMark()
-        # Snapin our analysis modules
+        # Snap in our analysis modules
         self._snapInAnalysisModules()
 
     def addFref(self, fva, va, idx, val):
@@ -627,7 +627,7 @@ class VivWorkspace(e_mem.MemoryObject, viv_base.VivWorkspaceCore):
         for eva in self.getEntryPoints():
             if self.isFunction(eva):
                 continue
-            if not self.probeMemory(eva, 1, envi.const.MM_EXEC):
+            if not self.probeMemory(eva, 1, envi.MM_EXEC):
                 continue
             self.makeFunction(eva)
 
@@ -745,7 +745,6 @@ class VivWorkspace(e_mem.MemoryObject, viv_base.VivWorkspaceCore):
             maxsize = len(bytes) - size
 
             while offset + size < maxsize:
-                dbg = 0
                 va = mva + offset
 
                 loctup = self.getLocation(va)
@@ -1400,7 +1399,7 @@ class VivWorkspace(e_mem.MemoryObject, viv_base.VivWorkspaceCore):
         self._fireEvent(VWE_ADDMMAP, (va, perms, fname, bytes))
 
     def delMemoryMap(self, va):
-        raise "OMG"
+        raise Exception("OMG")
 
     def addSegment(self, va, size, name, filename):
         """
@@ -1526,7 +1525,7 @@ class VivWorkspace(e_mem.MemoryObject, viv_base.VivWorkspaceCore):
     def _mcb_deaddata(self, name, value):
         """
         callback from setMeta with namespace 
-        deaddata: 
+        deaddata:
         that indicates a range has been added
         as dead data.
         """
@@ -2050,23 +2049,22 @@ class VivWorkspace(e_mem.MemoryObject, viv_base.VivWorkspaceCore):
 
         Returns file md5
         """
-        mod = None
         fd.seek(0)
         if fmtname is None:
-            bytes = fd.read(32)
-            fmtname = viv_parsers.guessFormat(bytes)
+            bytes_ = fd.read(32)
+            fmtname = viv_parsers.guessFormat(bytes_)
 
         mod = viv_parsers.getParserModule(fmtname)
         if hasattr(mod, "config"):
             self.mergeConfig(mod.config)
 
         fd.seek(0)
-        filename = hashlib.md5(fd.read()).hexdigest()
-        fname = mod.parseFd(self, fd, filename)
+        file_md5 = hashlib.md5(fd.read()).hexdigest()
+        fname = mod.parseFd(self, fd, file_md5)
 
-        self.initMeta("StorageName", filename + ".viv")
+        self.initMeta("StorageName", file_md5 + ".viv")
 
-        # Snapin our analysis modules
+        # Snap in our analysis modules
         self._snapInAnalysisModules()
 
         return fname
@@ -2116,7 +2114,6 @@ class VivWorkspace(e_mem.MemoryObject, viv_base.VivWorkspaceCore):
 
         Returns the basename the file was given on load.
         """
-        mod = None
         if fmtname is None:
             fmtname = viv_parsers.guessFormatFilename(filename)
 
@@ -2125,7 +2122,7 @@ class VivWorkspace(e_mem.MemoryObject, viv_base.VivWorkspaceCore):
 
         self.initMeta("StorageName", filename + ".viv")
 
-        # Snapin our analysis modules
+        # Snap in our analysis modules
         self._snapInAnalysisModules()
 
         return fname
@@ -2135,10 +2132,9 @@ class VivWorkspace(e_mem.MemoryObject, viv_base.VivWorkspaceCore):
         Load a memory map (or potentially a mapped binary file)
         from the memory object's map at baseaddr.
         """
-        mod = None
         if fmtname is None:
-            bytes = memobj.readMemory(baseaddr, 32)
-            fmtname = viv_parsers.guessFormat(bytes)
+            bytes_ = memobj.readMemory(baseaddr, 32)
+            fmtname = viv_parsers.guessFormat(bytes_)
 
         mod = viv_parsers.getParserModule(fmtname)
         mod.parseMemory(self, memobj, baseaddr)
@@ -2148,7 +2144,7 @@ class VivWorkspace(e_mem.MemoryObject, viv_base.VivWorkspaceCore):
             mapfname = 'mem_map_%.8x' % mapva
 
         self.initMeta('StorageName', mapfname + ".viv")
-        # Snapin our analysis modules
+        # Snap in our analysis modules
         self._snapInAnalysisModules()
 
     def getFiles(self):
