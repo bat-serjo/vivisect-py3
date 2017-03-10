@@ -1,7 +1,21 @@
+from PyQt5 import QtGui, QtWidgets
+
 from vqt.main import *
 from vqt.common import *
 
 import envi.memcanvas as e_memcanvas
+
+
+class VivHighlighter(QtGui.QSyntaxHighlighter):
+    def __init__(self, *args, **kwargs):
+        super(VivHighlighter, self).__init__(*args, **kwargs)
+        self._va_high = QtGui.QTextCharFormat()
+        self._va_high.setForeground(QtGui.QColor('#f0f0f0'))
+
+    def highlightBlock(self, block: str):
+        i = block.find(' ')
+        if i > 0:
+            self.setFormat(0, i, self._va_high)
 
 
 class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QWidget):
@@ -9,7 +23,9 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QWidget):
         e_memcanvas.MemoryCanvas.__init__(self, mem, syms=syms)
         QtWidgets.QWidget.__init__(self, parent=parent)
 
-        self._editor = QtWidgets.QTextEdit(self)
+        self._editor = QtWidgets.QPlainTextEdit(self)
+        self._highlighter = VivHighlighter(self._editor.document())
+
         vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(self._editor)
         self.setLayout(vbox)
@@ -24,6 +40,9 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QWidget):
     def renderMemory(self, va, size, rend=None):
 
         if self._canv_rend_middle:
+            self._editor.setCenterOnScroll(True)
+            self._editor.ensureCursorVisible()
+
             vmap = self.mem.getMemoryMap(va)
             if vmap is None:
                 raise Exception('Invalid Address:%s' % hex(va))
@@ -41,7 +60,10 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QWidget):
 
     @idlethread
     def _scrollToVa(self, va):
-        eatevents()  # Let all render events go first
+        # Let all render events go first
+        eatevents()
+        self._editor.centerCursor()
+        # self._editor.moveCursor(QtGui.QTextCursor.Start)
         self._selectVa(va)
 
     @idlethread
@@ -98,6 +120,8 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QWidget):
     @idlethread
     def _appendInside(self, text):
         self._editor.insertPlainText(text)
+        if self._canv_scrolled is True:
+            self._editor.moveCursor(QtGui.QTextCursor.End)
 
     def _add_raw(self, text):
         # If we are in a call to renderMemory, cache til the end.

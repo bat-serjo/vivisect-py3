@@ -202,7 +202,7 @@ class MemoryCanvas:
 
     def _loc_helper(self, va):
         """
-        allows subclassess to make the starting VA make more contextual sense.
+        allows sub classes to make the starting VA make more contextual sense.
         """
         return va, 0
 
