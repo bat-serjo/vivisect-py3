@@ -295,7 +295,6 @@ class MemoryCanvas:
 
     def renderMemoryAppend(self, size):
         lastva, lastsize = self._canv_rendvas[-1]
-
         va = lastva + lastsize
 
         self._beginRenderAppend()

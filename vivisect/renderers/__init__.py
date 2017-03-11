@@ -6,7 +6,6 @@ import urllib.parse
 import urllib.error
 import urllib.request
 
-import envi.cli as e_cli
 import envi.memcanvas as e_canvas
 
 from vivisect.const import *
@@ -18,10 +17,6 @@ location_tags = {
     LOC_STRING: "string",
     LOC_UNI: "string",
 }
-
-
-def cmpoffset(x, y):
-    return cmp(x[0], y[0])
 
 
 class WorkspaceRenderer(e_canvas.MemoryRenderer):
@@ -58,7 +53,6 @@ class WorkspaceRenderer(e_canvas.MemoryRenderer):
     def renderLocation(self, mcanv, loc, name, isfunc, cmnt, extra):
         """
         Actually render a given VA to the given text buffer.
-
         If there is *any* function to optimize, this is it... it renders EVERYTHING...
         """
         lva, lsize, ltype, tinfo = loc
@@ -109,7 +103,7 @@ class WorkspaceRenderer(e_canvas.MemoryRenderer):
 
             mcanv.addText(")")
 
-            # FIXME color code and get args parsing goin on
+            # FIXME color code and get args parsing going on
             mcanv.addText(" ")
             xrtag = mcanv.getTag("xrefs")
             mcanv.addText("[%d XREFS]\n" % xrcount, tag=xrtag)

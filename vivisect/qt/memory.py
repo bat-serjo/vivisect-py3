@@ -1,11 +1,15 @@
-import vivisect.base as viv_base
-import vivisect.qt.ctxmenu as viv_q_ctxmenu
-import vivisect.qt.views as viv_q_views
-import vivisect.renderers as viv_rend
-import vqt.hotkeys as vq_hotkey
-import vqt.qt.memcanvas as e_mem_canvas
-import vqt.qt.memory as e_mem_qt
+import envi.memcanvas.renderers as e_render
 from envi.threads import firethread
+
+import vqt.qt.memory as e_mem_qt
+import vqt.qt.memcanvas as e_mem_canvas
+
+import vqt.hotkeys as vq_hotkey
+import vivisect.base as viv_base
+import vivisect.renderers as viv_rend
+import vivisect.qt.views as viv_q_views
+import vivisect.qt.ctxmenu as viv_q_ctxmenu
+
 from vqt.main import *
 
 
@@ -46,20 +50,13 @@ class VivCanvasBase(vq_hotkey.HotKeyMixin, e_mem_canvas.VQMemoryCanvas):
         # All extenders must implement vivColorMap
         vqtconnect(self.vivColorMap, 'viv:colormap')
 
-    def vivColorMap(self, event, einfo):
-        self._applyColorMap(einfo)
-
-    def _applyColorMap(self, cmap):
-        # --CLEAR--
+    def vivColorMap(self, event, einfo: dict):
+        """
+        :param event:
+        :param einfo: {va: color}
+        :return: None
+        """
         return
-        frame = self.page().mainFrame()
-        style = frame.findFirstElement('#cmapstyle')
-
-        rows = []
-        for va, color in list(cmap.items()):
-            rows.append('.envi-va-0x%.8x { color: #000000; background-color: %s }' % (va, color))
-
-        style.setInnerXml('\n'.join(rows))
 
     @vq_hotkey.hotkey('viv:nav:nextva')
     def _hotkey_nav_nextva(self):
@@ -232,36 +229,6 @@ class VivCanvasBase(vq_hotkey.HotKeyMixin, e_mem_canvas.VQMemoryCanvas):
 
 
 class VQVivMemoryCanvas(VivCanvasBase):
-    def wheelEvent(self, event):
-        return
-        frame = self.page().mainFrame()
-
-        sbcur = frame.scrollBarValue(QtCore.Qt.Vertical)
-        sbmin = frame.scrollBarMinimum(QtCore.Qt.Vertical)
-        sbmax = frame.scrollBarMaximum(QtCore.Qt.Vertical)
-
-        if sbcur == sbmax:
-
-            lastva, lastsize = self._canv_rendvas[-1]
-            mapva, mapsize, mperm, mfname = self.vw.getMemoryMap(lastva)
-            sizeremain = (mapva + mapsize) - (lastva + lastsize)
-            if sizeremain:
-                self.renderMemoryAppend(min(sizeremain, 128))
-
-        elif sbcur == sbmin:
-            firstva, firstsize = self._canv_rendvas[0]
-            mapva, mapsize, mperm, mfname = self.vw.getMemoryMap(firstva)
-            sizeremain = firstva - mapva
-            if sizeremain:
-                self.renderMemoryPrepend(min(sizeremain, 128))
-
-        return e_mem_canvas.VQMemoryCanvas.wheelEvent(self, event)
-
-    def _clearColorMap(self):
-        return
-        frame = self.page().mainFrame()
-        style = frame.findFirstElement('#cmapstyle')
-        style.setInnerXml('')
 
     def _navExpression(self, expr):
         if self._canv_navcallback:
@@ -354,7 +321,6 @@ class VQVivMemoryView(e_mem_qt.VQMemoryWindow, viv_base.VivEventCore):
         return VQVivMemoryCanvas(memobj, syms=syms, parent=self)
 
     def _viv_xrefsto(self):
-
         if self.mem_canvas._canv_curva:
             xrefs = self.vw.getXrefsTo(self.mem_canvas._canv_curva)
             if len(xrefs) == 0:
@@ -367,8 +333,6 @@ class VQVivMemoryView(e_mem_qt.VQMemoryWindow, viv_base.VivEventCore):
             dock.resize(800, 600)
 
     def loadDefaultRenderers(self):
-
-        import envi.memcanvas.renderers as e_render
 
         # FIXME check endianness
         self.mem_canvas.addRenderer("bytes", e_render.ByteRend())

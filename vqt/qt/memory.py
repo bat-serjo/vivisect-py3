@@ -113,8 +113,8 @@ class VQMemoryWindow(QtWidgets.QWidget, vq_hotkey.HotKeyMixin, EnviNavMixin, vq_
         self.addr_entry = QtWidgets.QLineEdit(parent=self.top_box)
         self.size_entry = QtWidgets.QLineEdit(parent=self.top_box)
         self.size_entry.setText('256')
-        self.rend_select = QtWidgets.QComboBox(parent=self.top_box)
 
+        self.rend_select = QtWidgets.QComboBox(parent=self.top_box)
         self.rend_tools = QtWidgets.QPushButton('Opts', parent=self.top_box)
         self.rend_tools.setMenu(self.getRendToolsMenu())
 
