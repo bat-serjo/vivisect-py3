@@ -1,6 +1,6 @@
 import enum
 
-from PyQt5 import QtGui, QtWidgets
+from PyQt5 import QtGui, QtWidgets, QtCore
 
 from vqt.main import *
 from vqt.common import *
@@ -11,20 +11,31 @@ import envi.memcanvas as e_memcanvas
 class ContentTagsEnum(enum.IntEnum):
     """All known tags that can be recognized and highlighted by this canvas
     """
+    CURRENT_LINE = -2
+    DEFAULT = -1
     VA = 0
     NAME = 1
     XREFS = 2
     COMMENT = 3
     LOCATION = 4
     REGISTER = 5
+    MNEMONIC = 6
+    UNDEFINED = 7  # raw bytes usually
+
 
 defaultCanvasColors = {
     # tag: (foreground, backgroun)
-    ContentTagsEnum.VA: ('#0f0fff', '#000000'),
-    ContentTagsEnum.NAME: ('#00ff00', '#000000'),
-    ContentTagsEnum.XREFS: ('#ff0000', '#000000'),
-    ContentTagsEnum.COMMENT: ('#f0f0f0', '#000000'),
-    ContentTagsEnum.LOCATION: ('#00aaff', '#000000')
+    ContentTagsEnum.CURRENT_LINE: ('#000000', '#1C2833'),
+    ContentTagsEnum.DEFAULT: ('#58D68D', '#000000'),
+
+    ContentTagsEnum.VA: ('#7FB3D5', '#000000'),
+    ContentTagsEnum.NAME: ('#D0D3D4', '#000000'),
+    ContentTagsEnum.XREFS: ('#AED6F1', '#000000'),
+    ContentTagsEnum.COMMENT: ('#28B463', '#000000'),
+    ContentTagsEnum.LOCATION: ('#AED6F1', '#000000'),
+    ContentTagsEnum.REGISTER: ('#AF7AC5', '#000000'),
+    ContentTagsEnum.MNEMONIC: ('#F1C40F', '#000000'),
+    ContentTagsEnum.UNDEFINED: ('#D0D3D4', '#000000')
 }
 
 
@@ -32,22 +43,31 @@ class VivCanvasColors:
     def __init__(self, theme: dict = defaultCanvasColors):
         self.theme = theme
         self._formats = dict()
+        self._colors = dict()
         self._prepareTheme()
 
     def _prepareTheme(self):
         for tag, fg_bg in self.theme.items():
+            fg = QtGui.QColor(fg_bg[0])
+            bg = QtGui.QColor(fg_bg[1])
+            self._colors[tag] = (fg, bg)
+
             f = QtGui.QTextCharFormat()
-            f.setForeground(QtGui.QColor(fg_bg[0]))
-            f.setBackground(QtGui.QColor(fg_bg[1]))
+            f.setForeground(fg)
+            f.setBackground(bg)
             self._formats[tag] = f
 
     def changeTheme(self, theme: dict):
         self.theme = theme
         self._formats.clear()
+        self._colors.clear()
         self._prepareTheme()
 
     def getFormat(self, tag: ContentTagsEnum) -> QtGui.QTextCharFormat:
         return self._formats.get(tag)
+
+    def getColors(self, tag: ContentTagsEnum) -> tuple:  # QtGui.QColor
+        return self._colors.get(tag)
 
 
 class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
@@ -60,16 +80,30 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
         QtWidgets.QPlainTextEdit.__init__(self, parent=parent)
 
         self.setReadOnly(True)
+
         self._highlighter = VivCanvasColors()
+        self.setCurrentCharFormat(self._highlighter.getFormat(ContentTagsEnum.DEFAULT))
+        self._cur_line_bg_color = self._highlighter.getColors(ContentTagsEnum.CURRENT_LINE)[1]
+        self._cur_line_bg_color.lighter(230)
 
         self._canv_cache = None
         self._canv_curva = None
         self._canv_rend_middle = False
+        self._va_to_line = dict()
 
         # Allow our parent to handle these...
         self.setAcceptDrops(False)
 
-    def wheelEvent(self, event):
+    def wheelEvent(self, event: QtGui.QWheelEvent):
+        if event.modifiers() & QtCore.Qt.ControlModifier:
+            d = event.angleDelta()
+            if d.y() > 0:
+                self.zoomIn(2)
+            else:
+                self.zoomOut(2)
+            event.accept()
+            return
+
         try:
             bar = self.verticalScrollBar()
             sbcur = bar.value()
@@ -99,9 +133,6 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
     def renderMemory(self, va, size, rend=None):
 
         if self._canv_rend_middle:
-            self.setCenterOnScroll(True)
-            self.ensureCursorVisible()
-
             vmap = self.mem.getMemoryMap(va)
             if vmap is None:
                 raise Exception('Invalid Address:%s' % hex(va))
@@ -113,7 +144,7 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
         ret = super(VQMemoryCanvas, self).renderMemory(va, size, rend=rend)
 
         if self._canv_rend_middle:
-            self._scrollToVa(origva)
+            self._putCursorAtVa(origva)
 
         return ret
 
@@ -129,19 +160,40 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
     def _selectVa(self, va):
         return
 
+    def _putCursorAtVa(self, va):
+        self._canv_curva = va
+        start_pos = self._va_to_line[va][0]
+        end_pos = self._va_to_line[va][1]-1
+        cursor = self.textCursor()
+        # cursor.setPosition(start_pos, QtGui.QTextCursor.MoveAnchor)
+        cursor.setPosition(end_pos, QtGui.QTextCursor.MoveAnchor)
+        self.setTextCursor(cursor)
+        self._highlightCurrentLine()
+        self.centerCursor()
+
+    def _highlightCurrentLine(self):
+        high_line = QtWidgets.QTextEdit.ExtraSelection()
+        high_line.format.setBackground(self._cur_line_bg_color)
+        # high_line.format.setProperty(QtGui.QTextFormat.BlockFormat, True)
+        high_line.format.setProperty(QtGui.QTextFormat.FullWidthSelection, True)
+
+        high_line.cursor = self.textCursor()
+        high_line.cursor.clearSelection()
+        self.setExtraSelections([high_line])
+
+    #####################################################
     def _beginRenderMemory(self, va, size, rend):
         self._canv_cache = ''
 
     def _endRenderMemory(self, va, size, rend):
-        # self._appendInside(self._canv_cache)
         self._canv_cache = None
 
     #####################################################
     def _beginRenderVa(self, va):
-        pass
+        self._va_to_line[va] = [self.textCursor().position(), None]
 
-    def _endRenderVa(self, va):
-        pass
+    def _endRenderVa(self, va, size):
+        self._va_to_line[va][1] = self.textCursor().position()
 
     #####################################################
     def _beginUpdateVas(self, valist):
@@ -166,7 +218,23 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
 
     #####################################################
     def getNameTag(self, name, typename='name'):
-        return ContentTagsEnum.NAME
+        """ The render class will call these xxxTag methods when he wants to add a text representation of a
+        specific data: registers, mnemonics etc. We basically have to return some kind of identifier that will
+        later be given back to us as a parameter in addText() so that we know how to handle this text.
+        Very useful for highlighting etc.
+
+        :param name: basically the text that will be added
+        :param typename: what kind it is.
+        :return: object
+        """
+        if typename == 'mnemonic':
+            return ContentTagsEnum.MNEMONIC
+        elif typename == 'registers':
+            return ContentTagsEnum.REGISTER
+        elif typename == 'undefined':
+            return ContentTagsEnum.UNDEFINED
+        else:
+            return ContentTagsEnum.NAME
 
     def getTag(self, typename):
         if typename == 'comment':
@@ -194,18 +262,12 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
 
         if self._canv_scrolled is True:
             self.moveCursor(QtGui.QTextCursor.End)
-
-    def _add_raw(self, text):
-        # If we are in a call to renderMemory, cache til the end.
-        # if self._canv_cache is not None:
-        #     self._canv_cache += text
-        #     return
-
-        self._appendInside(text)
+        else:
+            self._highlightCurrentLine()
 
     def addText(self, text, tag=None):
-        if isinstance(text, int):
-            text = '%x' % text
+        # if isinstance(text, int):
+        #     text = '%x' % text
 
         h = self._highlighter.getFormat(tag)
         self._appendInside(text, h)
@@ -218,15 +280,16 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
     def contextMenuEvent(self, event):
         va = self._canv_curva
         menu = QtWidgets.QMenu()
-        if self._canv_curva:
-            self.initMemWindowMenu(va, menu)
+        # if self._canv_curva:
+        self.initMemWindowMenu(va, menu)
 
         viewmenu = menu.addMenu('view   ')
         viewmenu.addAction("Save frame to HTML", ACT(self._menuSaveToHtml))
         menu.exec_(event.globalPos())
 
-    def initMemWindowMenu(self, va, menu):
-        initMemSendtoMenu('0x%.8x' % va, menu)
+    # def initMemWindowMenu(self, va, menu):
+    #     initMemSendtoMenu('0x%.8x' % va, menu)
+    #     super(VQMemoryCanvas, self).initMemWindowMenu(va, menu)
 
     def _menuSaveToHtml(self):
         fname = QtWidgets.QFileDialog.getSaveFileName(self, 'Save As HTML...')

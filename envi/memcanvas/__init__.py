@@ -100,32 +100,54 @@ class MemoryCanvas:
             raise Exception("Unknown renderer: %s" % name)
         self.currend = rend
 
-    def getTag(self, typename):
-        """
-        Retrieve a non-named tag (doesn't highlight or do
-        anything particularly special, but allows color
-        by typename).
+    def getTag(self, typename) -> object:
+        """Retrieve a non-named tag (doesn't highlight or do anything particularly special,
+        but allows color by typename).
+
+         The render class will call this method when he wants to add a text representation of a
+        specific data: xrefs usually. We basically have to return some kind of identifier that will
+        later be given back to us as a parameter in addText() so that we know how to handle this text.
+        Very useful for highlighting etc. The ui canvas classes use this heavily.
+
+        :param typename: the kind of the text that is going to be added
+        :return: object
         """
         return None
 
-    def getNameTag(self, name, typename='name'):
-        """
-        Retrieve a "tag" object for a name.  "Name" tags will
-        (if possible) be highlighted in the rendered interface
+    def getNameTag(self, name, typename='name') -> object:
+        """Retrieve a "tag" object for a name.  "Name" tags will (if possible) be highlighted in the rendering canvas
+
+        The render class will call this method when he wants to add a text representation of a
+        specific data: registers, mnemonics etc. We basically have to return some kind of identifier that will
+        later be given back to us as a parameter in addText() so that we know how to handle this text.
+        Very useful for highlighting etc. The ui canvas classes use this heavily.
+
+        :param name: basically the text that will be added
+        :param typename: what kind it is.
+        :return: object
         """
         return None  # No highlighting in plain text
 
-    def getVaTag(self, va):
+    def getVaTag(self, va) -> object:
         """
         Retrieve a tag object suitable for showing that the text
         added with this tag should link through to the specified
         virtual address in the memory canvas.
+
+        The render class will call this method when he wants to add a text representation of a Virtual Address - VA
+        We basically have to return some kind of identifier that will later be given back to us as a parameter
+        in addText() so that we know how to handle this text. Very useful for highlighting etc.
+        The ui canvas classes use this heavily.
+
+        :param va: virtual address
+        :return: object
         """
         return None  # No linking in plain text
 
     def addText(self, text, tag=None):
-        """
-        Add text to the canvas with a specified tag.
+        """Add text to the canvas with a specified tag. The tag is what the canvas has returned when the render
+        class has asked her for the specific tag using above few methods (getVaTag, getNameTag, getTag) this
+        unmodified result is passed directly here. Thus the canvas knows exactly what it is going to render now.
 
         NOTE: Implementors should probably check _canv_scrolled to
         decide if they should scroll to the end of the view...
@@ -136,12 +158,14 @@ class MemoryCanvas:
         sys.stdout.write(text)
 
     def addNameText(self, text, name=None, typename='name'):
+        # Convenience method
         if name is None:
             name = text
         tag = self.getNameTag(name, typename=typename)
         self.addText(text, tag=tag)
 
     def addVaText(self, text, va):
+        # Convenience method
         tag = self.getVaTag(va)
         self.addText(text, tag=tag)
 
@@ -160,7 +184,7 @@ class MemoryCanvas:
     def _beginRenderVa(self, va):
         pass
 
-    def _endRenderVa(self, va):
+    def _endRenderVa(self, va, size):
         pass
 
     def _beginUpdateVas(self, valist):
@@ -251,7 +275,7 @@ class MemoryCanvas:
                 self._beginRenderVa(startva)
                 rsize = self.currend.render(self, startva)
                 newrendvas.append((startva, rsize))
-                self._endRenderVa(startva)
+                self._endRenderVa(startva, rsize)
                 startva += rsize
 
         except Exception as e:
@@ -282,7 +306,7 @@ class MemoryCanvas:
                 self._beginRenderVa(va)
                 rsize = rend.render(self, va)
                 self._canv_rendvas.append((va, rsize))
-                self._endRenderVa(va)
+                self._endRenderVa(va, rsize)
                 va += rsize
 
             self._canv_rendvas.extend(savedrendvas)
@@ -306,7 +330,7 @@ class MemoryCanvas:
                 self._beginRenderVa(va)
                 rsize = rend.render(self, va)
                 self._canv_rendvas.append((va, rsize))
-                self._endRenderVa(va)
+                self._endRenderVa(va, rsize)
                 va += rsize
 
             self._canv_endva = maxva
@@ -343,12 +367,12 @@ class MemoryCanvas:
                 try:
                     rsize = rend.render(self, va)
                     self._canv_rendvas.append((va, rsize))
-                    self._endRenderVa(va)
+                    self._endRenderVa(va, rsize)
                     va += rsize
                 except Exception as e:
                     traceback.print_exc()
                     self.addText("\nRender Exception At %s: %s\n" % (hex(va), e))
-                    self._endRenderVa(va)
+                    self._endRenderVa(va, 1)
                     break
 
         except Exception as e:

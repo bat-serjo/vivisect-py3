@@ -3,7 +3,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 class NodeColumn(QtWidgets.QGraphicsItem):
     def __init__(self, vg, nodes, scene, left=None, right=None):
-        QtGui.QGraphicsItem.__init__(self, scene=scene)
+        super(NodeColumn, self).__init__(parent=vg)
         self.setZValue(-100)  # Get behind click events...
 
         self._v_vg = vg
@@ -11,8 +11,8 @@ class NodeColumn(QtWidgets.QGraphicsItem):
         self._v_nodes = nodes
 
         # Remember if we srarted with something on our right or left
-        self._v_goleft = (left == None)
-        self._v_goright = (right == None)
+        self._v_goleft = (left is None)
+        self._v_goright = (right is None)
 
         self._v_left = left
         self._v_right = right
@@ -164,8 +164,7 @@ class NodeColumn(QtWidgets.QGraphicsItem):
 
 class QGraphNode(QtWidgets.QGraphicsSimpleTextItem):
     def __init__(self, vg, column, nid, nprops, scene=None):
-        QtWidgets.QGraphicsSimpleTextItem.__init__(self, nprops.get('repr', 'node:{}'.format(nid)), scene=scene,
-                                                   parent=column)
+        super(QGraphNode, self).__init__(nprops.get('repr', 'node:{}'.format(nid)), parent=scene)
 
         self._v_vg = vg
         self._v_nid = nid

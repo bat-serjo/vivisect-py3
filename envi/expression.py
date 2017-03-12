@@ -1,10 +1,14 @@
 """
 Unified expression helpers.
 """
+import traceback
 
 
 def evaluate(pycode, locals):
-    return eval(pycode, {}, locals)
+    try:
+        return eval(pycode, {}, locals)
+    except Exception as e:
+        traceback.print_exc()
 
 
 class ExpressionLocals(dict):

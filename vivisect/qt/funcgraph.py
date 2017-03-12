@@ -61,28 +61,28 @@ class VQVivFuncgraphCanvas(vq_memory.VivCanvasBase):
         self.lastpos = None
         return e_qt_memcanvas.VQMemoryCanvas.mouseMoveEvent(self, event)
 
-    def renderMemory(self, va, size, rend=None):
-        # For the funcgraph canvas, this will be called once per code block
-        # --CLEAR--
-        return
-
-        # # Check if we have a codeblock element already...
-        # frame = self.page().mainFrame()
-        # canvelem = frame.findFirstElement('#memcanvas')
-        #
-        # elem = frame.findFirstElement('#codeblock_%.8x' % va)
-        # if elem.isNull():
-        #     # Lets add a codeblock element for this
-        #     canvelem.appendInside('<div class="codeblock" id="codeblock_%.8x"></div>' % va)
-        #
-        # self._canv_rendtagid = '#codeblock_%.8x' % va
-        #
-        # ret = super(VQVivFuncgraphCanvas, self).renderMemory(va, size, rend=rend)
-        # # ret = self.renderMemory(va, size, rend=rend)
-        #
-        # self._canv_rendtagid = '#memcanvas'
-        #
-        # return ret
+    # def renderMemory(self, va, size, rend=None):
+    #     # For the funcgraph canvas, this will be called once per code block
+    #     # --CLEAR--
+    #     return
+    #
+    #     # # Check if we have a codeblock element already...
+    #     # frame = self.page().mainFrame()
+    #     # canvelem = frame.findFirstElement('#memcanvas')
+    #     #
+    #     # elem = frame.findFirstElement('#codeblock_%.8x' % va)
+    #     # if elem.isNull():
+    #     #     # Lets add a codeblock element for this
+    #     #     canvelem.appendInside('<div class="codeblock" id="codeblock_%.8x"></div>' % va)
+    #     #
+    #     # self._canv_rendtagid = '#codeblock_%.8x' % va
+    #     #
+    #     # ret = super(VQVivFuncgraphCanvas, self).renderMemory(va, size, rend=rend)
+    #     # # ret = self.renderMemory(va, size, rend=rend)
+    #     #
+    #     # self._canv_rendtagid = '#memcanvas'
+    #     #
+    #     # return ret
 
     def contextMenuEvent(self, event):
         if self._canv_curva:
