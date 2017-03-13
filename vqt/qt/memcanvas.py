@@ -80,28 +80,62 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
         QtWidgets.QPlainTextEdit.__init__(self, parent=parent)
 
         self.setReadOnly(True)
+        self.cursorPositionChanged.connect(self._cursorChanged)
 
         self._highlighter = VivCanvasColors()
         self.setCurrentCharFormat(self._highlighter.getFormat(ContentTagsEnum.DEFAULT))
         self._cur_line_bg_color = self._highlighter.getColors(ContentTagsEnum.CURRENT_LINE)[1]
-        self._cur_line_bg_color.lighter(230)
 
         self._canv_cache = None
         self._canv_curva = None
         self._canv_rend_middle = False
+
         self._va_to_line = dict()
+        self._line_to_va = dict()
 
         # Allow our parent to handle these...
         self.setAcceptDrops(False)
 
+    def _clearInternals(self):
+        self._va_to_line.clear()
+        self._line_to_va.clear()
+        self._canv_curva = None
+        self._canv_cache = None
+
+    def _cursorPositionToVa(self):
+        # using the internal structures translate the cursor position to va
+        cur = self.textCursor()
+        va_line = cur.block().position()
+        va = self._line_to_va.get(va_line)
+
+        if va is None:
+            # the cursor might be positioned in a multi line va such as a function
+            # we will do an exhaust search in the rendered vas
+            for _va, (pos_start, pos_end) in self._va_to_line.items():
+                if pos_end is None:
+                    pos_end = pos_start
+                if pos_start <= va_line <= pos_end:
+                    va = _va
+                    break
+        return va
+
+    def _cursorChanged(self):
+        # the cursor position has changed
+        # 1) figure out the new va
+        self._canv_curva = self._cursorPositionToVa()
+        # 2) highlight the line
+        self._highlightCurrentLine()
+
     def wheelEvent(self, event: QtGui.QWheelEvent):
         if event.modifiers() & QtCore.Qt.ControlModifier:
+            self.setReadOnly(True)
             d = event.angleDelta()
             if d.y() > 0:
                 self.zoomIn(2)
             else:
                 self.zoomOut(2)
             event.accept()
+            self.setReadOnly(False)
             return
 
         try:
@@ -148,18 +182,6 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
 
         return ret
 
-    @idlethread
-    def _scrollToVa(self, va):
-        # Let all render events go first
-        eatevents()
-        # self.centerCursor()
-        # self.moveCursor(QtGui.QTextCursor.Start)
-        self._selectVa(va)
-
-    @idlethread
-    def _selectVa(self, va):
-        return
-
     def _putCursorAtVa(self, va):
         self._canv_curva = va
         start_pos = self._va_to_line[va][0]
@@ -174,7 +196,6 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
     def _highlightCurrentLine(self):
         high_line = QtWidgets.QTextEdit.ExtraSelection()
         high_line.format.setBackground(self._cur_line_bg_color)
-        # high_line.format.setProperty(QtGui.QTextFormat.BlockFormat, True)
         high_line.format.setProperty(QtGui.QTextFormat.FullWidthSelection, True)
 
         high_line.cursor = self.textCursor()
@@ -189,15 +210,41 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
         self._canv_cache = None
 
     #####################################################
+    # basic sequential rendering
     def _beginRenderVa(self, va):
-        self._va_to_line[va] = [self.textCursor().position(), None]
+        block_pos = self.textCursor().position()
+        self._va_to_line[va] = [block_pos, None]
+        self._line_to_va[block_pos] = va
 
     def _endRenderVa(self, va, size):
         self._va_to_line[va][1] = self.textCursor().position()
 
     #####################################################
-    def _beginUpdateVas(self, valist):
+    # when something has changed and needs update
+    def _beginUpdateVas(self, valist: list):
         self._canv_cache = ''
+        # mark the lines and delete them valist = [(va, size), ...]
+        start_va = valist[0][0]
+        end_va = valist[-1][0]
+
+        try:
+            s_va_start_pos, s_va_end_pos = self._va_to_line[start_va]
+            e_va_start_pos, e_va_end_pos = self._va_to_line[end_va]
+
+            tcur = self.textCursor()
+            tcur.setPosition(s_va_start_pos, QtGui.QTextCursor.MoveAnchor)
+            tcur.setPosition(e_va_end_pos, QtGui.QTextCursor.KeepAnchor)
+            tcur.deleteChar()
+
+            # now remove the old info from the internal state holders
+            for va, size in valist:
+                start_pos, end_pos = self._va_to_line[va]
+                self._line_to_va.pop(start_pos)
+                self._va_to_line.pop(va)
+
+            self.setTextCursor(tcur)
+        except Exception as e:
+            traceback.print_exc()
 
     def _endUpdateVas(self):
         self._canv_cache = None
@@ -249,7 +296,6 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
     def getVaTag(self, va):
         return ContentTagsEnum.VA
 
-    # NOTE: doing append / scroll separately allows render to catch up
     @idlethread
     def _appendInside(self, text, highlight=None):
         if highlight is not None:
@@ -266,22 +312,17 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
             self._highlightCurrentLine()
 
     def addText(self, text, tag=None):
-        # if isinstance(text, int):
-        #     text = '%x' % text
-
         h = self._highlighter.getFormat(tag)
         self._appendInside(text, h)
-        # self._add_raw(text)
 
     @idlethreadsync
     def clearCanvas(self):
         self.clear()
+        self._clearInternals()
 
     def contextMenuEvent(self, event):
-        va = self._canv_curva
         menu = QtWidgets.QMenu()
-        # if self._canv_curva:
-        self.initMemWindowMenu(va, menu)
+        self.initMemWindowMenu(self._canv_curva, menu)
 
         viewmenu = menu.addMenu('view   ')
         viewmenu.addAction("Save frame to HTML", ACT(self._menuSaveToHtml))
