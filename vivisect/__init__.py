@@ -1945,7 +1945,7 @@ class VivWorkspace(e_mem.MemoryObject, viv_base.VivWorkspaceCore):
             va -= 1
         return None
 
-    def vaByName(self, name):
+    def vaByName(self, name) -> object:
         return self.va_by_name.get(name, None)
 
     def getLocationByName(self, name):

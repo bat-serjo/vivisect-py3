@@ -122,4 +122,12 @@ if __name__ == '__main__':
     except ImportError:
         pass
 
+    def my_except_hook(exctype, value, traceback):
+        if exctype == KeyboardInterrupt:
+            # "Handler code goes here"
+            pass
+        else:
+            sys.__excepthook__(exctype, value, traceback)
+
+    sys.excepthook = my_except_hook
     main()

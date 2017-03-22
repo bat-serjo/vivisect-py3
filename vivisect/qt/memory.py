@@ -60,26 +60,11 @@ class VivCanvasBase(vq_hotkey.HotKeyMixin, e_mem_canvas.VQMemoryCanvas):
 
     @vq_hotkey.hotkey('viv:nav:nextva')
     def _hotkey_nav_nextva(self):
-        if not self._canv_curva:
-            return
-
-        loc = self.vw.getLocation(self._canv_curva)
-        if loc is None:
-            loc = (self._canv_curva, 1, None, None)
-
-        nextva = loc[0] + loc[1]
-        self._selectVa(nextva)
+        self.goto_next()
 
     @vq_hotkey.hotkey('viv:nav:prevva')
     def _hotkey_nav_prevva(self):
-        if not self._canv_curva:
-            return
-
-        loc = self.vw.getPrevLocation(self._canv_curva)
-        if loc is None:
-            loc = (self._canv_curva - 1, 1, None, None)
-
-        self._selectVa(loc[0])
+        self.goto_prev()
 
     @vq_hotkey.hotkey('viv:nav:nextundef')
     def _hotkey_nav_nextundef(self):

@@ -313,10 +313,7 @@ class VQMemoryWindow(QtWidgets.QWidget, vq_hotkey.HotKeyMixin, EnviNavMixin, vq_
                 self.mem_history.pop()
 
         self.mem_canvas.setRenderer(rname)
-        try:
-            self.mem_canvas.renderMemory(addr, size)
-        except Exception as e:
-            self.mem_canvas.addText('Render Exception: %s (%s)' % (hex(addr), e))
+        self.mem_canvas.renderMemory(addr, size)
 
     def clearText(self):
         self.mem_canvas.clearCanvas()

@@ -39,6 +39,17 @@ defaultCanvasColors = {
 }
 
 
+class VivTextProperties(enum.IntEnum):
+    vivTag = 1
+    vivValue = 2
+
+
+class VivTextBlockUserData(QtGui.QTextBlockUserData):
+    def __init__(self, va: int, *args, **kwargs):
+        super(VivTextBlockUserData, self).__init__(*args, **kwargs)
+        self.va = va
+
+
 class VivCanvasColors:
     def __init__(self, theme: dict = defaultCanvasColors):
         self.theme = theme
@@ -64,7 +75,14 @@ class VivCanvasColors:
         self._prepareTheme()
 
     def getFormat(self, tag: ContentTagsEnum) -> QtGui.QTextCharFormat:
-        return self._formats.get(tag)
+        if tag not in self._colors:
+            return None
+        fg, bg = self._colors[tag]
+        f = QtGui.QTextCharFormat()
+        f.setForeground(fg)
+        f.setBackground(bg)
+        f.setProperty(VivTextProperties.vivTag, tag)
+        return f
 
     def getColors(self, tag: ContentTagsEnum) -> tuple:  # QtGui.QColor
         return self._colors.get(tag)
@@ -89,35 +107,59 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
         self._canv_cache = None
         self._canv_curva = None
         self._canv_rend_middle = False
-
-        self._va_to_line = dict()
-        self._line_to_va = dict()
+        self._is_rendering_block = False
 
         # Allow our parent to handle these...
         self.setAcceptDrops(False)
 
     def _clearInternals(self):
-        self._va_to_line.clear()
-        self._line_to_va.clear()
         self._canv_curva = None
         self._canv_cache = None
 
-    def _cursorPositionToVa(self):
-        # using the internal structures translate the cursor position to va
-        cur = self.textCursor()
-        va_line = cur.block().position()
-        va = self._line_to_va.get(va_line)
+    def _getBlockForVa(self, va):
+        doc = self.document()
 
-        if va is None:
-            # the cursor might be positioned in a multi line va such as a function
-            # we will do an exhaust search in the rendered vas
-            for _va, (pos_start, pos_end) in self._va_to_line.items():
-                if pos_end is None:
-                    pos_end = pos_start
-                if pos_start <= va_line <= pos_end:
-                    va = _va
-                    break
-        return va
+        fblock = doc.begin()
+        lblock = doc.end()
+        iblock = fblock
+
+        def _check_block_va(iblock, va):
+            for tformatrange in iblock.textFormats():
+                tag = tformatrange.format.property(VivTextProperties.vivTag)
+                if tag is ContentTagsEnum.VA:
+                    val = tformatrange.format.property(VivTextProperties.vivValue)
+                    if val == va:
+                        return True
+                    else:
+                        return False
+
+        while iblock != lblock:
+            # print(iblock.text())
+            if _check_block_va(iblock, va) is True:
+                return iblock
+            # udata = iblock.userData()
+            # if udata is not None and udata.va == va:
+            #     return iblock
+            iblock = iblock.next()
+
+        # print(iblock.text())
+        if _check_block_va(iblock, va) is True:
+            return iblock
+        # if udata is not None and udata.va == va:
+        #     return iblock
+
+        return None
+
+    def _getVaForBlock(self, block: QtGui.QTextBlock):
+        udata = block.userData()
+        if udata is None:
+            if self.textCursor().block() == block:
+                return self._canv_curva
+        return udata.va
+
+    def _cursorPositionToVa(self):
+        cur = self.textCursor()
+        return self._getVaForBlock(cur.block())
 
     def _cursorChanged(self):
         # the cursor position has changed
@@ -125,6 +167,40 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
         self._canv_curva = self._cursorPositionToVa()
         # 2) highlight the line
         self._highlightCurrentLine()
+
+    def keyPressEvent(self, ev: QtGui.QKeyEvent):
+        ev.ignore()
+
+    def keyReleaseEvent(self, ev: QtGui.QKeyEvent):
+        ev.ignore()
+
+    def mouseDoubleClickEvent(self, ev: QtGui.QMouseEvent):
+        super(VQMemoryCanvas, self).mouseDoubleClickEvent(ev)
+
+        t = self.cursorForPosition(ev.pos())
+        cf = t.charFormat()
+        print(cf.property(VivTextProperties.vivTag), cf.property(VivTextProperties.vivValue))
+
+    # # HELPER BLAH !
+    # t = self.cursorForPosition(ev.pos())
+    # cf = t.charFormat()
+    # block = t.block()
+    # print("BLOCK TEXT", block.text())
+    # for tformatrange in block.textFormats():
+    #     print(tformatrange.start, tformatrange.length, tformatrange.format.property(VivTextProperties.vivTag),
+    #           tformatrange.format.property(VivTextProperties.vivValue))
+    # print(cf.property(VivTextProperties.vivTag), cf.property(VivTextProperties.vivValue))
+    #
+    # TRAVERSE BLOCKS IN DOCUMENT
+    # doc = self.document()
+    # fblock = doc.begin()
+    # lblock = doc.end()
+    # iblock = fblock
+    # while iblock != lblock:
+    #     # print(iblock.userData().va)
+    #     iblock = iblock.next()
+    # # print(iblock.text())
+    # iblock = iblock.next()
 
     def wheelEvent(self, event: QtGui.QWheelEvent):
         if event.modifiers() & QtCore.Qt.ControlModifier:
@@ -138,30 +214,83 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
             self.setReadOnly(False)
             return
 
-        try:
-            bar = self.verticalScrollBar()
-            sbcur = bar.value()
-            sbmin = bar.minimum()
-            sbmax = bar.maximum()
+        bar = self.verticalScrollBar()
+        sbcur = bar.value()
+        sbmin = bar.minimum()
+        sbmax = bar.maximum()
 
-            if sbcur == sbmax:
-
-                lastva, lastsize = self._canv_rendvas[-1]
-                mapva, mapsize, mperm, mfname = self.vw.getMemoryMap(lastva)
-                sizeremain = (mapva + mapsize) - (lastva + lastsize)
-                if sizeremain:
-                    self.renderMemoryAppend(min(sizeremain, 128))
-
-            elif sbcur == sbmin:
-                firstva, firstsize = self._canv_rendvas[0]
-                mapva, mapsize, mperm, mfname = self.vw.getMemoryMap(firstva)
-                sizeremain = firstva - mapva
-                if sizeremain:
-                    self.renderMemoryPrepend(min(sizeremain, 128))
-        except:
-            pass
+        if sbcur == sbmax:
+            self._try_Prefetch(forward=True)
+        elif sbcur == sbmin:
+            self._try_Prefetch(forward=False)
 
         return super(VQMemoryCanvas, self).wheelEvent(event)
+
+    def _try_Prefetch(self, forward: bool):
+        # try to prefetch and render data inside the canvas
+        # if forward is True we go forward otherwise backwards.
+        try:
+
+            if forward is True:
+                lastva, lastsize = self._canv_rendvas[-1]
+                mapva, mapsize, mperm, mfname = self.vw.getMemoryMap(lastva)
+                add_size = (mapva + mapsize) - (lastva + lastsize)
+                add_size = min(add_size, 128)
+                if add_size:
+                    o_va = self.__proper_va_offset(lastva, add_size)
+                    self.renderMemoryAppend(o_va - lastva)
+            else:
+                firstva, firstsize = self._canv_rendvas[0]
+                mapva, mapsize, mperm, mfname = self.vw.getMemoryMap(firstva)
+                add_size = firstva - mapva
+                add_size = min(add_size, 128)
+                if add_size:
+                    o_va = self.__proper_va_offset(firstva, -add_size)
+                    self.renderMemoryPrepend(firstva - o_va)
+        except Exception as e:
+            traceback.print_exc()
+
+    def __proper_va_offset(self, va: int, offset: int) -> int:
+        # PROPERLY (taking care of locations) seek at least offset bytes forwards of backwards
+        # if the offset lends inside a location boundaries it will round the return VA to point
+        # to the start of the location.
+        targetva = va + offset
+        nextva = va
+
+        if offset > 0:
+            while nextva < targetva:
+                loc = self.vw.getLocation(nextva)
+                if loc is None:
+                    loc = (nextva, 1, None, None)
+                nextva = loc[0] + loc[1]
+        else:
+            while nextva > targetva:
+                loc = self.vw.getPrevLocation(nextva)
+                if loc is None:
+                    loc = (nextva - 1, 1, None, None)
+                nextva = loc[0]
+
+        return nextva
+
+    def goto_next(self):
+        if not self._canv_curva:
+            return
+        nextva = self.__proper_va_offset(self._canv_curva, 1)
+
+        if self._canv_beginva < nextva < self._canv_endva:
+            self._putCursorAtVa(nextva)
+        else:
+            self._try_Prefetch(True)
+
+    def goto_prev(self):
+        if not self._canv_curva:
+            return
+        nextva = self.__proper_va_offset(self._canv_curva, -1)
+
+        if self._canv_beginva < nextva < self._canv_endva:
+            self._putCursorAtVa(nextva)
+        else:
+            self._try_Prefetch(False)
 
     # @idlethread
     def renderMemory(self, va, size, rend=None):
@@ -184,12 +313,15 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
 
     def _putCursorAtVa(self, va):
         self._canv_curva = va
-        start_pos = self._va_to_line[va][0]
-        end_pos = self._va_to_line[va][1]-1
+        block = self._getBlockForVa(va)
         cursor = self.textCursor()
-        # cursor.setPosition(start_pos, QtGui.QTextCursor.MoveAnchor)
-        cursor.setPosition(end_pos, QtGui.QTextCursor.MoveAnchor)
+        try:
+            cursor.setPosition(block.position(), QtGui.QTextCursor.MoveAnchor)
+        except Exception:
+            traceback.print_exc()
+            print('%x' % va)
         self.setTextCursor(cursor)
+
         self._highlightCurrentLine()
         self.centerCursor()
 
@@ -205,6 +337,7 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
     #####################################################
     def _beginRenderMemory(self, va, size, rend):
         self._canv_cache = ''
+        self._beginRenderVa(va)
 
     def _endRenderMemory(self, va, size, rend):
         self._canv_cache = None
@@ -212,12 +345,20 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
     #####################################################
     # basic sequential rendering
     def _beginRenderVa(self, va):
-        block_pos = self.textCursor().position()
-        self._va_to_line[va] = [block_pos, None]
-        self._line_to_va[block_pos] = va
+        # txt_cur = self.textCursor()
+        # block = txt_cur.block()
+        # block.setUserData(VivTextBlockUserData(va=va))
+        if va == self._canv_curva:
+            self._is_multi = True
+        self._canv_curva = va
+        # self._is_rendering_block = True
 
     def _endRenderVa(self, va, size):
-        self._va_to_line[va][1] = self.textCursor().position()
+        pass
+        # self._is_rendering_block = False
+        # self.addText('\n')
+        # tcur = self.textCursor()
+        # tcur.insertBlock()
 
     #####################################################
     # when something has changed and needs update
@@ -228,21 +369,17 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
         end_va = valist[-1][0]
 
         try:
-            s_va_start_pos, s_va_end_pos = self._va_to_line[start_va]
-            e_va_start_pos, e_va_end_pos = self._va_to_line[end_va]
+            sblock = self._getBlockForVa(start_va)
+            eblock = self._getBlockForVa(end_va)
+
+            spos = sblock.position()
+            epos = eblock.position() + eblock.length()
 
             tcur = self.textCursor()
-            tcur.setPosition(s_va_start_pos, QtGui.QTextCursor.MoveAnchor)
-            tcur.setPosition(e_va_end_pos, QtGui.QTextCursor.KeepAnchor)
+            tcur.setPosition(spos, QtGui.QTextCursor.MoveAnchor)
+            tcur.setPosition(epos, QtGui.QTextCursor.KeepAnchor)
             tcur.deleteChar()
-
-            # now remove the old info from the internal state holders
-            for va, size in valist:
-                start_pos, end_pos = self._va_to_line[va]
-                self._line_to_va.pop(start_pos)
-                self._va_to_line.pop(va)
-
-            self.setTextCursor(tcur)
+            # self.setTextCursor(tcur)
         except Exception as e:
             traceback.print_exc()
 
@@ -252,6 +389,10 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
     #####################################################
     def _beginRenderPrepend(self):
         self._canv_cache = ''
+        fblock = self.document().begin()
+        tcur = self.textCursor()
+        tcur.setPosition(fblock.position(), QtGui.QTextCursor.MoveAnchor)
+        self.setTextCursor(tcur)
 
     def _endRenderPrepend(self):
         self._canv_cache = None
@@ -259,6 +400,11 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
     #####################################################
     def _beginRenderAppend(self):
         self._canv_cache = ''
+        lblock = self.document().end()
+        lpos = lblock.position() + lblock.length()
+        tcur = self.textCursor()
+        tcur.setPosition(lpos, QtGui.QTextCursor.MoveAnchor)
+        self.setTextCursor(tcur)
 
     def _endRenderAppend(self):
         self._canv_cache = None
@@ -275,26 +421,26 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
         :return: object
         """
         if typename == 'mnemonic':
-            return ContentTagsEnum.MNEMONIC
+            return ContentTagsEnum.MNEMONIC, name
         elif typename == 'registers':
-            return ContentTagsEnum.REGISTER
+            return ContentTagsEnum.REGISTER, name
         elif typename == 'undefined':
-            return ContentTagsEnum.UNDEFINED
+            return ContentTagsEnum.UNDEFINED, name
         else:
-            return ContentTagsEnum.NAME
+            return ContentTagsEnum.NAME, name
 
     def getTag(self, typename):
         if typename == 'comment':
-            return ContentTagsEnum.COMMENT
+            return ContentTagsEnum.COMMENT, self._canv_curva
         elif typename == 'xrefs':
-            return ContentTagsEnum.XREFS
+            return ContentTagsEnum.XREFS, self._canv_curva
         elif typename == 'location':
-            return ContentTagsEnum.LOCATION
+            return ContentTagsEnum.LOCATION, self._canv_curva
         print("UNKNOWN TAG:", typename)
         return None
 
     def getVaTag(self, va):
-        return ContentTagsEnum.VA
+        return ContentTagsEnum.VA, va
 
     @idlethread
     def _appendInside(self, text, highlight=None):
@@ -312,7 +458,15 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
             self._highlightCurrentLine()
 
     def addText(self, text, tag=None):
-        h = self._highlighter.getFormat(tag)
+        if self._is_rendering_block is True:
+            text = text.replace('\n', '\u2028')
+
+        if tag is not None:
+            _tag, extra = tag
+            h = self._highlighter.getFormat(_tag)
+            h.setProperty(VivTextProperties.vivValue, extra)
+        else:
+            h = self._highlighter.getFormat(tag)
         self._appendInside(text, h)
 
     @idlethreadsync

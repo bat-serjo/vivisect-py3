@@ -139,9 +139,10 @@ class HotKeyMixin:
 
         return False
 
-    # def keyPressEvent(self, event):
-    #     if not self.eatKeyPressEvent(event):
-    #         return super().keyPressEvent(event)
+    def keyPressEvent(self, event):
+        self.eatKeyPressEvent(event)
+        # if not self.eatKeyPressEvent(event):
+        #     return super().keyPressEvent(event)
 
 
 class HotKeyEditor(vqt.tree.VQTreeView):
