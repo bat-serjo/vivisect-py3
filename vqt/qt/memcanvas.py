@@ -107,7 +107,7 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
         self._canv_cache = None
         self._canv_curva = None
         self._canv_rend_middle = False
-        self._is_rendering_block = False
+        self._do_heavy_highlight = False
 
         # Allow our parent to handle these...
         self.setAcceptDrops(False)
@@ -121,51 +121,31 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
 
         fblock = doc.begin()
         lblock = doc.end()
+
         iblock = fblock
-
-        def _check_block_va(iblock, va):
-            for tformatrange in iblock.textFormats():
-                tag = tformatrange.format.property(VivTextProperties.vivTag)
-                if tag is ContentTagsEnum.VA:
-                    val = tformatrange.format.property(VivTextProperties.vivValue)
-                    if val == va:
-                        return True
-                    else:
-                        return False
-
         while iblock != lblock:
-            # print(iblock.text())
-            if _check_block_va(iblock, va) is True:
+            if self._getVaForBlock(iblock) == va:
                 return iblock
-            # udata = iblock.userData()
-            # if udata is not None and udata.va == va:
-            #     return iblock
             iblock = iblock.next()
 
-        # print(iblock.text())
-        if _check_block_va(iblock, va) is True:
+        if self._getVaForBlock(iblock) == va:
             return iblock
-        # if udata is not None and udata.va == va:
-        #     return iblock
 
         return None
 
     def _getVaForBlock(self, block: QtGui.QTextBlock):
-        udata = block.userData()
-        if udata is None:
-            if self.textCursor().block() == block:
-                return self._canv_curva
-        return udata.va
+        for tformatrange in block.textFormats():
+            tag = tformatrange.format.property(VivTextProperties.vivTag)
+            if tag is ContentTagsEnum.VA:
+                return tformatrange.format.property(VivTextProperties.vivValue)
+        return None
 
     def _cursorPositionToVa(self):
         cur = self.textCursor()
         return self._getVaForBlock(cur.block())
 
     def _cursorChanged(self):
-        # the cursor position has changed
-        # 1) figure out the new va
         self._canv_curva = self._cursorPositionToVa()
-        # 2) highlight the line
         self._highlightCurrentLine()
 
     def keyPressEvent(self, ev: QtGui.QKeyEvent):
@@ -174,33 +154,16 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
     def keyReleaseEvent(self, ev: QtGui.QKeyEvent):
         ev.ignore()
 
+    def mousePressEvent(self, ev: QtGui.QMouseEvent):
+        super(VQMemoryCanvas, self).mousePressEvent(ev)
+        self._do_heavy_highlight = True
+
     def mouseDoubleClickEvent(self, ev: QtGui.QMouseEvent):
         super(VQMemoryCanvas, self).mouseDoubleClickEvent(ev)
 
         t = self.cursorForPosition(ev.pos())
         cf = t.charFormat()
         print(cf.property(VivTextProperties.vivTag), cf.property(VivTextProperties.vivValue))
-
-    # # HELPER BLAH !
-    # t = self.cursorForPosition(ev.pos())
-    # cf = t.charFormat()
-    # block = t.block()
-    # print("BLOCK TEXT", block.text())
-    # for tformatrange in block.textFormats():
-    #     print(tformatrange.start, tformatrange.length, tformatrange.format.property(VivTextProperties.vivTag),
-    #           tformatrange.format.property(VivTextProperties.vivValue))
-    # print(cf.property(VivTextProperties.vivTag), cf.property(VivTextProperties.vivValue))
-    #
-    # TRAVERSE BLOCKS IN DOCUMENT
-    # doc = self.document()
-    # fblock = doc.begin()
-    # lblock = doc.end()
-    # iblock = fblock
-    # while iblock != lblock:
-    #     # print(iblock.userData().va)
-    #     iblock = iblock.next()
-    # # print(iblock.text())
-    # iblock = iblock.next()
 
     def wheelEvent(self, event: QtGui.QWheelEvent):
         if event.modifiers() & QtCore.Qt.ControlModifier:
@@ -224,7 +187,8 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
         elif sbcur == sbmin:
             self._try_Prefetch(forward=False)
 
-        return super(VQMemoryCanvas, self).wheelEvent(event)
+        ret = super(VQMemoryCanvas, self).wheelEvent(event)
+        return ret
 
     def _try_Prefetch(self, forward: bool):
         # try to prefetch and render data inside the canvas
@@ -315,24 +279,43 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
         self._canv_curva = va
         block = self._getBlockForVa(va)
         cursor = self.textCursor()
-        try:
-            cursor.setPosition(block.position(), QtGui.QTextCursor.MoveAnchor)
-        except Exception:
-            traceback.print_exc()
-            print('%x' % va)
+        cursor.setPosition(block.position(), QtGui.QTextCursor.MoveAnchor)
         self.setTextCursor(cursor)
 
         self._highlightCurrentLine()
         self.centerCursor()
 
     def _highlightCurrentLine(self):
-        high_line = QtWidgets.QTextEdit.ExtraSelection()
-        high_line.format.setBackground(self._cur_line_bg_color)
-        high_line.format.setProperty(QtGui.QTextFormat.FullWidthSelection, True)
+        # ebahti zora!
+        extra_selected = list()
 
-        high_line.cursor = self.textCursor()
-        high_line.cursor.clearSelection()
-        self.setExtraSelections([high_line])
+        tc = self.textCursor()
+        cblock = tc.block()
+        _va = self._getVaForBlock(cblock)
+
+        if self._do_heavy_highlight is True:
+            cblock = self._getBlockForVa(_va)
+            tc = QtGui.QTextCursor(cblock)
+            self._do_heavy_highlight = False
+
+        iblock = cblock
+        eblock = self.document().end()
+        cnt = 0
+
+        while _va is not None and _va == self._getVaForBlock(iblock) and iblock != eblock:
+            tc.movePosition(QtGui.QTextCursor.StartOfBlock, QtGui.QTextCursor.MoveAnchor)
+
+            high_line = QtWidgets.QTextEdit.ExtraSelection()
+            high_line.format.setBackground(self._cur_line_bg_color)
+            high_line.format.setProperty(QtGui.QTextFormat.FullWidthSelection, True)
+            high_line.cursor = tc
+            high_line.cursor.clearSelection()
+            extra_selected.append(high_line)
+
+            iblock = iblock.next()
+            tc.movePosition(QtGui.QTextCursor.NextBlock, QtGui.QTextCursor.MoveAnchor)
+
+        self.setExtraSelections(extra_selected)
 
     #####################################################
     def _beginRenderMemory(self, va, size, rend):
@@ -345,20 +328,10 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
     #####################################################
     # basic sequential rendering
     def _beginRenderVa(self, va):
-        # txt_cur = self.textCursor()
-        # block = txt_cur.block()
-        # block.setUserData(VivTextBlockUserData(va=va))
-        if va == self._canv_curva:
-            self._is_multi = True
         self._canv_curva = va
-        # self._is_rendering_block = True
 
     def _endRenderVa(self, va, size):
         pass
-        # self._is_rendering_block = False
-        # self.addText('\n')
-        # tcur = self.textCursor()
-        # tcur.insertBlock()
 
     #####################################################
     # when something has changed and needs update
@@ -454,13 +427,8 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
 
         if self._canv_scrolled is True:
             self.moveCursor(QtGui.QTextCursor.End)
-        else:
-            self._highlightCurrentLine()
 
     def addText(self, text, tag=None):
-        if self._is_rendering_block is True:
-            text = text.replace('\n', '\u2028')
-
         if tag is not None:
             _tag, extra = tag
             h = self._highlighter.getFormat(_tag)
@@ -481,10 +449,6 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
         viewmenu = menu.addMenu('view   ')
         viewmenu.addAction("Save frame to HTML", ACT(self._menuSaveToHtml))
         menu.exec_(event.globalPos())
-
-    # def initMemWindowMenu(self, va, menu):
-    #     initMemSendtoMenu('0x%.8x' % va, menu)
-    #     super(VQMemoryCanvas, self).initMemWindowMenu(va, menu)
 
     def _menuSaveToHtml(self):
         fname = QtWidgets.QFileDialog.getSaveFileName(self, 'Save As HTML...')
