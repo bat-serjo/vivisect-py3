@@ -16,11 +16,12 @@ class ContentTagsEnum(enum.IntEnum):
     VA = 0
     NAME = 1
     XREFS = 2
-    COMMENT = 3
-    LOCATION = 4
-    REGISTER = 5
-    MNEMONIC = 6
-    UNDEFINED = 7  # raw bytes usually
+    STRING = 3
+    COMMENT = 4
+    LOCATION = 5
+    REGISTER = 6
+    MNEMONIC = 7
+    UNDEFINED = 8  # raw bytes usually
 
 
 defaultCanvasColors = {
@@ -31,6 +32,7 @@ defaultCanvasColors = {
     ContentTagsEnum.VA: ('#7FB3D5', '#000000'),
     ContentTagsEnum.NAME: ('#D0D3D4', '#000000'),
     ContentTagsEnum.XREFS: ('#AED6F1', '#000000'),
+    ContentTagsEnum.STRING: ('#58D68D', '#000000'),
     ContentTagsEnum.COMMENT: ('#28B463', '#000000'),
     ContentTagsEnum.LOCATION: ('#AED6F1', '#000000'),
     ContentTagsEnum.REGISTER: ('#AF7AC5', '#000000'),
@@ -155,15 +157,19 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
         ev.ignore()
 
     def mousePressEvent(self, ev: QtGui.QMouseEvent):
-        super(VQMemoryCanvas, self).mousePressEvent(ev)
         self._do_heavy_highlight = True
+        super(VQMemoryCanvas, self).mousePressEvent(ev)
 
     def mouseDoubleClickEvent(self, ev: QtGui.QMouseEvent):
         super(VQMemoryCanvas, self).mouseDoubleClickEvent(ev)
 
         t = self.cursorForPosition(ev.pos())
         cf = t.charFormat()
-        print(cf.property(VivTextProperties.vivTag), cf.property(VivTextProperties.vivValue))
+        tag = cf.property(VivTextProperties.vivTag)
+        val = cf.property(VivTextProperties.vivValue)
+
+        if tag is ContentTagsEnum.VA:
+            self.gotoVa(val)
 
     def wheelEvent(self, event: QtGui.QWheelEvent):
         if event.modifiers() & QtCore.Qt.ControlModifier:
@@ -211,6 +217,8 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
                 if add_size:
                     o_va = self.__proper_va_offset(firstva, -add_size)
                     self.renderMemoryPrepend(firstva - o_va)
+        except IndexError as e:
+            pass
         except Exception as e:
             traceback.print_exc()
 
@@ -236,7 +244,7 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
 
         return nextva
 
-    def goto_next(self):
+    def gotoNext(self):
         if not self._canv_curva:
             return
         nextva = self.__proper_va_offset(self._canv_curva, 1)
@@ -246,7 +254,7 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
         else:
             self._try_Prefetch(True)
 
-    def goto_prev(self):
+    def gotoPrev(self):
         if not self._canv_curva:
             return
         nextva = self.__proper_va_offset(self._canv_curva, -1)
@@ -255,6 +263,12 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
             self._putCursorAtVa(nextva)
         else:
             self._try_Prefetch(False)
+
+    def gotoVa(self, va):
+        if self._canv_beginva < va < self._canv_endva:
+            self._putCursorAtVa(va)
+        else:
+            self.renderMemory(va, 256)
 
     # @idlethread
     def renderMemory(self, va, size, rend=None):
@@ -320,7 +334,7 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
     #####################################################
     def _beginRenderMemory(self, va, size, rend):
         self._canv_cache = ''
-        self._beginRenderVa(va)
+        # self._beginRenderVa(va)
 
     def _endRenderMemory(self, va, size, rend):
         self._canv_cache = None
@@ -362,7 +376,7 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
     #####################################################
     def _beginRenderPrepend(self):
         self._canv_cache = ''
-        fblock = self.document().begin()
+        fblock = self.document().firstBlock()
         tcur = self.textCursor()
         tcur.setPosition(fblock.position(), QtGui.QTextCursor.MoveAnchor)
         self.setTextCursor(tcur)
@@ -373,8 +387,8 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
     #####################################################
     def _beginRenderAppend(self):
         self._canv_cache = ''
-        lblock = self.document().end()
-        lpos = lblock.position() + lblock.length()
+        lblock = self.document().lastBlock()
+        lpos = lblock.position()
         tcur = self.textCursor()
         tcur.setPosition(lpos, QtGui.QTextCursor.MoveAnchor)
         self.setTextCursor(tcur)
@@ -393,6 +407,7 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
         :param typename: what kind it is.
         :return: object
         """
+        # ugly but much faster than any getattr or __members__ magic!
         if typename == 'mnemonic':
             return ContentTagsEnum.MNEMONIC, name
         elif typename == 'registers':
@@ -403,10 +418,13 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
             return ContentTagsEnum.NAME, name
 
     def getTag(self, typename):
+        # ugly but much faster than any getattr or __members__ magic!
         if typename == 'comment':
             return ContentTagsEnum.COMMENT, self._canv_curva
         elif typename == 'xrefs':
             return ContentTagsEnum.XREFS, self._canv_curva
+        elif typename == 'string':
+            return ContentTagsEnum.STRING, self._canv_curva
         elif typename == 'location':
             return ContentTagsEnum.LOCATION, self._canv_curva
         print("UNKNOWN TAG:", typename)

@@ -2,9 +2,6 @@
 A package for any of the vivisect workspace renderers.
 """
 import string
-import urllib.parse
-import urllib.error
-import urllib.request
 
 import envi.memcanvas as e_canvas
 
@@ -137,7 +134,7 @@ class WorkspaceRenderer(e_canvas.MemoryRenderer):
             mcanv.addText(linepre, tag=vatag)
             if name is None:
                 name = "loc_%.8x" % lva
-            mcanv.addText(urllib.parse.quote_plus(name), tag=vatag)
+            mcanv.addText(name, tag=vatag)
             mcanv.addText(": ")
             xrtag = mcanv.getTag("xrefs")
             mcanv.addText('[%d XREFS]\n' % xrcount, tag=xrtag)

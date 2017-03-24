@@ -60,11 +60,11 @@ class VivCanvasBase(vq_hotkey.HotKeyMixin, e_mem_canvas.VQMemoryCanvas):
 
     @vq_hotkey.hotkey('viv:nav:nextva')
     def _hotkey_nav_nextva(self):
-        self.goto_next()
+        self.gotoNext()
 
     @vq_hotkey.hotkey('viv:nav:prevva')
     def _hotkey_nav_prevva(self):
-        self.goto_prev()
+        self.gotoPrev()
 
     @vq_hotkey.hotkey('viv:nav:nextundef')
     def _hotkey_nav_nextundef(self):
