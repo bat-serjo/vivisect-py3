@@ -3,7 +3,7 @@ QtGui objects which assist in GUIs which use vtrace parts.
 """
 import traceback
 
-from PyQt5 import QtCore, QtWidgets
+from PyQt5 import QtGui, QtCore, QtWidgets
 
 import envi.memcanvas as e_mcanv
 import envi.memcanvas.renderers as e_mem_rend
@@ -159,9 +159,9 @@ class RegColorDelegate(QtWidgets.QStyledItemDelegate):
 
     def paint(self, painter, option, index):
         node = index.internalPointer()
-        weight = QtWidgets.QFont.Normal
+        weight = QtGui.QFont.Normal
         if self.reglist.lastregs.get(node.rowdata[0]) != node.rowdata[2]:
-            weight = QtWidgets.QFont.Bold
+            weight = QtGui.QFont.Bold
         option.font.setWeight(weight)
         return QtWidgets.QStyledItemDelegate.paint(self, painter, option, index)
 

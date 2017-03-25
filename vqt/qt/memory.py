@@ -174,7 +174,7 @@ class VQMemoryWindow(QtWidgets.QWidget, vq_hotkey.HotKeyMixin, EnviNavMixin, vq_
             #
             expr = str(self.addr_entry.text())
         except Exception as e:
-            print("GRaaaaaaaaHHHHHHHHHHHHFGGGGGGWRWEWR")
+            print("########### GRaaaaaaaaHHHHHHHHHHHHFGGGGGGWRWEWR")
             traceback.print_exc()
 
         title = '%s: %s' % (self.mwname, expr)

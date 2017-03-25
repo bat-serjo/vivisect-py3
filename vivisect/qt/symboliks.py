@@ -1,19 +1,17 @@
 import itertools
 
-import vivisect.symboliks.constraints as viv_sym_constraints
-import vivisect.symboliks.expression as viv_sym_expression
 import vivisect.symboliks.analysis as viv_sym_analysis
-import vivisect.symboliks.effects as viv_sym_effects
 import vivisect.symboliks.common as viv_sym_common
-
+import vivisect.symboliks.constraints as viv_sym_constraints
+import vivisect.symboliks.effects as viv_sym_effects
+import vivisect.symboliks.expression as viv_sym_expression
 import vivisect.tools.graphutil as viv_graph
 import vqt.qt.memcanvas as e_q_memcanvas
 import vqt.qt.memory as e_q_memory
 import vqt.saveable as vq_save
 import vqt.tree as vq_tree
-
 from vivisect.const import *
-from vqt.basics import *
+from vqt.common import VBox, HBox
 from vqt.main import *
 
 

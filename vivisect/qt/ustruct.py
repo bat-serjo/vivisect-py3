@@ -1,6 +1,6 @@
-from PyQt5 import QtWidgets, QtGui
+from PyQt5 import QtGui
 
-from vqt.basics import *
+from vqt.common import *
 
 example_src = """
 // A comment (not /* yet... */ )

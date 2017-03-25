@@ -3,21 +3,23 @@ import collections
 
 import envi.cli
 import vdb
-import vqt.application as vq_app
+
 import vqt.cli
-import vqt.colors
-import vqt.hotkeys as vq_hotkeys
 import vqt.main
+import vqt.colors
+import vui.qtrace
 import vqt.qpython
 import vqt.qt.config
-import vqt.shortcut
-import vui.qtrace
+import vqt.hotkeys as vq_hotkeys
+import vqt.application as vq_app
+
 import vui.vdb.memory
+import vui.vdb.threads
 import vui.vdb.memwrite
 import vui.vdb.registers
-import vui.vdb.threads
-from vqt.basics import *
+
 from vqt.main import *
+from vqt.common import *
 from vtrace.const import *
 
 

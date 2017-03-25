@@ -1,13 +1,9 @@
-from PyQt5 import QtWidgets
-
+import cobra.remoteapp as c_remoteapp
+import envi.threads as e_threads
+import vivisect.remote.server as viv_server
 import vqt.main as vq_main
 import vqt.tree as vq_tree
-
-import envi.threads as e_threads
-import cobra.remoteapp as c_remoteapp
-import vivisect.remote.server as viv_server
-
-from vqt.basics import *
+from vqt.common import *
 
 
 class WorkspaceListModel(vq_tree.VQTreeModel):

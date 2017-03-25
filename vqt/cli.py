@@ -4,7 +4,8 @@ import envi.cli as e_cli
 import vqt.colors as vq_colors
 import vqt.hotkeys as vq_hotkeys
 import vqt.qt.memcanvas as e_q_memcanvas
-from vqt.basics import *
+
+from vqt.common import *
 from vqt.main import idlethread, workthread
 
 
@@ -70,19 +71,18 @@ class VQCli(QtWidgets.QWidget):
 
         self.input = VQInput(self)
 
-        # Create our output window...
-        self.output = QtWidgets.QTextEdit(self)
         # If it's an EnviCli, let's over-ride the canvas right away.
         if isinstance(cli, e_cli.EnviCli):
-            self.output.close()
+            # self.output.close()
             self.output = self.initMemoryCanvas(cli.memobj, syms=cli.symobj)
             self.output.setScrolledCanvas(True)
             cli.setCanvas(self.output)
+        else:
+            # Create our output window...
+            self.output = QtWidgets.QTextEdit(self)
 
         self.setStyleSheet(vq_colors.getDefaultColors())
-
         self.setLayout(self.getCliLayout())
-
         self.input.returnPressed.connect(self.returnPressedSlot)
 
         # FIXME: these events should probably be made to work better with the new Qt Event model

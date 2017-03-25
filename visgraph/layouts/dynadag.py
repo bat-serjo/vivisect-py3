@@ -1,6 +1,6 @@
-'''
+"""
 A dynadag-ish graph layout calculator...
-'''
+"""
 
 import itertools
 
@@ -33,9 +33,9 @@ class DynadagLayout(vg_layout.GraphLayout):
         self.height_pad = 40
 
     def getLayoutSize(self):
-        '''
+        """
         Return the width,height of this layout.
-        '''
+        """
         height = 0
         width = 0
         for layer in self.layers:
@@ -177,10 +177,10 @@ class DynadagLayout(vg_layout.GraphLayout):
                     layer[j + 1] = n2
 
     def _addGhostNodes(self):
-        '''
+        """
         Translate the hierarchical graph we are given into dynadag
         friendly graph with ghost nodes....
-        '''
+        """
         weights = self.graph.getHierNodeWeights()
 
         # First lets take care of any loop edges
@@ -248,9 +248,9 @@ class DynadagLayout(vg_layout.GraphLayout):
         done = set()
 
         def doit(node):
-            '''
+            """
             Roll through all the nodes and assign them positions in their layer (based on weight)
-            '''
+            """
 
             if node[0] in done:
                 return
@@ -405,12 +405,12 @@ class DynadagLayout(vg_layout.GraphLayout):
             self._scoochXAlign(ninfo, kinfo, lr=lr)
 
     def _scoochXAlign(self, ninfo, kinfo, lr=None):
-        '''
+        """
         If possible, move the "kidinfo" node toward ninfo
         along the X axis...  If "lr" is specified, only move
         the "kidnode" (which may be "above" you...) if it is
         moving either SCOOCH_LEFT or SCOOCH_RIGHT as specified.
-        '''
+        """
         xpos, ypos = ninfo['position']
         xsize, ysize = ninfo.get('size', zero_zero)
         xmid = xpos + (xsize / 2)

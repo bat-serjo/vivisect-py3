@@ -4,7 +4,7 @@ Views related to information about a given function.
 
 import visgraph.renderers.qgraphtree as vg_qgraphtree
 import vivisect.qt.ctxmenu as viv_q_ctxmenu
-from vqt.basics import *
+from vqt.common import *
 
 
 class FuncBlockModel(BasicModel):

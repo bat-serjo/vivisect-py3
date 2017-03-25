@@ -1,6 +1,6 @@
 from PyQt5 import QtGui, QtCore
 from vqt.main import idlethread
-from vqt.basics import VBox
+from vqt.common import VBox
 
 '''
 This is an example of a vivisect GUI extension module.

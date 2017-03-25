@@ -1,6 +1,6 @@
-'''
+"""
 Graphcore contains all the base graph manipulation objects.
-'''
+"""
 import os
 import json
 import itertools
@@ -12,21 +12,25 @@ from binascii import hexlify
 from .exc import *
 import visgraph.pathcore as vg_pathcore
 
+
 def guid(size=16):
     return hexlify(os.urandom(size))
+
 
 def zdict():
     return collections.defaultdict(int)
 
+
 def ldict():
     return collections.defaultdict(list)
+
 
 def pdict():
     return collections.defaultdict(ldict)
 
-class Graph:
 
-    '''
+class Graph:
+    """
     The base Graph object implements a simple nodes and edges graph.
 
     Nodes -
@@ -37,7 +41,8 @@ class Graph:
     Edges -
         Edges are directional sets of a from node-id and to node-id and
         a piece of arbitrary edge information.
-    '''
+    """
+
     def __init__(self):
         self.wipeGraph()
         self.formlock = threading.Lock()
@@ -46,48 +51,48 @@ class Graph:
         self.metadata[mprop] = mval
 
     def getMeta(self, mprop, default=None):
-        '''
+        """
         Retrieve a value from the dictionary of metadata about this graph.
 
         Example:
             m = g.getMeta('made-up-property')
-        '''
+        """
         return self.metadata.get(mprop, default)
 
     def toJson(self):
-        '''
+        """
         convert the graph to a json serializable
         data set.
-        '''
-        graph = {'nodes': {}, 'edges':[]}
+        """
+        graph = {'nodes': {}, 'edges': []}
         graph['nodes'] = {node[0]: node[1] for node in self.getNodes()}
         graph['edges'] = [edge for edge in self.getEdges()]
         return json.dumps(graph)
 
     @classmethod
     def fromJsonFd(cls, fd):
-        '''
+        """
         instiate a graph from a file descriptor
         containing serialized json.
-        '''
+        """
         g = cls()
         g.fromJson(json.loads(fd.read()))
         return g
 
     @classmethod
     def fromJsonBuf(cls, buf):
-        '''
+        """
         instiatiate a graph from a seralized json buffer
-        '''
+        """
         g = cls()
         g.fromJson(json.loads(buf))
         return g
 
     def fromJson(self, graph):
-        '''
+        """
         load a json serializable graph
-        '''
-        for nid,nprops in list(graph['nodes'].items()):
+        """
+        for nid, nprops in list(graph['nodes'].items()):
             self.addNode(nid=nid, nprops=nprops)
 
         for eid, n1, n2, eprops in graph['edges']:
@@ -96,97 +101,95 @@ class Graph:
             self.addEdge(node1, node2, eid=eid, eprops=eprops)
 
     def merge(self, graph):
-        '''
+        """
         duplicate another graph's contents.  subclasses may wish to modify this
         function to duplicate more properties if present.
-        '''
+        """
         self.wipeGraph()
 
         self.metadata.update(graph.metadata)
         self.formnodes.update(graph.formnodes)
 
-        for nid,nprops in list(graph.nodes.values()):
+        for nid, nprops in list(graph.nodes.values()):
             self.addNode(nid=nid, nprops=nprops)
 
         for eid, n1, n2, eprops in list(graph.edges.values()):
             node1 = graph.getNode(n1)
             node2 = graph.getNode(n2)
             self.addEdge(node1, node2, eid=eid, eprops=eprops)
-        
 
     def wipeGraph(self):
-        '''
+        """
         Re-initialize the graph structures and start clean again.
-        '''
-        self.edges          = {}
-        self.nodes          = {}
-        self.metadata       = {}
-        self.formnodes      = {}
-        self.nodeprops      = pdict() # nodeprops[key][value] = list of nodes
-        self.edgeprops      = pdict() # edgeprops[key][value] = list of edges
-        self.edge_by_to     = ldict()
-        self.edge_by_from   = ldict()
+        """
+        self.edges = {}
+        self.nodes = {}
+        self.metadata = {}
+        self.formnodes = {}
+        self.nodeprops = pdict()  # nodeprops[key][value] = list of nodes
+        self.edgeprops = pdict()  # edgeprops[key][value] = list of edges
+        self.edge_by_to = ldict()
+        self.edge_by_from = ldict()
 
     def getEdges(self):
-        '''
+        """
         Get the list of edges in the graph.  Edges are defined
         as (eid, n1, n2, eprops) tuples.
 
         Example: for eid, n1, n2, eprops in g.getEdges():
-        '''
+        """
         return list(self.edges.values())
 
     def getEdge(self, eid):
-        '''
+        """
         Get the (eid, n1, n2, eprops) tuple for the specified
         edge.
 
         Example: e = g.getEdge(eid)
-        '''
+        """
         return self.edges.get(eid)
 
     def getEdgeProps(self, eid):
-        '''
+        """
         Retrieve the properties dictionary for the given edge id.
-        '''
+        """
         edge = self.edges.get(eid)
         if not edge:
             raise Exception('Invalid edge id')
         return edge[3]
 
     def getEdgesByProp(self, prop, val=None):
-        '''
+        """
         Retrieve all the edges with the specified prop (optionally value).
 
         Example:
             # my made up "score" property on edges...
             for edge in g.getEdgesByProp("score",300):
                 print(edge)
-        '''
+        """
         if val != None:
-            return self.edgeprops.get(prop,{}).get(val,[])
+            return self.edgeprops.get(prop, {}).get(val, [])
 
         ret = []
-        [ ret.extend(v) for v in list(self.edgeprops.get(prop,{}).values()) ]
+        [ret.extend(v) for v in list(self.edgeprops.get(prop, {}).values())]
         return ret
 
     def setEdgeProp(self, edge, prop, value):
-        '''
+        """
         Set a key/value pair about a given edge.
 
         Example: g.setEdgeProp(edge, 'awesomeness', 99)
-        '''
+        """
         curval = edge[3].get(prop)
         if curval == value:
             return False
-
 
         edge[3][prop] = value
 
         try:
             if curval != None:
                 curlist = self.edgeprops[prop][curval]
-                curlist.remove( edge )
+                curlist.remove(edge)
             self.edgeprops[prop][value].append(edge)
         except TypeError as e:
             pass
@@ -194,13 +197,13 @@ class Graph:
         return True
 
     def setNodeProp(self, node, prop, value):
-        '''
+        """
         Store a piece of information (by prop:value) about a given node.
         ( value must *not* be None )
 
         Example:
             g.setNodeProp(node, 'Description', 'My Node Is Awesome!')
-        '''
+        """
         if value == None:
             raise Exception('graph prop values may not be None! %r' % (node,))
 
@@ -213,31 +216,31 @@ class Graph:
         try:
             if curval != None:
                 curlist = self.nodeprops[prop][curval]
-                curlist.remove( node )
+                curlist.remove(node)
 
             self.nodeprops[prop][value].append(node)
         except TypeError as e:
-            pass # no value indexing for un-hashable values
+            pass  # no value indexing for un-hashable values
 
         return True
 
     def getNodesByProp(self, prop, val=None):
-        '''
+        """
         Retrieve a list of nodes with the given property (optionally value).
 
         Example:
             for node in g.getNodesByProp("awesome",1):
                 print(node)
-        '''
+        """
         if val != None:
-            return self.nodeprops.get(prop,{}).get(val,[])
+            return self.nodeprops.get(prop, {}).get(val, [])
 
         ret = []
-        [ ret.extend(v) for v in list(self.nodeprops.get(prop,{}).values()) ]
+        [ret.extend(v) for v in list(self.nodeprops.get(prop, {}).values())]
         return ret
 
     def addNode(self, nid=None, nprops=None, **kwargs):
-        '''
+        """
         Add a Node object to the graph.  Returns the node. (nid,nprops)
 
         Example: node = g.addNode()
@@ -246,7 +249,7 @@ class Graph:
 
         NOTE: If nid is unspecified, it is considered an 'anonymous'
               node and will have an ID automagically assigned.
-        '''
+        """
         if nid == None:
             nid = guid()
 
@@ -259,10 +262,10 @@ class Graph:
         if nprops != None:
             myprops.update(nprops)
 
-        node = (nid,myprops)
+        node = (nid, myprops)
         self.nodes[nid] = node
 
-        for k,v in list(myprops.items()):
+        for k, v in list(myprops.items()):
             try:
                 self.nodeprops[k][v].append(node)
             except TypeError as e:
@@ -271,7 +274,7 @@ class Graph:
         return node
 
     def formNode(self, prop, value, ctor=None):
-        '''
+        """
         Retrieve or create a node with the given prop=value.
 
         If no node with the given property exists, create a new
@@ -289,17 +292,17 @@ class Graph:
             ...
             node2 = g.formNode("foo","bar",ctor=fooctor)
             # node2 is a ref to node1 and fooctor was called once.
-        '''
+        """
         with self.formlock:
-            node = self.formnodes.get( (prop,value) )
+            node = self.formnodes.get((prop, value))
             if node != None:
                 return node
 
             nid = guid()
-            node = (nid,{prop:value})
+            node = (nid, {prop: value})
 
             self.nodes[nid] = node
-            self.formnodes[ (prop,value) ] = node
+            self.formnodes[(prop, value)] = node
             self.nodeprops[prop][value].append(node)
 
             # fire ctor with lock to prevent an un-initialized retrieve.
@@ -308,84 +311,84 @@ class Graph:
             return node
 
     def delNodeProp(self, node, prop):
-        '''
+        """
         Delete a property from a node.
 
         Example:
             g.delNodeProp(node,"foo")
-        '''
-        pval = node[1].pop(prop,None)
+        """
+        pval = node[1].pop(prop, None)
         if pval != None:
             vlist = self.nodeprops[prop][pval]
             vlist.remove(node)
             if not vlist:
-                self.nodeprops[prop].pop(pval,None)
+                self.nodeprops[prop].pop(pval, None)
         return pval
 
     def delNodesProps(self, props):
-        '''
+        """
         Delete all listed properties from all nodes in the graph.
 
         Example:
             g.delNodesProps(('foo', 'bar'))
-        '''
+        """
         for prop in props:
             for node in self.getNodesByProp(prop):
                 self.delNodeProp(node, prop)
 
     def delNode(self, node):
-        '''
+        """
         Delete a node from the graph.
 
         Example:
             g.delNode(node)
-        '''
+        """
         for edge in self.getRefsFrom(node)[:]:
             self.delEdge(edge)
         for edge in self.getRefsTo(node)[:]:
             self.delEdge(edge)
-        [ self.delNodeProp(node, k) for k in list(node[1].keys()) ]
+        [self.delNodeProp(node, k) for k in list(node[1].keys())]
         return self.nodes.pop(node[0])
 
     def getNode(self, nid):
-        '''
+        """
         Return the dictionary of properties for the specified node id.
-        '''
+        """
         return self.nodes.get(nid)
 
     def getNodeProps(self, nid):
         return self.nodes.get(nid)[1]
 
     def getNodes(self):
-        '''
+        """
         Return a list of (nid, nprops) tuples.
-        '''
+        """
         return list(self.nodes.values())
 
     def getNodeCount(self):
         return len(self.nodes)
 
     def isLeafNode(self, node):
-        '''
+        """
         A node is a "leaf" node if he has no "outgoing" edges.
-        '''
+        """
         return len(self.getRefsFrom(node)) == 0
 
     def isRootNode(self, node):
-        '''
+        """
         A node is a "root" node if he has no "incoming" edges.
-        '''
+        """
         return len(self.getRefsTo(node)) == 0
 
     def hasEdge(self, edgeid):
         return self.edges.get(edgeid) != None
 
     def hasNode(self, nid):
-        '''
+        """
         Check if a given node is present within the graph.
 
         Example: if g.hasNode('yermom'): print 'woot'
-        '''
+        """
         return self.getNode(nid) != None
 
     def addEdgeByNids(self, n1, n2, eid=None, eprops=None, **kwargs):
@@ -394,11 +397,11 @@ class Graph:
         return self.addEdge(node1, node2, eid=eid, eprops=eprops, **kwargs)
 
     def addEdge(self, node1, node2, eid=None, eprops=None, **kwargs):
-        '''
+        """
         Add an edge to the graph.  Edges are directional.
 
         Example: g.addEdge(node1, node2, eprops={'name':'Woot Edge'})
-        '''
+        """
         if eprops == None:
             eprops = {}
 
@@ -415,23 +418,23 @@ class Graph:
         self.edge_by_to[n2].append(edge)
         self.edge_by_from[n1].append(edge)
 
-        for k,v in list(eprops.items()):
+        for k, v in list(eprops.items()):
             try:
                 self.edgeprops[k][v].append(edge)
             except TypeError as e:
-                pass # no value indexes for unhashable types
+                pass  # no value indexes for unhashable types
 
         return edge
 
     def delEdge(self, edge):
-        '''
+        """
         Delete an edge from the graph (by eid).
 
         Example: g.delEdge(eid)
-        '''
-        eid,n1,n2,eprops = edge
+        """
+        eid, n1, n2, eprops = edge
 
-        [ self.delEdgeProp(edge,k) for k in list(eprops.keys()) ]
+        [self.delEdgeProp(edge, k) for k in list(eprops.keys())]
 
         self.edges.pop(eid)
         self.edge_by_to[n2].remove(edge)
@@ -442,57 +445,57 @@ class Graph:
         return self.delEdge(edge)
 
     def delEdgeProp(self, edge, prop):
-        '''
-        '''
-        v = edge[3].pop(prop,None)
-        if v != None:
+        """
+        """
+        v = edge[3].pop(prop, None)
+        if v is not None:
             vlist = self.edgeprops[prop][v]
             vlist.remove(edge)
             if not vlist:
-                self.edgeprops[prop].pop(v,None)
+                self.edgeprops[prop].pop(v, None)
         return v
 
     def getRefsFrom(self, node):
-        '''
+        """
         Return a list of edges which originate with us.
 
         Example: for eid, n1, n2, eprops in g.getRefsFrom(node):
-        '''
-        return self.edge_by_from.get(node[0],[])
+        """
+        return self.edge_by_from.get(node[0], [])
 
     def getRefsFromByNid(self, nid):
-        return self.edge_by_from.get(nid,[])
+        return self.edge_by_from.get(nid, [])
 
     def getRefsTo(self, node):
-        '''
+        """
         Return a list of edges which terminate at us.
 
         Example: for eid, n1, n2, eprops in g.getRefsFrom(node):
-        '''
-        return self.edge_by_to.get(node[0],[])
+        """
+        return self.edge_by_to.get(node[0], [])
 
     def getRefsToByNid(self, nid):
-        return self.edge_by_to.get(nid,[])
+        return self.edge_by_to.get(nid, [])
 
     def getClusterGraphs(self):
-        '''
+        """
         Return a list of the subgraph clusters (as graphs) contained
         within this graph.  A subgraph "cluster" is defined as a
         group of interconnected nodes.  This can be used to split
         out grouped subgraphs from within a larger graph.
-        '''
+        """
         ret = []
 
         nodes = self.getNodes()
         done = {}
         while len(nodes):
 
-            nid,nprops = nodes.pop()
+            nid, nprops = nodes.pop()
             if done.get(nid):
                 continue
 
             # Generate the cluster subgraph
-            todo = [ (nid, nprops), ]
+            todo = [(nid, nprops), ]
             g = Graph()
 
             while len(todo):
@@ -503,7 +506,7 @@ class Graph:
                 if not g.hasNode(gnid):
                     g.addNode(nid=gnid, nprops=gnprops)
 
-                for eid,n1,n2,eprops in self.getRefsFromByNid(gnid):
+                for eid, n1, n2, eprops in self.getRefsFromByNid(gnid):
 
                     if not g.getNode(n2):
                         n2props = self.getNodeProps(n2)
@@ -513,7 +516,7 @@ class Graph:
                     if not g.getEdge(eid):
                         g.addEdgeByNids(n1, n2, eid=eid, eprops=eprops)
 
-                for eid,n1,n2,eprops in self.getRefsToByNid(gnid):
+                for eid, n1, n2, eprops in self.getRefsToByNid(gnid):
 
                     if not g.getNode(n1):
                         n1props = self.getNodeProps(n1)
@@ -526,14 +529,13 @@ class Graph:
             ret.append(g)
 
         return ret
-                
 
     def pathSearchOne(self, *args, **kwargs):
         for p in self.pathSearch(*args, **kwargs):
             return p
 
     def pathSearch(self, n1, n2=None, edgecb=None, tocb=None):
-        '''
+        """
         Search for the shortest path from one node to another
         with the option to filter based on edges using
         edgecb.  edgecb should be a function:
@@ -551,19 +553,19 @@ class Graph:
         which must return True on finding the target node
 
         Returns a list of edge ids...
-        '''
+        """
 
         if n2 == None and tocb == None:
             raise Exception('You must use either n2 or tocb!')
 
         root = vg_pathcore.newPathNode(nid=n1, eid=None)
 
-        todo = [(root, 0),]
+        todo = [(root, 0), ]
 
         # FIXME make this a deque so it can be FIFO
         while len(todo):
 
-            pnode,depth = todo.pop() # popleft()
+            pnode, depth = todo.pop()  # popleft()
             ppnode, pkids, pprops = pnode
 
             nid = pprops.get('nid')
@@ -602,65 +604,67 @@ class Graph:
 
                 # Add the next set of choices to evaluate.
                 branch = vg_pathcore.newPathNode(pnode, nid=dstid, eid=eid)
-                todo.append((branch, depth+1))
+                todo.append((branch, depth + 1))
 
-        #return []
+                # return []
 
     def pathSearchFrom(self, n1, nodecb, edgecb=None):
-        '''
+        """
         Search from the specified node (breadth first) until you
         find a node where nodecb(graph, nid) == True.  See
         pathSearchFromTo for docs on edgecb...
-        '''
+        """
+
 
 class HierGraph(Graph):
-    '''
+    """
     An extension to the directed Graph class which facilitates the
     idea of node "hierarchies" which begin with root nodes.
 
     NOTE: rootnodes are designated by the presence of the "rootnode"
           property.
-    '''
+    """
+
     def __init__(self):
         Graph.__init__(self)
 
-    def addHierRootNode(self,*args,**kwargs):
-        '''
+    def addHierRootNode(self, *args, **kwargs):
+        """
         This API is the same as Graph.addNode but will also
         mark the newly created node as a rootnode.
-        '''
-        node = self.addNode(*args,**kwargs)
-        self.setNodeProp(node,'rootnode',True)
+        """
+        node = self.addNode(*args, **kwargs)
+        self.setNodeProp(node, 'rootnode', True)
         return node
 
     def setHierRootNode(self, node):
-        return self.setNodeProp(node,'rootnode',True)
+        return self.setNodeProp(node, 'rootnode', True)
 
     def getHierRootNodes(self):
-        '''
+        """
         Get all the node id's in this graph which are weight 0 (meaning
         they have no parents)...
-        '''
+        """
         return self.getNodesByProp('rootnode')
 
     def getHierNodeWeights(self):
-        '''
+        """
         Calculate the node weights for the given nodes in the hierarchical
         graph based on the added "rootnode" nodes.  This will return a dict
         of { nid: weight, } key-pairs.
 
         # NOTE: This will also set the 'weight' property on the nodes
-        '''
+        """
         weights = {}
 
         rootnodes = self.getHierRootNodes()
         if not len(rootnodes):
             raise Exception('getHierNodeWeights() with no root nodes!')
 
-        todo = [ (root[0], {}) for root in rootnodes ]
+        todo = [(root[0], {}) for root in rootnodes]
         while len(todo):
 
-            nid,path = todo.pop()
+            nid, path = todo.pop()
 
             cweight = weights.get(nid, 0)
             weights[nid] = max(cweight, len(path))
@@ -673,14 +677,14 @@ class HierGraph(Graph):
                 if not path.get(n2):
                     todo.append((n2, dict(path)))
 
-        for nid,weight in list(weights.items()):
+        for nid, weight in list(weights.items()):
             node = self.getNode(nid)
-            self.setNodeProp(node,'weight',weight)
+            self.setNodeProp(node, 'weight', weight)
 
         return weights
 
     def getHierPathCount(self):
-        '''
+        """
         Retrieve the total number of paths from the specified
         node to any "leaf" nodes which are reachable.
 
@@ -689,7 +693,7 @@ class HierGraph(Graph):
             if g.getHierPathCount() > pathmax:
                 print('skipping huge graph!')
 
-        '''
+        """
         # We must put all nodes into weight order
         weights = self.getHierNodeWeights()
 
@@ -698,13 +702,10 @@ class HierGraph(Graph):
         for root in self.getHierRootNodes():
             pcounts[root[0]] = 1
 
-        def weightcmp(n1node,n2node):
-            return cmp(n1node[1]['weight'],n2node[1]['weight'])
-
         nodes = self.getNodes()
 
         # Lets make the list of nodes *ordered* by weight
-        nodes.sort(cmp=weightcmp)
+        nodes.sort(key=lambda x: x[1]['weight'])
 
         # Here's the magic... In *hierarchy order* each node
         # gets the sum of the paths of his parents.
@@ -718,10 +719,10 @@ class HierGraph(Graph):
 
                 pcounts[n2] += pcounts[n1]
 
-        return sum([ pcounts[n[0]] for n in nodes if self.isLeafNode(n) ])
+        return sum([pcounts[n[0]] for n in nodes if self.isLeafNode(n)])
 
     def getHierPathsFrom(self, node, loopcnt=0, maxpath=None, maxlen=None):
-        '''
+        """
         Retrieve a generator of lists of (node,edge) tuples which represent
         the paths from the specified node to any terminating "leaf" nodes.
 
@@ -739,20 +740,20 @@ class HierGraph(Graph):
             for path in g.getHierPathsFrom():
                 for node,edge in path:
                     checkstuff(node,edge)
-        '''
+        """
         cnt = 0
-        todo = [(node,[],[node[0],])] # [ node, path, nids ]
+        todo = [(node, [], [node[0], ])]  # [ node, path, nids ]
 
         while todo:
 
             # nids is a speed hack...
-            pnode,path,nids = todo.pop()
+            pnode, path, nids = todo.pop()
 
             edges = self.getRefsFrom(pnode)
 
-            if len(edges) == 0: # leaf/root...
+            if len(edges) == 0:  # leaf/root...
 
-                path.append( (pnode,None) )
+                path.append((pnode, None))
                 yield path
 
                 cnt += 1
@@ -768,7 +769,7 @@ class HierGraph(Graph):
                 # yep... coppies...
                 # ( still faster than keeping/culling tree )
                 newpath = list(path)
-                newpath.append((pnode,edge))
+                newpath.append((pnode, edge))
 
                 etoid = edge[2]
                 if nids.count(etoid) > loopcnt:
@@ -785,13 +786,13 @@ class HierGraph(Graph):
                 newnids.append(etoid)
 
                 nnode = self.getNode(etoid)
-                todo.append((nnode,newpath,newnids))
+                todo.append((nnode, newpath, newnids))
 
     def getHierPathsThru(self, node, maxpath=None, maxlen=None):
-        '''
+        """
         Retrieve a generator of paths from root-->leaf nodes in this
         graph which must also traverse the specified node.
-        '''
+        """
         cnt = 0
         for pathto in self.getHierPathsTo(node, maxpath=maxpath, maxlen=maxlen):
             for pathfrom in self.getHierPathsFrom(node, maxpath=maxpath, maxlen=maxlen):
@@ -801,22 +802,22 @@ class HierGraph(Graph):
                     return
 
     def getHierPathsTo(self, node, maxpath=None, maxlen=None):
-        '''
+        """
         Retrieve a generator of lists of (node,edge) tuples which represent
         the paths to specified node from any root nodes.
 
         (See getHierPathsFrom for details )
-        '''
+        """
         cnt = 0
-        todo = [(node,[(node,None)],[node[0],])] # [ node, path, nids ]
+        todo = [(node, [(node, None)], [node[0], ])]  # [ node, path, nids ]
 
         while todo:
 
             # nids is a speed hack...
-            pnode,path,nids = todo.pop()
+            pnode, path, nids = todo.pop()
 
             edges = self.getRefsTo(pnode)
-            if len(edges) == 0: # leaf/root...
+            if len(edges) == 0:  # leaf/root...
 
                 path.reverse()
                 yield path
@@ -837,7 +838,7 @@ class HierGraph(Graph):
                 nnode = self.getNode(etoid)
 
                 newpath = list(path)
-                newpath.append((nnode,edge))
+                newpath.append((nnode, edge))
 
                 if etoid in nids:
                     continue
@@ -845,4 +846,4 @@ class HierGraph(Graph):
                 newnids = list(nids)
                 newnids.append(etoid)
 
-                todo.append((nnode,newpath,newnids))
+                todo.append((nnode, newpath, newnids))

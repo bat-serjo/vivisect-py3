@@ -69,7 +69,7 @@ class VdbMemoryCanvas(vqt.qt.memcanvas.VQMemoryCanvas):
             return
 
         self._menuFollow(self._canv_curva)
-        clipboard = QtGui.QApplication.clipboard()
+        clipboard = QtWidgets.QApplication.clipboard()
         clipboard.setText(hex(self._canv_curva))
 
     def _menuSetOpTo(self, va, byte):
@@ -100,7 +100,7 @@ class VdbMemoryCanvas(vqt.qt.memcanvas.VQMemoryCanvas):
 
         bytez = t.readMemory(va, size)
 
-        clipboard = QtGui.QApplication.clipboard()
+        clipboard = QtWidgets.QApplication.clipboard()
         clipboard.setText(bytez.encode('hex'))
 
     def _menuFollow(self, va, rend='', newWindow=False):

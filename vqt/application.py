@@ -1,7 +1,7 @@
 import os
 import traceback
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 import vqt.cli as vq_cli
 import vqt.main as vq_main
