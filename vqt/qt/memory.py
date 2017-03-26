@@ -13,7 +13,7 @@ from vqt.main import *
 
 class EnviNavMixin:
     """
-    Classes may inerhit from this mixin to help out with envi
+    Classes may inherit from this mixin to help out with envi
     nav events.
 
     Implement enviNavGoto() which will only be called when your

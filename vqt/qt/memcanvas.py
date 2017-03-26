@@ -11,6 +11,7 @@ import envi.memcanvas as e_memcanvas
 class ContentTagsEnum(enum.IntEnum):
     """All known tags that can be recognized and highlighted by this canvas
     """
+    HIGHLIGHT = -3
     CURRENT_LINE = -2
     DEFAULT = -1
     VA = 0
@@ -26,6 +27,7 @@ class ContentTagsEnum(enum.IntEnum):
 
 defaultCanvasColors = {
     # tag: (foreground, backgroun)
+    ContentTagsEnum.HIGHLIGHT: ("#000000", '#515A5A'),
     ContentTagsEnum.CURRENT_LINE: ('#000000', '#1C2833'),
     ContentTagsEnum.DEFAULT: ('#58D68D', '#000000'),
 
@@ -111,6 +113,11 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
         self._canv_rend_middle = False
         self._do_heavy_highlight = False
 
+        # keep track of highlighted blocks
+        self._high_blocks = dict()
+        self._high_bg_color = self._highlighter.getColors(ContentTagsEnum.HIGHLIGHT)[1]
+        self._high_bg = QtGui.QBrush(self._high_bg_color)
+
         # Allow our parent to handle these...
         self.setAcceptDrops(False)
 
@@ -158,10 +165,11 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
 
     def mousePressEvent(self, ev: QtGui.QMouseEvent):
         self._do_heavy_highlight = True
+        self._highlightClear()
         super(VQMemoryCanvas, self).mousePressEvent(ev)
 
     def mouseDoubleClickEvent(self, ev: QtGui.QMouseEvent):
-        super(VQMemoryCanvas, self).mouseDoubleClickEvent(ev)
+        # super(VQMemoryCanvas, self).mouseDoubleClickEvent(ev)
 
         t = self.cursorForPosition(ev.pos())
         cf = t.charFormat()
@@ -170,6 +178,54 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
 
         if tag is ContentTagsEnum.VA:
             self.gotoVa(val)
+        else:
+            if self._hasHighligtedTags() is True:
+                self._highlightClear()
+            self._highlightTag(tag, val)
+
+    def _highlightTag(self, tag, val):
+        doc = self.document()
+        fblock = doc.firstBlock()
+        lblock = doc.lastBlock()
+
+        iblock = fblock
+        while iblock != lblock:
+            text_formats = iblock.textFormats()
+            for tf in text_formats:
+                cf = tf.format
+                btag = cf.property(VivTextProperties.vivTag)
+                bval = cf.property(VivTextProperties.vivValue)
+
+                if btag == tag and bval == val:
+                    # save the original background
+                    ipos = iblock.position() + tf.start
+                    lpos = ipos + tf.length
+                    self._high_blocks[ipos] = lpos, btag, bval
+
+                    cf.setBackground(self._high_bg)
+                    text_cur = self.textCursor()
+                    text_cur.setPosition(ipos, QtGui.QTextCursor.MoveAnchor)
+                    text_cur.setPosition(ipos + tf.length, QtGui.QTextCursor.KeepAnchor)
+                    text_cur.setCharFormat(cf)
+            iblock = iblock.next()
+
+    def _hasHighligtedTags(self):
+        return len(self._high_blocks) > 0
+
+    def _highlightClear(self):
+        if len(self._high_blocks) == 0:
+            return
+
+        tcur = self.textCursor()
+        for ipos, ituple in self._high_blocks.items():
+            lpos, btag, bval = ituple
+
+            tcur.setPosition(ipos, QtGui.QTextCursor.MoveAnchor)
+            tcur.setPosition(lpos, QtGui.QTextCursor.KeepAnchor)
+            h = self._highlighter.getFormat(btag)
+            h.setProperty(VivTextProperties.vivValue, bval)
+            tcur.setCharFormat(h)
+        self._high_blocks.clear()
 
     def wheelEvent(self, event: QtGui.QWheelEvent):
         if event.modifiers() & QtCore.Qt.ControlModifier:
