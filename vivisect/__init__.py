@@ -4,17 +4,18 @@ Yay!  It's NOT IDA!!!1!!1!one!
 
 """
 
-import collections
+import os
+import re
+import sys
+import time
+import copy
+import queue
+import string
 import hashlib
 import itertools
-import os
-import queue
-import re
-import string
-import sys
 import threading
-import time
 import traceback
+import collections
 from binascii import hexlify
 
 import envi
@@ -118,6 +119,9 @@ class VivWorkspace(e_mem.MemoryObject, viv_base.VivWorkspaceCore):
         # FIXME add to export
         self.sigtree = e_bytesig.SignatureTree()
         self.siglist = []
+
+        # emulator cache - holds an instance of an emulator and a clean snapshot
+        self._emulator_cache = dict()
 
         self._initEventHandlers()
 

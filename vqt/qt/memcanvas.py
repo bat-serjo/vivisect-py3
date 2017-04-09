@@ -1,4 +1,5 @@
 import enum
+import threading
 
 from PyQt5 import QtGui, QtWidgets, QtCore
 
@@ -97,6 +98,10 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
     Usually what you see and use in vivisect most of the time.
     """
 
+    # in case of a fixed canvas and the user wants to go up/down this signal gets emit
+    # with the next virtual address that is wanted
+    leavesFixedScope = QtCore.pyqtSignal(int)
+
     def __init__(self, mem, syms=None, parent=None):
         e_memcanvas.MemoryCanvas.__init__(self, mem, syms=syms)
         QtWidgets.QPlainTextEdit.__init__(self, parent=parent)
@@ -120,6 +125,20 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
 
         # Allow our parent to handle these...
         self.setAcceptDrops(False)
+
+        # in case we want this canvas to display only a fixed amount of data at any time
+        # useful for the function graph where one canvas renders one basic block of code etc.
+        self._fixed_location = False
+        # also in such cases we would like to know when the rendering of the given fixed region is done
+        # because this rendering is done asynchronously in another thread
+        self._render_counter = 0
+        self._render_counter_lock = threading.Lock()
+
+    def setFixedLocation(self, on: bool):
+        self._fixed_location = on
+
+    def isFixedLocationRenderingComplete(self) -> bool:
+        return self._render_counter == 0
 
     def _clearInternals(self):
         self._canv_curva = None
@@ -255,6 +274,11 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
     def _try_Prefetch(self, forward: bool):
         # try to prefetch and render data inside the canvas
         # if forward is True we go forward otherwise backwards.
+
+        if self._fixed_location is True:
+            # if the canvas has to render only this location don't prefetch
+            return
+
         try:
 
             if forward is True:
@@ -305,9 +329,12 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
             return
         nextva = self.__proper_va_offset(self._canv_curva, 1)
 
-        if self._canv_beginva < nextva < self._canv_endva:
+        if self._canv_beginva <= nextva < self._canv_endva:
             self._putCursorAtVa(nextva)
         else:
+            if self._fixed_location is True:
+                self.leavesFixedScope.emit(nextva)
+                return
             self._try_Prefetch(True)
 
     def gotoPrev(self):
@@ -315,16 +342,20 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
             return
         nextva = self.__proper_va_offset(self._canv_curva, -1)
 
-        if self._canv_beginva < nextva < self._canv_endva:
+        if self._canv_beginva <= nextva < self._canv_endva:
             self._putCursorAtVa(nextva)
         else:
+            if self._fixed_location is True:
+                self.leavesFixedScope.emit(nextva)
+                return
             self._try_Prefetch(False)
 
     def gotoVa(self, va):
         if self._canv_beginva < va < self._canv_endva:
             self._putCursorAtVa(va)
         else:
-            self.renderMemory(va, 256)
+            if self._fixed_location is False:
+                self.renderMemory(va, 256)
 
     # @idlethread
     def renderMemory(self, va, size, rend=None):
@@ -344,6 +375,14 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
             self._putCursorAtVa(origva)
 
         return ret
+
+    def vivColorMap(self, event, einfo):
+        self.applyColorMap(einfo)
+
+    def applyColorMap(self, cmap: dict):
+        pass
+        # for va, color in cmap.items():
+        #     pass
 
     def _putCursorAtVa(self, va):
         self._canv_curva = va
@@ -390,6 +429,8 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
     #####################################################
     def _beginRenderMemory(self, va, size, rend):
         self._canv_cache = ''
+
+        self._rendering_complete = False
         # self._beginRenderVa(va)
 
     def _endRenderMemory(self, va, size, rend):
@@ -425,6 +466,7 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
             # self.setTextCursor(tcur)
         except Exception as e:
             traceback.print_exc()
+            self.renderMemory(start_va, 256)
 
     def _endUpdateVas(self):
         self._canv_cache = None
@@ -491,6 +533,9 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
 
     @idlethread
     def _appendInside(self, text, highlight=None):
+        with self._render_counter_lock:
+            self._render_counter -= 1
+
         if highlight is not None:
             cformat = self.currentCharFormat()
             self.setCurrentCharFormat(highlight)
@@ -509,6 +554,9 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
             h.setProperty(VivTextProperties.vivValue, extra)
         else:
             h = self._highlighter.getFormat(tag)
+
+        with self._render_counter_lock:
+            self._render_counter += 1
         self._appendInside(text, h)
 
     @idlethreadsync

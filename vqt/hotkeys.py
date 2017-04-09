@@ -140,7 +140,6 @@ class HotKeyMixin:
         return False
 
     def keyPressEvent(self, event):
-        self.eatKeyPressEvent(event)
         if not self.eatKeyPressEvent(event):
             try:
                 return super().keyPressEvent(event)

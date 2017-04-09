@@ -1,3 +1,4 @@
+import copy
 import struct
 import traceback
 import itertools
@@ -561,7 +562,7 @@ class WorkspaceEmulator:
 
         self._useVirtAddr(va)
 
-        # Read from the emulator's pages if we havent resolved it yet
+        # Read from the emulator's pages if we haven't resolved it yet
         probeok = self.probeMemory(va, size, envi.const.MM_READ)
         if self._safe_mem and not probeok:
             return b'A' * size

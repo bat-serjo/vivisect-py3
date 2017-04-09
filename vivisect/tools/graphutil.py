@@ -1,14 +1,12 @@
-'''
+"""
 Some glue code to do workspace related things based on visgraph
-'''
+"""
 
-import sys
 import time
 import envi
 import vivisect
 import threading
 import collections
-from operator import itemgetter
 import visgraph.pathcore as vg_pathcore
 import visgraph.graphcore as vg_graphcore
 
@@ -16,7 +14,7 @@ xrskip = envi.BR_PROC | envi.BR_DEREF
 
 
 def getNodeWeightHisto(g):
-    '''
+    """
     Takes a graph and returns the following tuple:
         (weights_to_node, nodes_to_weight, leaves)
 
@@ -24,13 +22,13 @@ def getNodeWeightHisto(g):
         weights_to_node - dict using weight as key
         nodes_to_weight - dict using nodes as key
         leaves          - dict of nodes without refs from
-    '''
+    """
     nodeweights = g.getHierNodeWeights()
     leaves = collections.defaultdict(list)
     weights_to_cb = collections.defaultdict(list)
 
     # create default dict
-    for cb, weight in sorted(list(nodeweights.items()), lambda x, y: cmp(y[1], x[1])):
+    for cb, weight in sorted(list(nodeweights.items()), key=lambda x: x[1]):
         if not len(g.getRefsFromByNid(cb)):
             # leaves is a tuple of (cb, current path, visited nodes)
             # these are our leaf nodes
@@ -43,9 +41,9 @@ def getNodeWeightHisto(g):
 
 
 def getLongPath(g, maxpath=1000):
-    '''
+    """
     Returns a list of list tuples (node id, edge id) representing the longest path
-    '''
+    """
 
     weights_to_cb, cb_to_weights, todo = getNodeWeightHisto(g)
 
@@ -55,7 +53,7 @@ def getLongPath(g, maxpath=1000):
     if len(todo):
         leafmax = max(todo.keys())
 
-    invalidret = False
+    # invalidret = False
     # if the weight of the longest path to a leaf node
     # is not the highest weight then we need to fix our
     # path choices by taking the longer path 
@@ -63,15 +61,15 @@ def getLongPath(g, maxpath=1000):
     if leafmax != weightmax:
         todo = weights_to_cb
         leafmax = weightmax
-        invalidret = True
+        # invalidret = True
 
-    pcnt = 0
-    rpaths = []
-    fva = g.getMeta('fva')
+    # pcnt = 0
+    # rpaths = []
+    # fva = g.getMeta('fva')
     # this is our loop that we want to yield out of..
     # start at the bottom of the graph and work our way back up
     for weight in range(leafmax, -1, -1):
-        # the todo is a a list of codeblocks a specific level 
+        # the todo is a a list of code blocks a specific level
         codeblocks = todo.get(weight)
         if not codeblocks:
             continue
@@ -133,14 +131,14 @@ def _nodeedgeloop(tnode):
 
 
 def getCoveragePaths(fgraph, maxpath=None):
-    '''
+    """
     Get a set of paths which will cover every block, but will
     *end* on branches which re-merge with previously traversed
     paths.  This allows a full coverage of the graph with as
     little work as possible, but *will* omit possible states.
 
     Returns: yield based path generator ( where path is list if (nid,edge) tuples )
-    '''
+    """
     pathcnt = 0
     nodedone = {}
 
@@ -163,7 +161,7 @@ def getCoveragePaths(fgraph, maxpath=None):
                 yield [_nodeedge(n) for n in path]
 
                 pathcnt += 1
-                if maxpath != None and pathcnt >= maxpath:
+                if maxpath is not None and pathcnt >= maxpath:
                     return
 
             for eid, fromid, toid, einfo in refsfrom:
@@ -175,7 +173,7 @@ def getCoveragePaths(fgraph, maxpath=None):
 
                     # Check if that was the last path we should yield
                     pathcnt += 1
-                    if maxpath != None and pathcnt >= maxpath:
+                    if maxpath is not None and pathcnt >= maxpath:
                         return
 
                     # If we're at a completed node, take no further branches
@@ -187,7 +185,7 @@ def getCoveragePaths(fgraph, maxpath=None):
 
 
 def getCodePathsThru(fgraph, tgtcbva, loopcnt=0, maxpath=None):
-    '''
+    """
     Yields all the paths through the hierarchical graph which pass through
     the target codeblock "tgtcb".  Each "root" node is traced to the target, 
     and all paths are traversed from there to the end.  Specify a loopcnt
@@ -197,18 +195,18 @@ def getCodePathsThru(fgraph, tgtcbva, loopcnt=0, maxpath=None):
         for path in getCodePathsThru(fgraph, tgtcb):
             for node,edge in path:
                 ...etc...
-    '''
+    """
     cnt = 0
     for pathto in getCodePathsTo(fgraph, tgtcbva, loopcnt=loopcnt, maxpath=maxpath):
         for pathfrom in getCodePathsFrom(fgraph, tgtcbva, loopcnt=loopcnt, maxpath=maxpath):
             yield pathto + pathfrom[1:]
             cnt += 1
-            if maxpath != None and cnt >= maxpath:
+            if maxpath is not None and cnt >= maxpath:
                 return
 
 
 def getCodePathsTo(fgraph, tocbva, loopcnt=0, maxpath=None):
-    '''
+    """
     Yields all the paths through the hierarchical graph starting at the 
     "root nodes" and ending at tocbva.  Specify a loopcnt to allow loop 
     paths to be generated with the given "loop iteration count"
@@ -217,9 +215,9 @@ def getCodePathsTo(fgraph, tocbva, loopcnt=0, maxpath=None):
         for path in getCodePathsTo(fgraph, tocbva):
             for node,edge in path:
                 ...etc...
-    '''
+    """
     pathcnt = 0
-    looptrack = []
+    # looptrack = []
     pnode = vg_pathcore.newPathNode(nid=tocbva, eid=None)
 
     node = fgraph.getNode(tocbva)
@@ -255,7 +253,7 @@ def getCodePathsTo(fgraph, tocbva, loopcnt=0, maxpath=None):
 
 
 def getCodePathsFrom(fgraph, fromcbva, loopcnt=0, maxpath=None):
-    '''
+    """
     Yields all the paths through the hierarchical graph beginning with 
     "fromcbva", which is traced to all terminating points.  Specify a loopcnt
     to allow loop paths to be generated with the given "loop iteration count"
@@ -264,7 +262,7 @@ def getCodePathsFrom(fgraph, fromcbva, loopcnt=0, maxpath=None):
         for path in getCodePathsFrom(fgraph, fromcbva):
             for node,edge in path:
                 ...etc...
-    '''
+    """
     pathcnt = 0
     proot = vg_pathcore.newPathNode(nid=fromcbva, eid=None)
 
@@ -298,7 +296,7 @@ def getCodePathsFrom(fgraph, fromcbva, loopcnt=0, maxpath=None):
 
 
 def getCodePaths(fgraph, loopcnt=0, maxpath=None):
-    '''
+    """
     Yields all the paths through the hierarchical graph.  Each
     "root" node is traced to all terminating points.  Specify a loopcnt
     to allow loop paths to be generated with the given "loop iteration count"
@@ -307,7 +305,7 @@ def getCodePaths(fgraph, loopcnt=0, maxpath=None):
         for path in getCodePaths(fgraph):
             for node,edge in path:
                 ...etc...
-    '''
+    """
     pathcnt = 0
     for root in fgraph.getHierRootNodes():
         proot = vg_pathcore.newPathNode(nid=root[0], eid=None)
@@ -340,7 +338,7 @@ def getCodePaths(fgraph, loopcnt=0, maxpath=None):
 
 
 def walkCodePaths(fgraph, callback, loopcnt=0, maxpath=None):
-    '''
+    """
     walkCodePaths is a path generator which uses a callback function to determine the 
     viability of each particular path.  This approach allows the calling function 
     (eg. walkSymbolikPaths) to do in-generator checks/processing and trim paths which
@@ -348,7 +346,7 @@ def walkCodePaths(fgraph, callback, loopcnt=0, maxpath=None):
 
     Callbacks will receive the current path, the current edge, and the new path node.
     For root nodes, the current path and edge will be None types.  
-    '''
+    """
     pathcnt = 0
     for root in fgraph.getHierRootNodes():
         proot = vg_pathcore.newPathNode(nid=root[0], eid=None)
@@ -395,11 +393,11 @@ def walkCodePaths(fgraph, callback, loopcnt=0, maxpath=None):
 
 
 def getLoopPaths(fgraph):
-    '''
+    """
     Similar to getCodePaths(), however, getLoopPaths() will return path lists
     which loop.  The last element in the (node,edge) list will be the first
     "looped" block.
-    '''
+    """
     for root in fgraph.getHierRootNodes():
         proot = vg_pathcore.newPathNode(nid=root[0], eid=None)
         todo = [(root[0], proot, 0), ]
@@ -408,7 +406,7 @@ def getLoopPaths(fgraph):
             node, cpath, loopcnt = todo.pop()
 
             count = 0
-            free = []
+            # free = []
             if loopcnt == 1:
                 yield [_nodeedge(n) for n in vg_pathcore.getPathToNode(npath)]
 
@@ -428,11 +426,11 @@ def getLoopPaths(fgraph):
 
 
 def getOpsFromPath(vw, fgraph, path):
-    '''
+    """
     Retrieve the opcodes for a given path.
 
     #FIXME cache opcodes in function graph for replay speed
-    '''
+    """
     ret = []
     for nid, eid in path:
         node = fgraph.getNode(nid)
@@ -446,17 +444,17 @@ def getOpsFromPath(vw, fgraph, path):
 
 
 def buildFunctionGraph(vw, fva, revloop=False, g=None):
-    '''
+    """
     Build a visgraph HierGraph for the specified function.
-    '''
+    """
 
-    if g == None:
+    if g is None:
         g = vg_graphcore.HierGraph()
         g.setMeta('fva', fva)
 
     colors = vw.getFunctionMeta(fva, 'BlockColors', default={})
     fcb = vw.getCodeBlock(fva)
-    if fcb == None:
+    if fcb is None:
         t = (fva, vw.isFunction(fva))
         raise Exception('Invalid initial code block for 0x%.8x isfunc: %s' % t)
 
@@ -491,7 +489,7 @@ def buildFunctionGraph(vw, fva, revloop=False, g=None):
 
             if not g.hasNode(xrto):
                 cblock = vw.getCodeBlock(xrto)
-                if cblock == None:
+                if cblock is None:
                     print('CB == None in graph building?!?! (0x%x)' % xrto)
                     print('(fva: 0x%.8x cbva: 0x%.8x)' % (fva, xrto))
                     continue
@@ -522,7 +520,7 @@ def buildFunctionGraph(vw, fva, revloop=False, g=None):
         fallva = lva + lsize
         if not g.hasNode(fallva):
             fallblock = vw.getCodeBlock(fallva)
-            if fallblock == None:
+            if fallblock is None:
                 print('FB == None in graph building!??!')
                 print('(fva: 0x%.8x  fallva: 0x%.8x' % (fva, fallva))
             elif fallva != fallblock[0]:
@@ -549,7 +547,7 @@ def buildFunctionGraph(vw, fva, revloop=False, g=None):
 
 
 def getGraphNodeByVa(fgraph, va):
-    '''
+    """
     Returns graph node a given VA falls within.
     Similar to VivWorkspace.getCodeBlock(va).  
     
@@ -557,42 +555,42 @@ def getGraphNodeByVa(fgraph, va):
     GraphCore.
 
     DEPRECATED as soon as visi's new CodeGraph gains this functionality inherently
-    '''
+    """
     for nva, ninfo in list(fgraph.nodes.values()):
         nvamax = ninfo.get('cbsize')
-        if nvamax == None:
+        if nvamax is None:
             raise Exception('getGraphNodeByVa() called on graph with non-codeblock nodes')
 
         nvamax += nva
-        if va >= nva and va < nvamax:
+        if nva <= va < nvamax:
             return nva
     return None
 
 
 def findRemergeDown(graph, va):
-    '''
+    """
     starting at a given va, figure out the nodes connecting va to the next place something remerges
-    '''
+    """
     startnid = getGraphNodeByVa(graph, va)
 
     # paint down graph, 
     preRouteGraphDown(graph, startnid, mark='hit', loop=False)
 
     histo, nodewts, leaves = getNodeWeightHisto(graph)
-    startnode = graph.getNode(startnid)
-    startweight = nodewts.get(startnid)
+    # startnode = graph.getNode(startnid)
+    # startweight = nodewts.get(startnid)
 
     for node in graph.getNodesByProp('hit'):
         # skip the starting node
         if node[0] == startnid:
             continue
 
-        if node[1].get('hit') == None:
+        if node[1].get('hit') is None:
             continue
 
         for eid, frva, tova, einfo in graph.getRefsTo(node):
             frnode = graph.getNode(frva)
-            if frnode[1].get('hit') == None:
+            if frnode[1].get('hit') is None:
                 # clear from here down
                 clearMarkDown(graph, tova, mark='hit')
                 break
@@ -600,21 +598,21 @@ def findRemergeDown(graph, va):
 
 # path routing through a graph.  reduces aimless wandering when we know where we want to be
 def preRouteGraph(graph, fromva, tova):
-    '''
+    """
     Package it all together
-    '''
+    """
     graph.delNodesProps(('up', 'down'))
     preRouteGraphUp(graph, tova)
     preRouteGraphDown(graph, fromva)
 
 
 def preRouteGraphUp(graph, tova, loop=True, mark='down'):
-    '''
+    """
     paint a route from our destination, 'up' the graph
-    '''
+    """
 
     tonid = getGraphNodeByVa(graph, tova)
-    if tonid == None:
+    if tonid is None:
         raise Exception("tova not in graph 0x%x" % tova)
 
     tonode = graph.getNode(tonid)
@@ -624,7 +622,7 @@ def preRouteGraphUp(graph, tova, loop=True, mark='down'):
         curnode = todo.pop()
         graph.setNodeProp(curnode, mark, True)
         for eid, fr, to, einfo in graph.getRefsTo(curnode):
-            if graph.getNodeProps(fr).get(mark) == True:
+            if graph.getNodeProps(fr).get(mark) is True:
                 continue
             if not loop and nwlist.get(fr) <= nwlist.get(to):
                 continue
@@ -633,11 +631,11 @@ def preRouteGraphUp(graph, tova, loop=True, mark='down'):
 
 
 def preRouteGraphDown(graph, fromva, loop=False, mark='up'):
-    '''
+    """
     paint a route from our starting point, 'down' the graph
-    '''
+    """
     fromnode = getGraphNodeByVa(graph, fromva)
-    if fromnode == None:
+    if fromnode is None:
         raise Exception("fromva not in graph 0x%x" % fromva)
 
     nwlist = graph.getHierNodeWeights()
@@ -647,7 +645,7 @@ def preRouteGraphDown(graph, fromva, loop=False, mark='up'):
         curnodeva, curninfo = curnode
         graph.setNodeProp(curnode, mark, True)
         for eid, fr, to, einfo in graph.getRefsFrom(curnode):
-            if graph.getNodeProps(to).get(mark) == True:
+            if graph.getNodeProps(to).get(mark) is True:
                 continue
             if not loop and nwlist.get(fr) >= nwlist.get(to):
                 continue
@@ -656,12 +654,12 @@ def preRouteGraphDown(graph, fromva, loop=False, mark='up'):
 
 
 def clearMarkDown(graph, fromva, loop=False, mark='up'):
-    '''
+    """
     clear a route from our starting point, 'down' the graph.
     ie. remove the mark
-    '''
+    """
     fromnode = getGraphNodeByVa(graph, fromva)
-    if fromnode == None:
+    if fromnode is None:
         raise Exception("fromva not in graph 0x%x" % fromva)
 
     nwlist = graph.getHierNodeWeights()
@@ -674,7 +672,7 @@ def clearMarkDown(graph, fromva, loop=False, mark='up'):
         graph.delNodeProp(curnode, mark)
 
         for eid, fr, to, einfo in graph.getRefsFrom(curnode):
-            if graph.getNodeProps(to).get(mark) == True:
+            if graph.getNodeProps(to).get(mark) is True:
                 continue
             if not loop and nwlist.get(fr) >= nwlist.get(to):
                 continue
@@ -683,12 +681,12 @@ def clearMarkDown(graph, fromva, loop=False, mark='up'):
 
 
 def reduceGraph(graph, props=('up', 'down')):
-    '''
+    """
     trims all nodes that don't have all the props in the props list
-    '''
+    """
     for node in graph.getNodes():
         for prop in props:
-            if node[1].get(prop) == None:
+            if node[1].get(prop) is None:
                 graph.delNode(node)
                 break
 
@@ -698,30 +696,29 @@ class PathForceQuitException(Exception):
         return "Path Generator forced to stop seeking a new path.  Possibly Timeout."
 
 
-'''
-eventually, routing will include the ability to 'source-route', picking N specific points a path must go through
-'''
-
-
 class PathGenerator:
+    """
+    Eventually, routing will include the ability to 'source-route', picking N specific points a path must go through
+    """
     __go__ = None
     __steplock = threading.Lock()
 
     def __init__(self, graph):
+        self.__update = False
         self.graph = graph
 
     def stop(self):
-        '''
+        """
         stops path generation.  used by watchdog, but could be used by path processing code
-        '''
+        """
         self.__go__ = False
 
-    def watchdog(self, time):
+    def watchdog(self, _time):
         # FIXME: make this use one thread, not N
-        '''
+        """
         set a watchdog timer for path generation (if it takes too long to get another path)
-        '''
-        self.wdt = threading.Thread(target=self.__wd, args=[time])
+        """
+        self.wdt = threading.Thread(target=self.__wd, args=[_time])
         self.wdt.setDaemon = True
         self.wdt.start()
 
@@ -744,7 +741,7 @@ class PathGenerator:
             self.__update = False
 
     def getFuncCbRoutedPaths_genback(self, fromva, tova, loopcnt=0, maxpath=None, maxsec=None):
-        '''
+        """
         Yields all the paths through the hierarchical graph starting at the 
         "root nodes" and ending at tocbva.  Specify a loopcnt to allow loop 
         paths to be generated with the given "loop iteration count"
@@ -753,9 +750,9 @@ class PathGenerator:
             for path in getCodePathsTo(fgraph, tocbva):
                 for node,edge in path:
                     ...etc...
-        '''
+        """
         fgraph = self.graph
-        self.__update = 0
+        self.__update = False
         self.__go__ = True
         pathcnt = 0
         tocbva = getGraphNodeByVa(fgraph, tova)
@@ -783,17 +780,17 @@ class PathGenerator:
                 path = vg_pathcore.getPathToNode(cpath)
                 path.reverse()
                 self.__steplock.acquire()
-                yield [viv_graph._nodeedge(n) for n in path]
+                yield [_nodeedge(n) for n in path]
                 vg_pathcore.trimPath(cpath)
 
                 pathcnt += 1
-                self.__update = 1
+                self.__update = True
                 self.__steplock.release()
                 if maxpath and pathcnt >= maxpath:
                     return
 
             for eid, fromid, toid, einfo in refsto:
-                if fgraph.getNodeProps(fromid).get('up') != True:
+                if fgraph.getNodeProps(fromid).get('up') is not True:
                     # TODO: drop the bad edges from graph in preprocessing? instead of "if" here
                     vg_pathcore.trimPath(cpath)
                     continue
@@ -808,7 +805,7 @@ class PathGenerator:
                 todo.append((fromid, npath))
 
     def getFuncCbRoutedPaths(self, fromva, tova, loopcnt=0, maxpath=None, maxsec=None):
-        '''
+        """
         Yields all the paths through the hierarchical graph starting at the 
         "root nodes" and ending at tocbva.  Specify a loopcnt to allow loop 
         paths to be generated with the given "loop iteration count"
@@ -817,9 +814,9 @@ class PathGenerator:
             for path in getCodePathsTo(fgraph, tocbva):
                 for node,edge in path:
                     ...etc...
-        '''
+        """
         fgraph = self.graph
-        self.__update = 0
+        self.__update = False
         self.__go__ = True
         pathcnt = 0
         tocbva = getGraphNodeByVa(fgraph, tova)
@@ -849,14 +846,14 @@ class PathGenerator:
                 vg_pathcore.trimPath(cpath)
 
                 pathcnt += 1
-                self.__update = 1
+                self.__update = True
                 if maxpath and pathcnt >= maxpath:
                     return
 
             for eid, fromid, toid, einfo in refsfrom:
-                if fgraph.getNodeProps(fromid).get('down') != True:
+                if fgraph.getNodeProps(fromid).get('down') is not True:
                     # sys.stderr.write('.')
-                    # TODO: drop the bad edges from graph in preprocessing? instead of "if" here
+                    # TODO: drop the bad edges from graph in pre-processing? instead of "if" here
                     continue
 
                 # Skip loops if they are "deeper" than we are allowed

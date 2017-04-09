@@ -1,6 +1,7 @@
-'''
+"""
 Various codeflow oriented graph constructs.
-'''
+"""
+
 import envi
 import visgraph.graphcore as v_graphcore
 
@@ -8,9 +9,9 @@ from vivisect.const import *
 
 
 class CallGraph(v_graphcore.HierGraph):
-    '''
+    """
     A graph which represents procedural branches.
-    '''
+    """
 
     def __init__(self):
         v_graphcore.Graph.__init__(self)
@@ -73,7 +74,7 @@ class CodeBlockGraph(v_graphcore.HierGraph):
 
     def _getCodeBranches(self, va):
         loc = self.vw.getLocation(va)
-        if loc == None or loc[L_LTYPE] != LOC_OP:
+        if loc is None or loc[L_LTYPE] != LOC_OP:
             return []
 
         lva, lsize, ltype, ltinfo = loc
@@ -114,7 +115,7 @@ class CodeBlockGraph(v_graphcore.HierGraph):
         return True
 
     def isCodeBlockNode(self, va):
-        return self.getNode(va) != None
+        return self.getNode(va) is not None
 
     def getCodeBlockBounds(self, node):
         cbva = node[0]
@@ -123,12 +124,12 @@ class CodeBlockGraph(v_graphcore.HierGraph):
         return cbva, cbsize
 
     def getCodeBlockNode(self, va):
-        '''
+        """
         Create or retrieve a codeblock node for the given va.
 
         NOTE: If the given va is already present within another
         node, this API will *split* the other node.
-        '''
+        """
         # is it already a cb node?
         node = self.getNode(va)
         if node is not None:
