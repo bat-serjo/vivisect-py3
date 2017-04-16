@@ -134,11 +134,27 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
         self._render_counter = 0
         self._render_counter_lock = threading.Lock()
 
+        self._max_text_width = 0
+        self._cur_line_width = 0
+        self._lines_height = 0
+
     def setFixedLocation(self, on: bool):
         self._fixed_location = on
 
     def isFixedLocationRenderingComplete(self) -> bool:
         return self._render_counter == 0
+
+    def getBestDimensions(self):
+        matrix = self.fontMetrics()
+        r = QtCore.QRect(0, 0, 0, 0)
+        rect = matrix.boundingRect(r, QtCore.Qt.AlignLeft, self.toPlainText())
+        # width = matrix.maxWidth() * self._max_text_width
+        # height = matrix.capHeight() * self._lines_height
+        w = rect.width()
+        w += w/10
+        h = rect.height()
+        h += h/5
+        return w, h
 
     def _clearInternals(self):
         self._canv_curva = None
@@ -429,6 +445,9 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
     #####################################################
     def _beginRenderMemory(self, va, size, rend):
         self._canv_cache = ''
+        if self._fixed_location is True:
+            # in this case we want to track the dimensions
+            self._max_text_width = 0
 
         self._rendering_complete = False
         # self._beginRenderVa(va)
@@ -440,9 +459,13 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
     # basic sequential rendering
     def _beginRenderVa(self, va):
         self._canv_curva = va
+        self._cur_line_width = 0
 
     def _endRenderVa(self, va, size):
-        pass
+        if self._fixed_location is True:
+            self._lines_height += 1
+            if self._cur_line_width > self._max_text_width:
+                self._max_text_width = self._cur_line_width
 
     #####################################################
     # when something has changed and needs update
@@ -557,6 +580,8 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
 
         with self._render_counter_lock:
             self._render_counter += 1
+
+        self._cur_line_width += len(text)
         self._appendInside(text, h)
 
     @idlethreadsync

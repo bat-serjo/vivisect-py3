@@ -143,7 +143,7 @@ class VQMemoryWindow(QtWidgets.QWidget, vq_hotkey.HotKeyMixin, EnviNavMixin, vq_
         vbox.setContentsMargins(4, 4, 4, 4)
         vbox.setSpacing(4)
         vbox.addWidget(self.top_box)
-        vbox.addWidget(self.mem_canvas, stretch=100)
+        vbox.addWidget(self.mem_canvas)
 
         self.top_box.setLayout(hbox)
 

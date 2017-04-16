@@ -1,3 +1,4 @@
+import math
 import time
 import itertools
 import collections
@@ -22,37 +23,70 @@ from vqt.common import *
 from vqt.main import idlethread, eatevents, workthread, vqtevent
 
 
+class VivGraphicsScene(e_qt_memory.EnviNavMixin, QtWidgets.QGraphicsScene):
+    def __init__(self, *args, **kwargs):
+        QtWidgets.QGraphicsScene.__init__(self, *args, **kwargs)
+        try:
+            e_qt_memory.EnviNavMixin.__init__(self)
+        except:
+            pass
+
+    def dragMoveEvent(self, event: QtWidgets.QGraphicsSceneDragDropEvent):
+        event.accept()
+
+    def enviNavGoto(self, expr, sizeexpr=None, rend=None):
+        self.parent().enviNavGoto(expr, sizeexpr, rend)
+
+
+def wrapPathItem(pitem: QtWidgets.QGraphicsPathItem):
+    def hoverEnterEvent(self: QtWidgets.QGraphicsPathItem, event: QtWidgets.QGraphicsSceneHoverEvent):
+        self._old_brush = self.brush()
+        self.setBrush(QtGui.QBrush(QtGui.QColor('#00aaff')))
+        event.accept()
+
+    def hoverLeaveEvent(self: QtWidgets.QGraphicsPathItem, event: QtWidgets.QGraphicsSceneHoverEvent):
+        self.setBrush(self._old_brush)
+        event.accept()
+
+    pitem.setAcceptHoverEvents(True)
+    pitem.hoverEnterEvent = hoverEnterEvent
+    pitem.hoverLeaveEvent = hoverLeaveEvent
+
+
 # vq_memory.VivCanvasBase
-class VQVivFuncGraphCanvas(QtWidgets.QGraphicsView):
+class VQVivFuncGraphCanvas(e_qt_memory.EnviNavMixin, QtWidgets.QGraphicsView):
     paintUp = pyqtSignal()
     paintDown = pyqtSignal()
     paintMerge = pyqtSignal()
     refreshSignal = pyqtSignal()
 
-    bg_color = '#303030'
+    bg_color = '#212121'
+    true_edge_color = '#4CAF50'
+    false_edge_color = "#F44336"
+    edge_width = 3
+
+    zoom_in = 1.25
+    move_modifier = QtCore.Qt.ShiftModifier
 
     def __init__(self, vw, syms, parent, *args, **kwargs):
         self.vw = vw
         self.syms = syms
 
-        super(VQVivFuncGraphCanvas, self).__init__(parent=parent)
-        # vq_memory.VivCanvasBase.__init__(self, *args, **kwargs)
+        QtWidgets.QGraphicsView.__init__(self, parent=parent)
+        e_qt_memory.EnviNavMixin.__init__(self)
 
-        self.scene = QtWidgets.QGraphicsScene(parent=self)
+        self.scene = VivGraphicsScene(parent=self)
         self.setScene(self.scene)
 
-        self.setResizeAnchor(QtWidgets.QGraphicsView.AnchorUnderMouse)
-        self.setTransformationAnchor(QtWidgets.QGraphicsView.AnchorUnderMouse)
-
-        self.setFrameShape(QtWidgets.QFrame.NoFrame)
-        self.setRenderHint(QtGui.QPainter.Antialiasing)
+        self.scene.setStickyFocus(True)
+        self.setDragMode(QtWidgets.QGraphicsView.ScrollHandDrag)
         self.setBackgroundBrush(QtGui.QBrush(QtGui.QColor(self.bg_color)))
+        self.setViewportUpdateMode(QtWidgets.QGraphicsView.BoundingRectViewportUpdate)
+        self.setRenderHints(self.renderHints() | QtGui.QPainter.Antialiasing | QtGui.QPainter.SmoothPixmapTransform)
 
-        ##################################################################
-        self.curs = QtGui.QCursor()
-
-        self.lastpos = None
-        self.basepos = None
+        self._orig_transform = self.transform()
+        self._edge_pen = QtGui.QPen(QtGui.QBrush(QtGui.QColor(self.true_edge_color)), self.edge_width,
+                                    QtCore.Qt.SolidLine, QtCore.Qt.RoundCap)
 
         ##################################################################
         # Function graph related stuff
@@ -69,39 +103,31 @@ class VQVivFuncGraphCanvas(QtWidgets.QGraphicsView):
     def wheelEvent(self, event: QtGui.QWheelEvent):
         if event.modifiers() & QtCore.Qt.ShiftModifier:
             delta = event.angleDelta()
-            factord = delta / 1000.0
-            self.setZoomFactor(self.zoomFactor() + factord)
+            if delta.y() > 0:
+                scale = self.zoom_in
+            else:
+                scale = 1 / self.zoom_in
+
+            # Set Anchors
+            self.setResizeAnchor(QtWidgets.QGraphicsView.NoAnchor)
+            self.setTransformationAnchor(QtWidgets.QGraphicsView.NoAnchor)
+
+            cur_pos = self.mapToScene(event.pos())
+            self.scale(scale, scale)
+            new_pos = self.mapToScene(event.pos())
+            delta_zoomed = new_pos - cur_pos
+            self.translate(delta_zoomed.x(), delta_zoomed.y())
+
             event.accept()
             return
 
         return super(VQVivFuncGraphCanvas, self).wheelEvent(event)
 
-    def mouseMoveEvent(self, event: QtGui.QMouseEvent):
-        if event.modifiers() & QtCore.Qt.ShiftModifier:
-            x = event.globalX()
-            y = event.globalY()
-            if self.lastpos:
-                dx = -(x - self.lastpos[0])
-                dy = -(y - self.lastpos[1])
-                # dx = x - self.lastpos[0]
-                # dy = y - self.lastpos[1]
-                # self.page().mainFrame().scroll(dx, dy)
-
-                self.curs.setPos(*self.basepos)
-            else:
-                self.lastpos = (x, y)
-                self.basepos = (x, y)
-
-            event.accept()
-            return
-
-        self.lastpos = None
-        return super(VQVivFuncGraphCanvas, self).mouseMoveEvent(event)
-
     def clear(self):
         self.scene.clear()
         self.items().clear()
         self.viewport().update()
+        self.setTransform(self._orig_transform)
         self.updateScene([self.scene.sceneRect()])
 
         self._block_views.clear()
@@ -125,18 +151,14 @@ class VQVivFuncGraphCanvas(QtWidgets.QGraphicsView):
             cbsize = nprops.get('cbsize')
 
             # create the canvas
-            o = vq_memory.VivCanvasBase(self.vw, self.syms, parent=self)
+            o = vq_memory.VivCanvasBase(self.vw, self.syms, parent=None)
             o.addRenderer('Viv', self._rend)
             o.setRenderer('Viv')
             o.setFixedLocation(True)
 
             # tell it what to render
             o.renderMemory(cbva, cbsize)
-
-            # since we will be adding the canvases to a graphics scene
-            # we have to wrap then into a proxy
-            proxy = QtWidgets.QGraphicsProxyWidget()
-            proxy.setWidget(o)
+            proxy = None
 
             # now store the data in the dict
             self._block_views[cbva] = o, proxy
@@ -150,27 +172,25 @@ class VQVivFuncGraphCanvas(QtWidgets.QGraphicsView):
                 if o.isFixedLocationRenderingComplete() is False:
                     done = False
                     time.sleep(0.1)
-                    # eatevents()
 
         # only after the rendition is done we can do this
         for nid, nprops in self.func_graph.getNodes():
             cbva = nprops.get('cbva')
             o, proxy = self._block_views[cbva]
-            self.scene.addItem(proxy)
-            o.show()
 
-            sz = o.document().size()
-            # o.resize(sz.width()+5, sz.height()+5)
-            o.adjustSize()
+            w, h = o.getBestDimensions()
+            o.resize(w, h)
+
             # store the dimensions of the canvas
-            self.func_graph.setNodeProp((nid, nprops), 'size', (o.width(), o.height()))
+            self.func_graph.setNodeProp((nid, nprops), 'size', (w, h))
 
+        # calculate the layout positions based on the canvas sizes
         # we have created the canvases and have their dimensions, lay them out
         self.graph_layout = vg_dynadag.DynadagLayout(self.func_graph)
         self.graph_layout._barry_count = 20
         self.graph_layout.layoutGraph()
 
-        width, height = self.graph_layout.getLayoutSize()
+        # width, height = self.graph_layout.getLayoutSize()
         for nid, nprops in self.func_graph.getNodes():
             cbva = nprops.get('cbva')
             if cbva is None:
@@ -178,48 +198,31 @@ class VQVivFuncGraphCanvas(QtWidgets.QGraphicsView):
 
             xpos, ypos = nprops.get('position')
             o, proxy = self._block_views[cbva]
-            o.move(float(xpos), float(ypos))
 
-        self.show()
+            # since we will be adding the canvases to a graphics scene
+            # we have to wrap then into a proxy
+            proxy = QtWidgets.QGraphicsProxyWidget(None, QtCore.Qt.Window)
+            proxy.setWidget(o)
+            proxy.setCacheMode(QtWidgets.QGraphicsItem.DeviceCoordinateCache)
+            proxy.resize(o.width(), o.height())
+            proxy.setPos(float(xpos), float(ypos))
 
-        # Draw in some edge lines!
+            self.scene.addItem(proxy)
+            self._block_views[cbva] = o, proxy
+
+        self.scene.setSceneRect(self.scene.itemsBoundingRect())
+
+        ############################################################
+        # Draw in some EDGE lines!
         for eid, n1, n2, einfo in self.func_graph.getEdges():
             points = einfo.get('edge_points')
-            pointstr = ' '.join(['%d,%d' % (x, y) for (x, y) in points])
 
-            # frame.evaluateJavaScript('drawSvgLine("%s", "edge_%.8s", "%s");' % (svgid, eid, pointstr))
-
-            # self.updateWindowTitle()
-
-            # FIXME
-            # def closeEvent(self, event):
-            # FIXME this doesn't actually do anything...
-            # self.parentWidget().delEventCore(self)
-            # return e_mem_qt.VQMemoryWindow.closeEvent(self, event)
-
-
-    # def renderMemory(self, va, size, rend=None):
-    #     # For the funcgraph canvas, this will be called once per code block
-    #     # --CLEAR--
-    #     return
-    #
-    #     # # Check if we have a codeblock element already...
-    #     # frame = self.page().mainFrame()
-    #     # canvelem = frame.findFirstElement('#memcanvas')
-    #     #
-    #     # elem = frame.findFirstElement('#codeblock_%.8x' % va)
-    #     # if elem.isNull():
-    #     #     # Lets add a codeblock element for this
-    #     #     canvelem.appendInside('<div class="codeblock" id="codeblock_%.8x"></div>' % va)
-    #     #
-    #     # self._canv_rendtagid = '#codeblock_%.8x' % va
-    #     #
-    #     # ret = super(VQVivFuncGraphCanvas, self).renderMemory(va, size, rend=rend)
-    #     # # ret = self.renderMemory(va, size, rend=rend)
-    #     #
-    #     # self._canv_rendtagid = '#memcanvas'
-    #     #
-    #     # return ret
+            ppath = QtGui.QPainterPath()
+            ppath.moveTo(*points[0])
+            [ppath.lineTo(x, y) for (x, y) in points[1:]]
+            pitem = self.scene.addPath(ppath, self._edge_pen)
+            wrapPathItem(pitem)
+            # pitem.setFlags(QtWidgets.QGraphicsItem.Hov)
 
     def contextMenuEvent(self, event):
         if self._canv_curva:
@@ -244,19 +247,14 @@ class VQVivFuncGraphCanvas(QtWidgets.QGraphicsView):
         if self._canv_navcallback:
             self._canv_navcallback(expr)
 
+    def enviNavGoto(self, expr, sizeexpr=None, rend=None):
+        return self.parent().enviNavGoto(expr, sizeexpr, rend)
+
     def refresh(self):
         """
         Redraw the function graph (actually, tells the View to do it)
         """
         self.refreshSignal.emit()
-
-    @idlethread
-    def setScrollPosition(self, x, y):
-        """
-        Sets the view reticle to an absolute scroll position
-        """
-        point = QPoint(x, y)
-        # self.page().mainFrame().setScrollPosition(point)
 
     def applyColorMap(self, cmap: dict):
         pass
@@ -287,13 +285,6 @@ class VQVivFuncgraphView(vq_hotkey.HotKeyMixin, e_qt_memory.EnviNavMixin,
         e_qt_memory.EnviNavMixin.__init__(self)
 
         self.mem_canvas = VQVivFuncGraphCanvas(vw, syms=vw, parent=self)
-        # self.mem_canvas.setNavCallback(self.enviNavGoto)
-        # self.mem_canvas.refreshSignal.connect(self.refresh)
-        # self.mem_canvas.paintUp.connect(self._hotkey_paintUp)
-        # self.mem_canvas.paintDown.connect(self._hotkey_paintDown)
-        # self.mem_canvas.paintMerge.connect(self._hotkey_paintMerge)
-
-        # self.loadDefaultRenderers()
 
         # create the top row of widgets. History and address entry
         hbox = QtWidgets.QHBoxLayout()
@@ -353,32 +344,13 @@ class VQVivFuncgraphView(vq_hotkey.HotKeyMixin, e_qt_memory.EnviNavMixin,
             self.enviNavGoto(expr)
 
     def _hotkey_resetzoom(self):
-        self.mem_canvas.setZoomFactor(1)
+        pass
 
     def _hotkey_inczoom(self):
-        newzoom = self.mem_canvas.zoomFactor()
-        if 1 > newzoom > .75:
-            newzoom = 1
-        elif newzoom < .5:
-            newzoom += .125
-        else:
-            newzoom += .25
-
-        if newzoom < 0:
-            return
-
-        # self.vw.vprint("NEW ZOOM    %f" % newzoom)
-        self.mem_canvas.setZoomFactor(newzoom)
+        pass
 
     def _hotkey_deczoom(self):
-        newzoom = self.mem_canvas.zoomFactor()
-        if newzoom <= .5:
-            newzoom -= .125
-        else:
-            newzoom -= .25
-
-        # self.vw.vprint("NEW ZOOM    %f" % newzoom)
-        self.mem_canvas.setZoomFactor(newzoom)
+        pass
 
     def refresh(self):
         """
@@ -388,7 +360,6 @@ class VQVivFuncgraphView(vq_hotkey.HotKeyMixin, e_qt_memory.EnviNavMixin,
         that have changed since last update, and be fast, so we can update
         after every change.
         """
-        self.clearText()
         self.fva = None
         self._renderMemory()
 
@@ -422,7 +393,7 @@ class VQVivFuncgraphView(vq_hotkey.HotKeyMixin, e_qt_memory.EnviNavMixin,
             pass
         self.enviNavGoto(expr)
 
-    def enviNavGoto(self, expr, sizeexpr=None):
+    def enviNavGoto(self, expr, sizeexpr=None, rend=None):
         self.addr_entry.setText(expr)
         self.history.append(expr)
         self.updateWindowTitle()
@@ -447,11 +418,6 @@ class VQVivFuncgraphView(vq_hotkey.HotKeyMixin, e_qt_memory.EnviNavMixin,
 
     def _buttonSaveAs(self):
         pass
-        # frame = self.mem_canvas.page().mainFrame()
-        # elem = frame.findFirstElement('#mainhtml')
-        # h = elem.toOuterXml()
-        ## h = frame.toHtml()
-        # open('test.html', 'wb').write(str(h))
 
     @idlethread
     def _renderMemory(self):
@@ -468,15 +434,13 @@ class VQVivFuncgraphView(vq_hotkey.HotKeyMixin, e_qt_memory.EnviNavMixin,
 
         fva = self.vw.getFunction(addr)
         if fva == self.fva:
-            # self.mem_canvas.page().mainFrame().scrollToAnchor('viv:0x%.8x' % addr)
             self.updateWindowTitle()
             return
 
         if fva is None:
-            self.vw.vprint('0x%.8x is not in a function!' % addr)
+            self.mem_canvas.addText('0x%.8x is not in a function!' % addr)
             return
 
-        self.clearText()
         self.mem_canvas.renderFunctionGraph(fva)
         self.updateWindowTitle()
 
@@ -486,19 +450,6 @@ class VQVivFuncgraphView(vq_hotkey.HotKeyMixin, e_qt_memory.EnviNavMixin,
         vivrend = viv_rend.WorkspaceRenderer(self.vw)
         self.mem_canvas.addRenderer('Viv', vivrend)
         self.mem_canvas.setRenderer('Viv')
-
-    def clearText(self):
-        # --CLEAR--
-        return
-        # Pop the svg and reset #memcanvas
-        frame = self.mem_canvas.page().mainFrame()
-        if self.fva:
-            svgid = '#funcgraph_%.8x' % self.fva
-            svgelem = frame.findFirstElement(svgid)
-            svgelem.removeFromDocument()
-
-        memelem = frame.findFirstElement('#memcanvas')
-        memelem.setInnerXml(' ')
 
     def _hotkey_paintUp(self, va=None):
         """

@@ -469,7 +469,6 @@ def buildFunctionGraph(vw, fva, revloop=False, g=None):
     while todo:
 
         (cbva, cbsize, cbfunc), path = todo.pop()
-
         path.append(cbva)
 
         # If the code block va doesn't have a node yet, make one
@@ -479,11 +478,9 @@ def buildFunctionGraph(vw, fva, revloop=False, g=None):
 
         # Grab the location for the last instruction in the block
         lva, lsize, ltype, linfo = vw.getLocation(cbva + cbsize - 1)
-
         for xrfrom, xrto, xrtype, xrflags in vw.getXrefsFrom(lva, vivisect.REF_CODE):
 
-            # For now, the graph doesn't cross function boundaries
-            # or indirects.
+            # For now, the graph doesn't cross function boundaries or indirects.
             if xrflags & xrskip:
                 continue
 
@@ -501,7 +498,6 @@ def buildFunctionGraph(vw, fva, revloop=False, g=None):
                     continue
 
                 # Since we haven't seen this node, lets add it to todo
-                # and build a new node for it.
                 todo.append(((tova, tosize, tofunc), list(path)))
                 bcolor = colors.get(tova, '#0f0')
                 g.addNode(nid=tova, cbva=tova, cbsize=tosize, color=bcolor)
@@ -515,8 +511,7 @@ def buildFunctionGraph(vw, fva, revloop=False, g=None):
         if ltype == vivisect.LOC_OP and linfo & envi.IF_NOFALL:
             continue
 
-        # If this codeblock can fall through into another, add it to
-        # todo!
+        # If this codeblock can fall through into another, add it to todo!
         fallva = lva + lsize
         if not g.hasNode(fallva):
             fallblock = vw.getCodeBlock(fallva)

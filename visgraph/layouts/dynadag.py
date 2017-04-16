@@ -70,11 +70,6 @@ class DynadagLayout(vg_layout.GraphLayout):
             barry = tot / float(cnt)
         ninfo['barycenter'] = barry
 
-    def _cmpBaryCenter(self, node1, node2):
-        n1bary = node1[1].get('barycenter')
-        n2bary = node2[1].get('barycenter')
-        return cmp(n1bary, n2bary)
-
     # Try out "barycenter" averaging and re-ordering.
     def _orderNodesByBary(self):
         # Go through the layers and do barycenter calcs first.
@@ -85,7 +80,6 @@ class DynadagLayout(vg_layout.GraphLayout):
                     self._baryCenter(nid, ninfo)
 
             for layer in self.layers:
-                # layer.sort(cmp=self._cmpBaryCenter)
                 layer.sort(key=lambda x: x[1].get('barycenter'))
                 for _i, (nid, ninfo) in enumerate(layer):
                     ninfo['layerpos'] = _i

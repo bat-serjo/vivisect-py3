@@ -72,7 +72,7 @@ class Graph:
     @classmethod
     def fromJsonFd(cls, fd):
         """
-        instiate a graph from a file descriptor
+        instantiate a graph from a file descriptor
         containing serialized json.
         """
         g = cls()
@@ -82,7 +82,7 @@ class Graph:
     @classmethod
     def fromJsonBuf(cls, buf):
         """
-        instiatiate a graph from a seralized json buffer
+        instantiate a graph from a seralized json buffer
         """
         g = cls()
         g.fromJson(json.loads(buf))
@@ -167,11 +167,11 @@ class Graph:
             for edge in g.getEdgesByProp("score",300):
                 print(edge)
         """
-        if val != None:
-            return self.edgeprops.get(prop, {}).get(val, [])
+        if val is not None:
+            return self.edgeprops.get(prop, dict()).get(val, [])
 
         ret = []
-        [ret.extend(v) for v in list(self.edgeprops.get(prop, {}).values())]
+        [ret.extend(v) for v in list(self.edgeprops.get(prop, dict()).values())]
         return ret
 
     def setEdgeProp(self, edge, prop, value):
@@ -187,7 +187,7 @@ class Graph:
         edge[3][prop] = value
 
         try:
-            if curval != None:
+            if curval is not None:
                 curlist = self.edgeprops[prop][curval]
                 curlist.remove(edge)
             self.edgeprops[prop][value].append(edge)
@@ -204,7 +204,7 @@ class Graph:
         Example:
             g.setNodeProp(node, 'Description', 'My Node Is Awesome!')
         """
-        if value == None:
+        if value is None:
             raise Exception('graph prop values may not be None! %r' % (node,))
 
         curval = node[1].get(prop)
@@ -214,7 +214,7 @@ class Graph:
         node[1][prop] = value
 
         try:
-            if curval != None:
+            if curval is not None:
                 curlist = self.nodeprops[prop][curval]
                 curlist.remove(node)
 
@@ -232,7 +232,7 @@ class Graph:
             for node in g.getNodesByProp("awesome",1):
                 print(node)
         """
-        if val != None:
+        if val is not None:
             return self.nodeprops.get(prop, {}).get(val, [])
 
         ret = []
@@ -250,16 +250,16 @@ class Graph:
         NOTE: If nid is unspecified, it is considered an 'anonymous'
               node and will have an ID automagically assigned.
         """
-        if nid == None:
+        if nid is None:
             nid = guid()
 
         p = self.nodes.get(nid)
-        if p != None:
+        if p is not None:
             raise DuplicateNode(nid)
 
         myprops = {}
         myprops.update(kwargs)
-        if nprops != None:
+        if nprops is not None:
             myprops.update(nprops)
 
         node = (nid, myprops)
@@ -295,7 +295,7 @@ class Graph:
         """
         with self.formlock:
             node = self.formnodes.get((prop, value))
-            if node != None:
+            if node is not None:
                 return node
 
             nid = guid()
@@ -306,7 +306,7 @@ class Graph:
             self.nodeprops[prop][value].append(node)
 
             # fire ctor with lock to prevent an un-initialized retrieve.
-            if ctor != None:
+            if ctor is not None:
                 ctor(node)
             return node
 
@@ -318,7 +318,7 @@ class Graph:
             g.delNodeProp(node,"foo")
         """
         pval = node[1].pop(prop, None)
-        if pval != None:
+        if pval is not None:
             vlist = self.nodeprops[prop][pval]
             vlist.remove(node)
             if not vlist:
@@ -381,7 +381,7 @@ class Graph:
         return len(self.getRefsTo(node)) == 0
 
     def hasEdge(self, edgeid):
-        return self.edges.get(edgeid) != None
+        return self.edges.get(edgeid) is not None
 
     def hasNode(self, nid):
         """
@@ -389,7 +389,7 @@ class Graph:
 
         Example: if g.hasNode('yermom'): print 'woot'
         """
-        return self.getNode(nid) != None
+        return self.getNode(nid) is not None
 
     def addEdgeByNids(self, n1, n2, eid=None, eprops=None, **kwargs):
         node1 = self.getNode(n1)
@@ -402,11 +402,11 @@ class Graph:
 
         Example: g.addEdge(node1, node2, eprops={'name':'Woot Edge'})
         """
-        if eprops == None:
+        if eprops is None:
             eprops = {}
 
         eprops.update(kwargs)
-        if eid == None:
+        if eid is None:
             eid = guid()
 
         n1 = node1[0]
@@ -555,7 +555,7 @@ class Graph:
         Returns a list of edge ids...
         """
 
-        if n2 == None and tocb == None:
+        if n2 is None and tocb is None:
             raise Exception('You must use either n2 or tocb!')
 
         root = vg_pathcore.newPathNode(nid=n1, eid=None)
@@ -577,7 +577,7 @@ class Graph:
                     continue
 
                 # Check if the callback is present and likes us...
-                if edgecb != None:
+                if edgecb is not None:
                     if not edgecb(self, edge, depth):
                         continue
 
@@ -597,7 +597,7 @@ class Graph:
                     ret = []
                     for ppnode, pkids, pprops in path:
                         eid = pprops.get('eid')
-                        if eid != None:
+                        if eid is not None:
                             ret.append(eid)
 
                     yield ret
@@ -757,7 +757,7 @@ class HierGraph(Graph):
                 yield path
 
                 cnt += 1
-                if maxpath != None and cnt >= maxpath:
+                if maxpath is not None and cnt >= maxpath:
                     return
 
                 continue
@@ -777,7 +777,7 @@ class HierGraph(Graph):
                     yield newpath
 
                     cnt += 1
-                    if maxpath != None and cnt >= maxpath:
+                    if maxpath is not None and cnt >= maxpath:
                         return
 
                     continue
@@ -798,7 +798,7 @@ class HierGraph(Graph):
             for pathfrom in self.getHierPathsFrom(node, maxpath=maxpath, maxlen=maxlen):
                 yield pathto[:-1] + pathfrom
                 cnt += 1
-                if maxpath != None and cnt >= maxpath:
+                if maxpath is not None and cnt >= maxpath:
                     return
 
     def getHierPathsTo(self, node, maxpath=None, maxlen=None):
@@ -823,7 +823,7 @@ class HierGraph(Graph):
                 yield path
 
                 cnt += 1
-                if maxpath != None and cnt >= maxpath:
+                if maxpath is not None and cnt >= maxpath:
                     return
 
                 continue

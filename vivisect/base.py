@@ -28,7 +28,7 @@ from vivisect.exc import *
 from vivisect.const import *
 
 
-class VivEventCore(object):
+class VivEventCore:
     """
     A class to facilitate event monitoring in the viv workspace.
     """
