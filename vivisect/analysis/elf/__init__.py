@@ -1,9 +1,7 @@
-
 import vivisect
-
 import envi.bits as e_bits
-
 from vivisect.const import *
+
 
 def ffTermFptrArray(vw, va, max=100):
     ret = []
@@ -20,23 +18,23 @@ def ffTermFptrArray(vw, va, max=100):
             vw.makeFunction(val)
             ret.append(val)
         except Exception as e:
-            print("FIXME (ffTermFptrArray): ",e)
+            print("FIXME (ffTermFptrArray): ", e)
         va += vw.psize
     return ret
 
-def analyze(vw):
 
+def analyze(vw):
     # Go through the elf sections and handle known types.
-    for segva,segsize,segname,segfname in vw.getSegments():
+    for segva, segsize, segname, segfname in vw.getSegments():
 
         if segname == ".ctors":
-            if vw.getLocation(segva) != None: # Check if it's already done
+            if vw.getLocation(segva) is not None:  # Check if it's already done
                 continue
             for f in ffTermFptrArray(vw, segva):
                 vw.makeName(f, "ctor_%.8x" % f)
 
         elif segname == ".dtors":
-            if vw.getLocation(segva) != None: # Check if it's already done
+            if vw.getLocation(segva) is not None:  # Check if it's already done
                 continue
             for f in ffTermFptrArray(vw, segva):
                 vw.makeName(f, "dtor_%.8x" % f)

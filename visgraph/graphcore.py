@@ -356,7 +356,7 @@ class Graph:
         """
         return self.nodes.get(nid)
 
-    def getNodeProps(self, nid):
+    def getNodeProps(self, nid) -> dict:
         return self.nodes.get(nid)[1]
 
     def getNodes(self):

@@ -5,7 +5,10 @@ import collections
 
 from PyQt5 import QtGui
 from PyQt5 import QtWidgets
-from PyQt5.QtCore import pyqtSignal, QPoint
+from PyQt5.QtCore import pyqtSignal, Qt, QPoint, QPointF, QLineF, QRectF, QSizeF
+from PyQt5.QtGui import QPolygonF, QPen
+from PyQt5.QtWidgets import QGraphicsItem
+
 
 import vqt.saveable as vq_save
 import vqt.hotkeys as vq_hotkey
@@ -16,6 +19,8 @@ import vivisect.qt.memory as vq_memory
 import vqt.qt.memcanvas as e_qt_memcanvas
 import vivisect.qt.ctxmenu as vq_ctxmenu
 
+import visgraph.layouts.force as vg_force
+import visgraph.layouts.reflow as vg_reflow
 import visgraph.layouts.dynadag as vg_dynadag
 import vivisect.tools.graphutil as viv_graphutil
 
@@ -23,12 +28,12 @@ from vqt.common import *
 from vqt.main import idlethread, eatevents, workthread, vqtevent
 
 
-class VivGraphicsScene(e_qt_memory.EnviNavMixin, QtWidgets.QGraphicsScene):
+class DropGraphicsScene(e_qt_memory.EnviNavMixin, QtWidgets.QGraphicsScene):
     def __init__(self, *args, **kwargs):
         QtWidgets.QGraphicsScene.__init__(self, *args, **kwargs)
         try:
             e_qt_memory.EnviNavMixin.__init__(self)
-        except:
+        except Exception:
             pass
 
     def dragMoveEvent(self, event: QtWidgets.QGraphicsSceneDragDropEvent):
@@ -38,19 +43,127 @@ class VivGraphicsScene(e_qt_memory.EnviNavMixin, QtWidgets.QGraphicsScene):
         self.parent().enviNavGoto(expr, sizeexpr, rend)
 
 
-def wrapPathItem(pitem: QtWidgets.QGraphicsPathItem):
-    def hoverEnterEvent(self: QtWidgets.QGraphicsPathItem, event: QtWidgets.QGraphicsSceneHoverEvent):
-        self._old_brush = self.brush()
-        self.setBrush(QtGui.QBrush(QtGui.QColor('#00aaff')))
-        event.accept()
+class VGraphEdge(QGraphicsItem):
+    Pi = math.pi
+    TwoPi = 2.0 * Pi
 
-    def hoverLeaveEvent(self: QtWidgets.QGraphicsPathItem, event: QtWidgets.QGraphicsSceneHoverEvent):
-        self.setBrush(self._old_brush)
-        event.accept()
+    Type = QGraphicsItem.UserType + 2
 
-    pitem.setAcceptHoverEvents(True)
-    pitem.hoverEnterEvent = hoverEnterEvent
-    pitem.hoverLeaveEvent = hoverLeaveEvent
+    def __init__(self, sourceNode, destNode):
+        super(VGraphEdge, self).__init__()
+
+        self.arrowSize = 10.0
+        self.sourcePoint = QPointF()
+        self.destPoint = QPointF()
+
+        self.setAcceptedMouseButtons(Qt.NoButton)
+        self.source = sourceNode
+        self.dest = destNode
+        self.source.addEdge(self)
+        self.dest.addEdge(self)
+        self.adjust()
+
+    def type(self):
+        return VGraphEdge.Type
+
+    def sourceNode(self):
+        return self.source
+
+    def setSourceNode(self, node):
+        self.source = node
+        self.adjust()
+
+    def destNode(self):
+        return self.dest
+
+    def setDestNode(self, node):
+        self.dest = node
+        self.adjust()
+
+    def adjust(self):
+        if not self.source or not self.dest:
+            return
+
+        line = QLineF(self.mapFromItem(self.source, 0, 0),
+                self.mapFromItem(self.dest, 0, 0))
+        length = line.length()
+
+        self.prepareGeometryChange()
+
+        if length > 20.0:
+            edgeOffset = QPointF((line.dx() * 10) / length,
+                    (line.dy() * 10) / length)
+
+            self.sourcePoint = line.p1() + edgeOffset
+            self.destPoint = line.p2() - edgeOffset
+        else:
+            self.sourcePoint = line.p1()
+            self.destPoint = line.p1()
+
+    def boundingRect(self):
+        if not self.source or not self.dest:
+            return QRectF()
+
+        penWidth = 1.0
+        extra = (penWidth + self.arrowSize) / 2.0
+
+        return QRectF(self.sourcePoint,
+                      QSizeF(self.destPoint.x() - self.sourcePoint.x(),
+                             self.destPoint.y() - self.sourcePoint.y())
+                      ).normalized().adjusted(-extra, -extra, extra, extra)
+
+    def paint(self, painter, option, widget):
+        if not self.source or not self.dest:
+            return
+
+        # Draw the line itself.
+        line = QLineF(self.sourcePoint, self.destPoint)
+
+        if line.length() == 0.0:
+            return
+
+        painter.setPen(QPen(Qt.black, 1, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
+        painter.drawLine(line)
+
+        # Draw the arrows if there's enough room.
+        angle = math.acos(line.dx() / line.length())
+        if line.dy() >= 0:
+            angle = VGraphEdge.TwoPi - angle
+
+        sourceArrowP1 = self.sourcePoint + QPointF(math.sin(angle + VGraphEdge.Pi / 3) * self.arrowSize,
+                                                          math.cos(angle + VGraphEdge.Pi / 3) * self.arrowSize)
+        sourceArrowP2 = self.sourcePoint + QPointF(math.sin(angle + VGraphEdge.Pi - VGraphEdge.Pi / 3) * self.arrowSize,
+                                                          math.cos(angle + VGraphEdge.Pi - VGraphEdge.Pi / 3) * self.arrowSize);
+        destArrowP1 = self.destPoint + QPointF(math.sin(angle - VGraphEdge.Pi / 3) * self.arrowSize,
+                                                      math.cos(angle - VGraphEdge.Pi / 3) * self.arrowSize)
+        destArrowP2 = self.destPoint + QPointF(math.sin(angle - VGraphEdge.Pi + VGraphEdge.Pi / 3) * self.arrowSize,
+                                                      math.cos(angle - VGraphEdge.Pi + VGraphEdge.Pi / 3) * self.arrowSize)
+
+        painter.setBrush(Qt.black)
+        painter.drawPolygon(QPolygonF([line.p1(), sourceArrowP1, sourceArrowP2]))
+        painter.drawPolygon(QPolygonF([line.p2(), destArrowP1, destArrowP2]))
+
+
+class VPathItem(QtWidgets.QGraphicsPathItem):
+
+    def __init__(self, *args, **kwargs):
+        super(VPathItem, self).__init__(*args, **kwargs)
+        self.setAcceptHoverEvents(True)
+        self.setFlag(self.ItemIsSelectable)
+        self._orig_brush = None
+
+    def hoverEnterEvent(self, event: QtWidgets.QGraphicsSceneHoverEvent):
+        self._orig_brush = self.brush()
+        # self._orig_brush = QtGui.QBrush(QtGui.QColor('#00aaff'))
+        c = self._orig_brush.color()
+        newc = c.lighter(256)
+        self.setBrush(QtGui.QBrush(newc))
+        event.accept()
+        self.setZValue(99)
+
+    def hoverLeaveEvent(self, event: QtWidgets.QGraphicsSceneHoverEvent):
+        self.setBrush(self._orig_brush)
+        event.accept()
 
 
 # vq_memory.VivCanvasBase
@@ -75,7 +188,7 @@ class VQVivFuncGraphCanvas(e_qt_memory.EnviNavMixin, QtWidgets.QGraphicsView):
         QtWidgets.QGraphicsView.__init__(self, parent=parent)
         e_qt_memory.EnviNavMixin.__init__(self)
 
-        self.scene = VivGraphicsScene(parent=self)
+        self.scene = DropGraphicsScene(parent=self)
         self.setScene(self.scene)
 
         self.scene.setStickyFocus(True)
@@ -186,8 +299,9 @@ class VQVivFuncGraphCanvas(e_qt_memory.EnviNavMixin, QtWidgets.QGraphicsView):
 
         # calculate the layout positions based on the canvas sizes
         # we have created the canvases and have their dimensions, lay them out
-        self.graph_layout = vg_dynadag.DynadagLayout(self.func_graph)
-        self.graph_layout._barry_count = 20
+        # self.graph_layout = vg_dynadag.DynadagLayout(self.func_graph)
+        # self.graph_layout._barry_count = 0
+        self.graph_layout = vg_reflow.ReflowLayout(self.func_graph)
         self.graph_layout.layoutGraph()
 
         # width, height = self.graph_layout.getLayoutSize()
@@ -220,9 +334,12 @@ class VQVivFuncGraphCanvas(e_qt_memory.EnviNavMixin, QtWidgets.QGraphicsView):
             ppath = QtGui.QPainterPath()
             ppath.moveTo(*points[0])
             [ppath.lineTo(x, y) for (x, y) in points[1:]]
-            pitem = self.scene.addPath(ppath, self._edge_pen)
-            wrapPathItem(pitem)
-            # pitem.setFlags(QtWidgets.QGraphicsItem.Hov)
+
+            vpath = VPathItem()
+            vpath.setPath(ppath)
+            vpath.setPen(self._edge_pen)
+
+            self.scene.addItem(vpath)
 
     def contextMenuEvent(self, event):
         if self._canv_curva:

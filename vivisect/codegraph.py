@@ -42,17 +42,15 @@ class CodeBlockGraph(v_graphcore.HierGraph):
 
     def addEntryPoint(self, va):
         node = self.getNode(va)
-        if node != None:
+        if node is not None:
             return node
 
         # entry point, by de-facto has a node
         enode = self.getCodeBlockNode(va)
-
         done = set()
 
         todo = [va, ]
         while todo:
-
             va = todo.pop()
             if va in done:
                 continue
@@ -78,9 +76,7 @@ class CodeBlockGraph(v_graphcore.HierGraph):
             return []
 
         lva, lsize, ltype, ltinfo = loc
-
         xrefs = self.vw.getXrefsFrom(va, rtype=REF_CODE)
-
         crefs = [(xto, xflags) for (xfrom, xto, xtype, xflags) in xrefs]
 
         # If any of our other branches are conditional, so is our fall

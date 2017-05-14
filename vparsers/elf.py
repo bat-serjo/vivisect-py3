@@ -178,7 +178,8 @@ def loadElfIntoWorkspace(vw, elf, filename=None):
             continue  # Skip non-memory mapped sections
 
         sva = sec.sh_addr
-        if addbase: sva += baseaddr
+        if addbase:
+            sva += baseaddr
 
         vw.addSegment(sva, size, sname, fname)
 

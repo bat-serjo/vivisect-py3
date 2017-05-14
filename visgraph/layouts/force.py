@@ -183,7 +183,7 @@ class ForceLayout(vg_layouts.GraphLayout):
                 traceback.print_exc()
 
         # Now, in order from largest to smallest, shift them back toward 0,0
-        cgraphs.sort(cmp=lambda x, y: cmp(y.getNodeCount(), x.getNodeCount()))
+        cgraphs.sort(key=lambda x: x.getNodeCount())
 
         offset = 0
         for graph in cgraphs:
