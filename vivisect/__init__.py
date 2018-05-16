@@ -1689,8 +1689,8 @@ class VivWorkspace(e_mem.MemoryObject, viv_base.VivWorkspaceCore):
         if s is None:
             s = self.vsbuilder.buildVStruct(vstructname)
         if s is not None:
-            bytes = self.readMemory(va, len(s))
-            s.vsParse(bytes)
+            b = self.readMemory(va, len(s))
+            s.vsParse(b)
         return s
 
     def makeStructure(self, va, vstructname, vs=None):

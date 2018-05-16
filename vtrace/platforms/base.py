@@ -4,23 +4,20 @@ Tracer Platform Base
 # Copyright (C) 2007 Invisigoth - See LICENSE file for details
 
 import os
-import struct
+import sys
 import traceback
 import threading
 
 from queue import Queue
-from threading import Thread, currentThread, Lock
+from threading import Thread, Lock
 
-import envi.const
 import vtrace
 import platform
 from vtrace import notifiers
 
 import envi
-import envi.memory as e_mem
 import envi.threads as e_threads
 import envi.symstore.resolver as e_sym_resolv
-import envi.symstore.symcache as e_sym_symcache
 
 import vstruct.builder as vs_builder
 
@@ -338,7 +335,7 @@ class TracerBase(notifiers.Notifier, PlatformMixinInterface):
         arbitrary trace consumers (and notifiers) to present
         and track additional information in trace objects.
 
-        If you specify a default and the key doesn't exist, not
+        If you specify a default and the key doesn't exist,
         not only will the default be returned, but the key will
         be set to the default specified.
         """
@@ -908,8 +905,8 @@ class TracerBase(notifiers.Notifier, PlatformMixinInterface):
                     done[fname] = True
                     self.addLibraryBase(fname, addr, always=always)
             except Exception as e:
-                traceback.print_exc()
-                print(addr, fname)
+                # traceback.print_exc()
+                print("%X %s %s" % (addr, fname, str(e)), file=sys.stderr)
 
     def _loadBinaryNorm(self, normname):
         if not self.libloaded.get(normname, False):

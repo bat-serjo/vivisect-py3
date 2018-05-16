@@ -1,15 +1,15 @@
 import os
-import pprint
 import re
-import shlex
-import signal
 import sys
+import shlex
+import pprint
+import signal
 import threading
 import traceback
-from collections import UserDict
-from collections import defaultdict
-from getopt import getopt
+
 from queue import Queue
+from getopt import getopt
+from collections import UserDict, defaultdict
 
 import envi
 import envi.bits as e_bits
@@ -17,10 +17,12 @@ import envi.cli as e_cli
 import envi.config as e_config
 import envi.memory as e_mem
 import envi.symstore.resolver as e_resolv
+
 import vdb
 import vdb.extensions as v_ext
 import vdb.stalker as v_stalker
 import vstruct.primitives as vs_prims
+
 import vtrace
 import vtrace.notifiers as v_notif
 import vtrace.snapshot as vs_snap
@@ -36,7 +38,7 @@ class VdbLookup(UserDict):
 
     def __init__(self, initdict=None):
         UserDict.__init__(self)
-        if initdict == None:
+        if initdict is None:
             return
 
         for key, val in list(initdict.items()):
@@ -45,21 +47,6 @@ class VdbLookup(UserDict):
     def __setitem__(self, key, item):
         UserDict.__setitem__(self, key, item)
         UserDict.__setitem__(self, item, key)
-
-
-class ScriptThread(threading.Thread):
-    def __init__(self, cobj, locals):
-        threading.Thread.__init__(self)
-        self.setDaemon(True)
-        self.cobj = cobj
-        self.locals = locals
-
-    def run(self):
-        try:
-            exec(self.cobj, self.locals)
-        except Exception as e:
-            traceback.print_exc()
-            print(('Script Error: %s' % repr(e)))
 
 
 def setupBreakOnEntry(trace):
@@ -171,7 +158,7 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
     """
     A VDB object is a debugger object which may be used to embed full
     debugger like functionality into a python application.  The
-    Vdb object contains a CLI impelementation which extends envi.cli>
+    Vdb object contains a CLI implementation which extends envi.cli>
     """
 
     def __init__(self, trace=None):
@@ -181,8 +168,7 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
         if trace is None:
             trace = vtrace.getTrace()
 
-        arch = trace.getMeta('Architecture')
-        self.arch = envi.getArchModule(arch)
+        self.arch = envi.getArchModule(trace.getMeta('Architecture'))
 
         self.bpcmds = {}
         self.waitlib = None
@@ -249,7 +235,7 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
         so that future references are fast.
         """
         ret = self.runcache.get(cname)
-        if ret == None:
+        if ret is None:
             ret = self.runcachectors.get(cname)(self)
             self.runcache[cname] = ret
         return ret
@@ -257,6 +243,7 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
     def loadDefaultRenderers(self, trace):
         import envi.memcanvas.renderers as e_render
         import vdb.renderers as v_rend
+
         # FIXME check endianness
         self.canvas.addRenderer("bytes", e_render.ByteRend())
         self.canvas.addRenderer("u_int_16", e_render.ShortRend())
@@ -273,7 +260,7 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
         self.canvas.addRenderer('Symbols View', srend)
 
         for arch in envi.getArchModules():
-            if arch == None:  # The "empty" default...
+            if arch is None:  # The "empty" default...
                 continue
             archid = arch.getArchId()
             archname = arch.getArchName()

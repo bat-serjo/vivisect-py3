@@ -409,7 +409,7 @@ class PE(object):
         """
         if self.IMAGE_EXPORT_DIRECTORY is not None:
             rawname = self.readAtRva(self.IMAGE_EXPORT_DIRECTORY.Name, 32)
-            return rawname.split('\x00')[0]
+            return rawname.split(b'\x00')[0]
         return None
 
     def getImports(self):
@@ -913,13 +913,13 @@ class PE(object):
                 name = None
 
                 if nameoff != 0:
-                    name = self.readAtOffset(nameoff, 256, shortok=True).split("\x00", 1)[0]
+                    name = self.readAtOffset(nameoff, 256, shortok=True).split(b"\x00", 1)[0]
                 else:
                     name = "ord_%.4x" % ord
 
                 # RP BUG FIX - Export forwarding range check is done using RVA's
                 if edir.VirtualAddress <= funcoff < edir.VirtualAddress + edir.Size:
-                    fwdname = self.readAtRva(funcoff, 260, shortok=True).split("\x00", 1)[0]
+                    fwdname = self.readAtRva(funcoff, 260, shortok=True).split(b"\x00", 1)[0]
                     self.forwarders.append((funclist[ord], name, fwdname))
                 else:
                     self.exports.append((funclist[ord], ord, name))

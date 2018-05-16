@@ -8,7 +8,8 @@ def evaluate(pycode, locals):
     try:
         return eval(pycode, {}, locals)
     except Exception as e:
-        traceback.print_exc()
+        print("Cannot evaluate ", pycode)
+        # traceback.print_exc()
 
 
 class ExpressionLocals(dict):

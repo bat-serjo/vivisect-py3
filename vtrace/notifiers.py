@@ -16,7 +16,7 @@ import vtrace
 import traceback
 
 
-class Notifier(object):
+class Notifier:
     """
     The top level example notifier...  Anything which registers
     itself for trace events or tracegroup events should implement

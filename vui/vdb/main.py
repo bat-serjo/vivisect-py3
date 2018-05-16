@@ -1,4 +1,8 @@
+import io
+import sys
+import time
 import cmd
+import threading
 import collections
 
 import envi.cli
@@ -178,7 +182,13 @@ class VdbToolBar(vui.qtrace.VQTraceToolBar):
 class VdbWindow(vq_app.VQMainCmdWindow):
     __cli_widget_class__ = VdbCmdWidget
 
-    def __init__(self, db):
+    def __init__(self, db: vdb.Vdb):
+        # all stdout, err output
+        self._py_out = io.StringIO()
+        self._py_err = io.StringIO()
+        self._py_old_out = sys.stdout
+        self._py_old_err = sys.stderr
+
         # Gui constructor needs these set...
         self._db = db
         self._db_t = vdb.VdbTrace(db)
@@ -221,6 +231,41 @@ class VdbWindow(vq_app.VQMainCmdWindow):
 
         vqtconnect(self.buildMemoryWindow, 'vdb:view:memory')
         vqtconnect(self.buildMemWriteWindow, 'vdb:view:writemem')
+
+        self._quit = False
+        self._o_thread = None
+        self._startPyOutputMonitoring()
+
+    def _outputMonitor(self):
+        while self._quit is False:
+            time.sleep(0.100)
+
+            # we can't be atomic because StringIO is not
+            # data can be lost in very rare cases.
+            _o = self._py_out.getvalue()
+            self._py_out.truncate(0)
+            self._py_out.seek(0)
+
+            _e = self._py_err.getvalue()
+            self._py_err.truncate(0)
+            self._py_err.seek(0)
+
+            if _o != _e != '':
+                self._outputVPrint(_o)
+                self._outputVPrint(_e)
+                self._py_old_err.write(_e)
+
+    def _startPyOutputMonitoring(self):
+        # redirect all stdout, err output to the gui
+        sys.stdout = self._py_out
+        sys.stderr = self._py_err
+
+        self._o_thread = threading.Thread(target=self._outputMonitor, name="Output monitor")
+        self._o_thread.start()
+
+    @idlethread
+    def _outputVPrint(self, *args):
+        self._db.vprint(*args)
 
     def vdbUIEvent(self, event, einfo):
         vqtevent(event, einfo)
@@ -301,7 +346,7 @@ class VdbWindow(vq_app.VQMainCmdWindow):
         self.vqAddDockWidgetClass(vui.qtrace.VQMemoryMapView, args=(self._db_t, self))
         self.vqAddDockWidgetClass(vui.qtrace.VQFileDescView, args=(self._db_t, self))
         self.vqAddDockWidgetClass(vui.vdb.threads.VdbThreadsWindow, args=(self._db, self._db_t,))
-        self.vqAddDockWidgetClass(vqt.qpython.VQPythonView, args=(self._db.getExpressionLocals(),))
+        self.vqAddDockWidgetClass(vqt.qpython.VQPythonView, args=(self._db, self._db.getExpressionLocals(),))
 
         self.vqAddDockWidgetClass(vui.vdb.registers.VdbRegistersWindow, args=(self._db, self._db_t))
         self.vqAddDockWidgetClass(vui.vdb.memwrite.VdbMemWriteWindow, args=(self._db, self._db_t,))
@@ -377,7 +422,7 @@ class VdbWindow(vq_app.VQMainCmdWindow):
         self.vqClearDockWidgets()
 
     def menuFileOpen(self, *args, **kwargs):
-        fname = str(QtWidgets.QFileDialog.getOpenFileName(parent=self, caption='File to execute and attach to'))
+        fname = QtWidgets.QFileDialog.getOpenFileName(parent=self, caption='File to execute and attach to')[0]
         if fname != '':
             self._vq_cli.onecmd('exec "%s"' % fname)
 
@@ -385,6 +430,9 @@ class VdbWindow(vq_app.VQMainCmdWindow):
         self.close()
 
     def closeEvent(self, event):
+        sys.stdout = self._py_old_out
+        sys.stderr = self._py_old_err
+
         try:
             t = self._db.trace
 
@@ -402,5 +450,19 @@ class VdbWindow(vq_app.VQMainCmdWindow):
         except Exception as e:
             traceback.print_exc()
             print(('Error Detaching: %s' % e))
+
+        # try to close all pending threads
+        self._quit = True  # including us
+        c = currentThread()
+
+        for t in threading.enumerate():
+            if t == c:
+                continue
+            print(t, t.name)
+            try:
+                t.stop()
+                t.join(1000)
+            except:
+                print(traceback.format_exc())
 
         return vq_app.VQMainCmdWindow.closeEvent(self, event)

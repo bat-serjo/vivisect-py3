@@ -198,7 +198,7 @@ class RegistersView(QtWidgets.QWidget):
 
         vbox.addWidget(self.viewnames)
 
-        # show general in dropdown by default if exists, otherwise all
+        # show general in drop down by default if exists, otherwise all
         # (preferences will re-set)
         if 'general' in self.regviews:
             self.regViewNameSelected('general')
@@ -218,9 +218,12 @@ class RegistersView(QtWidgets.QWidget):
         splitview.addWidget(statusreg_widget)
         vbox.addWidget(splitview)
 
-        self.viewnames.currentIndexChanged.connect(self.regViewNameSelected)
+        self.viewnames.currentIndexChanged.connect(self._newIndex)
 
-        self.setLayout(vbox)
+        # self.setLayout(vbox)
+
+    def _newIndex(self, *args):
+        self.regViewNameSelected(self.viewnames.currentText())
 
     def regViewNameSelected(self, name):
         self.reglist.regnames = self.regviews.get(str(name), None)
@@ -374,7 +377,7 @@ class FileDescModel(vq_tree.VQTreeModel):
     columns = ('Fd', 'Type', 'Name')
 
 
-class VQFileDescView(vq_tree.VQTreeView, VQTraceNotifier):
+class VQFileDescView(VQTraceNotifier, vq_tree.VQTreeView):
     def __init__(self, trace, parent=None):
         VQTraceNotifier.__init__(self, trace)
         vq_tree.VQTreeView.__init__(self, parent=parent)

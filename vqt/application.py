@@ -67,8 +67,7 @@ class VQDockWidget(vq_hotkeys.HotKeyMixin, QtWidgets.QDockWidget):
 
 
 class VQMainCmdWindow(QtWidgets.QMainWindow, vq_hotkeys.HotKeyMixin):
-    """
-    A base class for application window's to inherit from.
+    """ A base class for application window's to inherit from.
     """
 
     __cli_widget_class__ = vq_cli.VQCli
@@ -116,7 +115,7 @@ class VQMainCmdWindow(QtWidgets.QMainWindow, vq_hotkeys.HotKeyMixin):
     def vqBuildDockWidget(self, clsname, floating=False, area=QtCore.Qt.TopDockWidgetArea):
         res = self._dock_classes.get(clsname)
         if res is None:
-            print(('vqBuildDockWidget Failed For: %s' % clsname))
+            print('vqBuildDockWidget Failed For: %s' % clsname)
             return
         cls, args = res
         obj = cls(*args)

@@ -1,4 +1,4 @@
-from PyQt5 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 import envi.cli as e_cli
 import envi.memcanvas
@@ -27,7 +27,7 @@ class VQMemoryMapView(vq_tree.VQTreeView):
         self.setWindowTitle('Memory Maps')
 
     def buildContextMenu(self, va, size):
-        menu = QtGui.QMenu()
+        menu = QtWidgets.QMenu()
         menu.addAction('Copy Bytes To Clipboard', ACT(self.menuCopyBytesToClipboard, va, size))
         menu.addAction('Save Bytes To File', ACT(self.menuSaveBytesToFile, va, size))
         menu.addAction('Search Selected Memory Map', ACT(self.menuSearchMaps, va, size, allmaps=False))

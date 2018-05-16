@@ -539,7 +539,7 @@ class DynadagLayout(vg_layout.GraphLayout):
                      (x2, y2),
                      ]
 
-            bez_lines = vg_bezier.calculate_bezier(b, 20)
+            # bez_lines = vg_bezier.calculate_bezier(b, 20)
 
-            einfo['edge_points'] = pre_lines + bez_lines + post_lines
+            einfo['edge_points'] = pre_lines + b + post_lines
             # einfo['edge_points'] = bez_lines

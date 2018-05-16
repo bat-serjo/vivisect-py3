@@ -97,7 +97,7 @@ def main():
         print('Loading process snapshot...')
         trace = vt_snap.loadSnapshot(args.snapshot)
 
-    if trace == None:
+    if trace is None:
         trace = vtrace.getTrace(target=args.target, **platargs)
 
     db = vdb.Vdb(trace)
@@ -120,6 +120,7 @@ def main():
         import vqt.main as vq_main
         import vui.vdb.main as vdb_q_main
         import vqt.colors as vq_colors
+
         vq_main.startup(css=vq_colors.qt_matrix)
         qgui = vdb_q_main.VdbWindow(db)
         qgui.show()

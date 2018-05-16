@@ -1,6 +1,6 @@
 import string
 
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets, QtCore, QtGui
 
 
 import envi.const
@@ -53,7 +53,7 @@ class MemSearchDialog(QtWidgets.QDialog):
         vbox_hex_label.addWidget(hex_label, alignment=QtCore.Qt.AlignTop)
         self.hex_edit = QtWidgets.QPlainTextEdit()
         self.hex_edit.setReadOnly(True)
-        font = QtWidgets.QFont('Courier')  # should use actual memcanvas.
+        font = QtGui.QFont('Courier')  # should use actual memcanvas.
         self.hex_edit.setFont(font)
         hbox3.addLayout(vbox_hex_label)
         hbox3.addWidget(self.hex_edit)
@@ -145,7 +145,7 @@ class MemSearchDialog(QtWidgets.QDialog):
         self.hex_edit.setPlainText(str(self.canvas))
 
     def showSaveAsDialog(self):
-        fname = str(QtWidgets.QFileDialog.getSaveFileName(caption='Select file to save results to'))
+        fname = QtWidgets.QFileDialog.getSaveFileName(caption='Select file to save results to')[0]
         self.fname_label.setText(fname)
 
     def cancelClicked(self):

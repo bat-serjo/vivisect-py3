@@ -1,8 +1,10 @@
 import os
+import traceback
 from io import StringIO
 
 import vivisect
 import vparsers as v_parsers
+
 from vivisect.const import *
 from vparsers import Elf
 
@@ -50,10 +52,13 @@ def makeStringTable(vw, va, maxva):
 def makeSymbolTable(vw, va, maxva):
     ret = []
     sname = 'elf.Elf%dSymbol' % (vw.getPointerSize() * 8)
-    while va < maxva:
-        s = vw.makeStructure(va, sname)
-        ret.append(s)
-        va += len(s)
+    try:
+        while va < maxva:
+            s = vw.makeStructure(va, sname)
+            ret.append(s)
+            va += len(s)
+    except Exception as e:
+        print(traceback.format_exc())
     return ret
 
 
