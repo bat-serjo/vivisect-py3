@@ -1,41 +1,44 @@
-
 import vstruct
 from vstruct.primitives import *
 
-GIF_F_HAS_CMAP  = 0x80
-GIF_F_BPP_MASK  = 0x07
+GIF_F_HAS_CMAP = 0x80
+GIF_F_BPP_MASK = 0x07
 
-GIF_IMG_SEP     = ','
+GIF_IMG_SEP = ','
+
 
 class GIF_FILE_HEADER(vstruct.VStruct):
 
     def __init__(self):
         vstruct.VStruct.__init__(self)
-        self.magic      = v_bytes(size=6)
-        self.width      = v_uint16()
-        self.height     = v_uint16()
-        self.flags      = v_uint8()
-        self.bgcolor    = v_uint8()
-        self.zero       = v_uint8()
+        self.magic = v_bytes(size=6)
+        self.width = v_uint16()
+        self.height = v_uint16()
+        self.flags = v_uint8()
+        self.bgcolor = v_uint8()
+        self.zero = v_uint8()
+
 
 class RGB(vstruct.VStruct):
 
     def __init__(self):
         vstruct.VStruct.__init__(self)
-        self.red    = v_uint8()
-        self.green  = v_uint8()
-        self.blue   = v_uint8()
+        self.red = v_uint8()
+        self.green = v_uint8()
+        self.blue = v_uint8()
+
 
 class GIF_IMAGE_DESCRIPTOR(vstruct.VStruct):
 
     def __init__(self):
         vstruct.VStruct.__init__(self)
-        self.sep        = v_uint8()
-        self.img_left   = v_uint16()
-        self.img_top    = v_uint16()
-        self.img_width  = v_uint16()
+        self.sep = v_uint8()
+        self.img_left = v_uint16()
+        self.img_top = v_uint16()
+        self.img_width = v_uint16()
         self.img_height = v_uint16()
-        self.flags      = v_uing8()
+        self.flags = v_uint8()
+
 
 class GIF8XA(vstruct.VStruct):
 
@@ -50,7 +53,6 @@ class GIF8XA(vstruct.VStruct):
 
     def vsParse(self, bytes, offset):
 
-
         # FIXME this is not functional yet...
 
         self.vsClearFields()
@@ -61,7 +63,7 @@ class GIF8XA(vstruct.VStruct):
         if self.header.flags & GIF_F_HAS_CMAP:
             bits_per_pixel = (self.header.flags & GIF_F_BPP_MASK) + 1
             self.gct = vstruct.VStruct()
-            for i in range(2**bits_per_pixel):
+            for i in range(2 ** bits_per_pixel):
                 self.gct.vsAddField('color%d' % i, RGB())
 
             offset = self.gct.vsParse(bytes, offset)
@@ -79,8 +81,7 @@ class GIF8XA(vstruct.VStruct):
                 bits_per_pixel = (img.descriptor.flags & GIF_F_BPP_MASK) + 1
                 img.cmap = vstruct.VStruct()
 
-                for i in range(2**bits_per_pixel):
+                for i in range(2 ** bits_per_pixel):
                     img.cmap.vsAddField('color%d' % i, RGB())
 
                 offset = img.cmap.vsParse(bytes, offset)
-

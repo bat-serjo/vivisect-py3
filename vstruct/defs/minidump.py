@@ -3,6 +3,7 @@ import logging
 import vstruct
 from vstruct.primitives import *
 
+
 class MiniDumpString(vstruct.VStruct):
     def __init__(self):
         vstruct.VStruct.__init__(self)
@@ -10,6 +11,7 @@ class MiniDumpString(vstruct.VStruct):
 
     def pcb_Length(self):
         self.Buffer = v_zwstr()
+
 
 class VS_FixedFileInfo(vstruct.VStruct):
     def __init__(self):
@@ -28,11 +30,13 @@ class VS_FixedFileInfo(vstruct.VStruct):
         self.FileDateMS = v_uint32()
         self.FileDateLS = v_uint32()
 
+
 class MiniDumpLocationDescriptor(vstruct.VStruct):
     def __init__(self):
         vstruct.VStruct.__init__(self)
         self.DataSize = v_uint32()
         self.RVA = v_uint32()
+
 
 class MiniDumpMemoryDescriptor(vstruct.VStruct):
     def __init__(self):
@@ -40,29 +44,35 @@ class MiniDumpMemoryDescriptor(vstruct.VStruct):
         self.StartOfMemoryPage = v_uint64()
         self.Memory = MiniDumpLocationDescriptor()
 
+
 class MiniDumpMemoryDescriptor64(vstruct.VStruct):
     def __init__(self):
         vstruct.VStruct.__init__(self)
         self.StartOfMemoryRange = v_uint64()
         self.DataSize = v_uint64()
 
+
 class MiniDumpLastReservedStream(vstruct.VStruct):
-    '''
+    """
     Stream Type: 0xffff
         LastReservedStream
-    '''
+    """
+
     def __init__(self):
         vstruct.VStruct.__init__(self)
 
+
 class MiniDumpJavaScriptDataStream(vstruct.VStruct):
-    '''
+    """
     Stream Type 20:
         JavaScriptDataStream
         Defined in DbgHelp.h _MINIDUMP_STREAM_TYPE struct, no other reference
-    '''
+    """
+
     # TODO: not implemented
     def __init__(self):
         vstruct.VStruct.__init__(self)
+
 
 class MiniDumpTokenInfoHeader(vstruct.VStruct):
     def __init__(self):
@@ -78,11 +88,13 @@ class MiniDumpTokenInfoHeader(vstruct.VStruct):
 
         self.Token = v_bytes(self.TokenSize - len(MiniDumpTokenInfoHeader()))
 
+
 class MiniDumpTokenInfoListStream(vstruct.VStruct):
-    '''
+    """
     Stream Type 19:
         TokenStream
-    '''
+    """
+
     def __init__(self):
         vstruct.VStruct.__init__(self)
         self.TokenListSize = v_uint32()
@@ -93,7 +105,9 @@ class MiniDumpTokenInfoListStream(vstruct.VStruct):
     def pcb_ElementHeaderSize(self):
         self.Entries = vstruct.VArray([MiniDumpTokenInfoHeader() for i in range(self.TokenListEntries)])
 
+
 AVRF_MAX_TRACES = 32
+
 
 class AvrfBacktraceInformation(vstruct.VStruct):
     def __init__(self):
@@ -101,6 +115,7 @@ class AvrfBacktraceInformation(vstruct.VStruct):
         self.Depth = v_uint32()
         self.Index = v_uint32()
         self.ReturnAddresses = vstruct.VArray([v_uint64() for i in range(AVRF_MAX_TRACES)])
+
 
 class AvrfHandleOperationList(vstruct.VStruct):
     def __init__(self):
@@ -112,11 +127,13 @@ class AvrfHandleOperationList(vstruct.VStruct):
         self.Spare0 = v_uint32()
         self.BackTraceInformation = AvrfBacktraceInformation()
 
+
 class MiniDumpHandleOperationListStream(vstruct.VStruct):
-    '''
+    """
     Stream Type 18:
         HandleOperationListStream
-    '''
+    """
+
     def __init__(self):
         vstruct.VStruct.__init__(self)
         self.SizeOfHeader = v_uint32()
@@ -126,6 +143,7 @@ class MiniDumpHandleOperationListStream(vstruct.VStruct):
 
     def pcb_Reserved(self):
         self.Entries = vstruct.VArray([AvrfHandleOperationList() for i in range(self.NumberOfEntries)])
+
 
 class MiniDumpThreadInfo(vstruct.VStruct):
     def __init__(self):
@@ -141,11 +159,13 @@ class MiniDumpThreadInfo(vstruct.VStruct):
         self.StartAddress = v_uint64()
         self.Affinity = v_uint64()
 
+
 class MiniDumpThreadInfoListStream(vstruct.VStruct):
-    '''
+    """
     Stream Type 17:
         ThreadInfoListStream
-    '''
+    """
+
     def __init__(self):
         vstruct.VStruct.__init__(self)
         self.SizeOfHeader = v_uint32()
@@ -154,6 +174,7 @@ class MiniDumpThreadInfoListStream(vstruct.VStruct):
 
     def pcb_NumberOfEntries(self):
         self.ThreadInfo = vstruct.VArray([MiniDumpThreadInfo() for i in range(self.NumberOfEntries)])
+
 
 class MiniDumpMemoryInfo(vstruct.VStruct):
     def __init__(self):
@@ -168,19 +189,22 @@ class MiniDumpMemoryInfo(vstruct.VStruct):
         self.Type = v_uint32()
         self.__alignment2 = v_uint32()
 
+
 class MiniDumpMemoryInfoListStream(vstruct.VStruct):
-    '''
+    """
     Stream Type 16:
         MemoryInfoListStream
-    '''
+    """
+
     def __init__(self):
         vstruct.VStruct.__init__(self)
-        self.SizeOfHeader       = v_uint32()
-        self.SizeOfEntry        = v_uint32()
-        self.NumberOfEntries    = v_uint64()
+        self.SizeOfHeader = v_uint32()
+        self.SizeOfEntry = v_uint32()
+        self.NumberOfEntries = v_uint64()
 
     def pcb_NumberOfEntries(self):
-        self.Entries            = vstruct.VArray([MiniDumpMemoryInfo() for i in range(self.NumberOfEntries)])
+        self.Entries = vstruct.VArray([MiniDumpMemoryInfo() for i in range(self.NumberOfEntries)])
+
 
 class MiniDumpMiscInfo2Stream(vstruct.VStruct):
     def __init__(self):
@@ -197,11 +221,13 @@ class MiniDumpMiscInfo2Stream(vstruct.VStruct):
         self.ProcessorMaxIdleState = v_uint32()
         self.ProcessorCurrentIdleState = v_uint32()
 
+
 class MiniDumpMiscInfoStream(vstruct.VStruct):
-    '''
+    """
     Stream Type 15:
         MiscInfoStream
-    '''
+    """
+
     def __init__(self):
         vstruct.VStruct.__init__(self)
         self.SizeOfInfo = v_uint32()
@@ -210,6 +236,7 @@ class MiniDumpMiscInfoStream(vstruct.VStruct):
         self.ProcessCreateTime = v_uint32()
         self.ProcessUserTime = v_uint32()
         self.ProcessKernelTime = v_uint32()
+
 
 class MiniDumpUnloadedModule(vstruct.VStruct):
     def __init__(self):
@@ -221,11 +248,13 @@ class MiniDumpUnloadedModule(vstruct.VStruct):
         # TODO: RVA to MINIDUMP_STRING
         self.ModuleNameRVA = v_uint32()
 
+
 class MiniDumpUnloadedModuleListStream(vstruct.VStruct):
-    '''
+    """
     Stream Type 14:
         UnloadedModuleListStream
-    '''
+    """
+
     def __init__(self):
         vstruct.VStruct.__init__(self)
         self.SizeOfHeader = v_uint32()
@@ -234,6 +263,7 @@ class MiniDumpUnloadedModuleListStream(vstruct.VStruct):
 
     def pcb_NumberOfEntries(self):
         self.Entries = vstruct.VArray([MiniDumpUnloadedModule() for i in range(self.NumberOfEntries)])
+
 
 class MiniDumpFunctionTableDescriptor(vstruct.VStruct):
     def __init__(self):
@@ -246,11 +276,13 @@ class MiniDumpFunctionTableDescriptor(vstruct.VStruct):
 
     # TODO: unfinished
 
+
 class MiniDumpFunctionTableStream(vstruct.VStruct):
-    '''
+    """
     Stream Type 13:
         FunctionTableStream
-    '''
+    """
+
     def __init__(self):
         vstruct.VStruct.__init__(self)
         self.SizeOfHeader = v_uint32()
@@ -263,6 +295,7 @@ class MiniDumpFunctionTableStream(vstruct.VStruct):
     def pcb_SizeOfAlignPad(self):
         self.Padding = v_bytes(self.SizeOfAlignPad)
 
+
 class MiniDumpHandleObjectInformation(vstruct.VStruct):
     def __init__(self):
         vstruct.VStruct.__init__(self)
@@ -272,6 +305,7 @@ class MiniDumpHandleObjectInformation(vstruct.VStruct):
 
     def pcb_SizeOfInfo(self):
         self.Information = v_bytes(self.SizeOfInfo)
+
 
 class MiniDumpHandleDescriptor2(vstruct.VStruct):
     def __init__(self):
@@ -289,6 +323,7 @@ class MiniDumpHandleDescriptor2(vstruct.VStruct):
         self.ObjectInfoRva = v_uint32()
         self.Reserved0 = v_uint32()
 
+
 class MiniDumpHandleDescriptor(vstruct.VStruct):
     def __init__(self):
         vstruct.VStruct.__init__(self)
@@ -302,11 +337,13 @@ class MiniDumpHandleDescriptor(vstruct.VStruct):
         self.HandleCount = v_uint32()
         self.PointerCount = v_uint32()
 
+
 class MiniDumpHandleDataStream(vstruct.VStruct):
-    '''
+    """
     Stream Type 12:
         HandleDataStream
-    '''
+    """
+
     def __init__(self):
         vstruct.VStruct.__init__(self)
         self.SizeOfHeader = v_uint32()
@@ -315,43 +352,50 @@ class MiniDumpHandleDataStream(vstruct.VStruct):
         self.Reserved = v_uint32()
 
     def pcb_Reserved(self):
-        if self.SizeOfDescriptor == 32:     # Handle Descriptor
+        if self.SizeOfDescriptor == 32:  # Handle Descriptor
             self.Descriptors = vstruct.VArray([MiniDumpHandleDescriptor() for i in range(self.NumberOfDescriptors)])
-        elif self.SizeOfDescriptor == 40:   # Handle Descriptor 2
+        elif self.SizeOfDescriptor == 40:  # Handle Descriptor 2
             self.Descriptors = vstruct.VArray([MiniDumpHandleDescriptor2() for i in range(self.NumberOfDescriptors)])
-        else:                               # Handle Descriptor Unknown
+        else:  # Handle Descriptor Unknown
             raise Exception('unknown Handle Descriptor version')
 
+
 class MiniDumpCommentStreamW(vstruct.VStruct):
-    '''
+    """
     Stream Type 11:
         CommentStreamW
-    '''
+    """
+
     def __init__(self):
         vstruct.VStruct.__init__(self)
         self.CommentW = v_zwstr()
 
+
 class MiniDumpCommentStreamA(vstruct.VStruct):
-    '''
+    """
     Stream Type 10:
         CommentStreamA
-    '''
+    """
+
     def __init__(self):
         vstruct.VStruct.__init__(self)
         self.CommentA = v_zstr()
 
+
 class MiniDumpMemory64ListStream(vstruct.VStruct):
-    '''
+    """
     Stream Type 9:
         MemoryList64Stream
-    '''
+    """
+
     def __init__(self):
         vstruct.VStruct.__init__(self)
         self.NumberOfMemoryRanges = v_uint64()
         self.BaseRva = v_uint64()
 
     def pcb_BaseRva(self):
-        self.MemoryRanges =  vstruct.VArray([MiniDumpMemoryDescriptor64() for i in range(self.NumberOfMemoryRanges)])
+        self.MemoryRanges = vstruct.VArray([MiniDumpMemoryDescriptor64() for i in range(self.NumberOfMemoryRanges)])
+
 
 class MiniDumpThreadEx(vstruct.VStruct):
     def __init__(self):
@@ -365,11 +409,13 @@ class MiniDumpThreadEx(vstruct.VStruct):
         self.ThreadContext = MiniDumpLocationDescriptor()
         self.BackingStore = MiniDumpMemoryDescriptor()
 
+
 class MiniDumpThreadExListStream(vstruct.VStruct):
-    '''
+    """
     Stream Type 8:
         ThreadExListStream
-    '''
+    """
+
     def __init__(self):
         vstruct.VStruct.__init__(self)
         self.NumberOfThreads = v_uint32()
@@ -377,11 +423,13 @@ class MiniDumpThreadExListStream(vstruct.VStruct):
     def pcb_NumberOfThread(self):
         self.Threads = vstruct.VArray([MiniDumpThreadEx() for i in range(self.NumberOfThreads)])
 
+
 class MiniDumpSystemInfoStream(vstruct.VStruct):
-    '''
+    """
     Stream Type 7:
         SystemInfoStream
-    '''
+    """
+
     def __init__(self):
         vstruct.VStruct.__init__(self)
         self.ProcessorArchitecture = v_uint16()
@@ -401,7 +449,9 @@ class MiniDumpSystemInfoStream(vstruct.VStruct):
         self.CpuInfo5 = v_uint32()
         self.CpuInfo6 = v_uint32()
 
+
 EXCEPTION_MAXIMUM_PARAMETERS = 15
+
 
 class MiniDumpException(vstruct.VStruct):
     def __init__(self):
@@ -414,11 +464,13 @@ class MiniDumpException(vstruct.VStruct):
         self.__unusedAlignment = v_uint32()
         self.ExecptionInformation = vstruct.VArray([v_uint64() for i in range(EXCEPTION_MAXIMUM_PARAMETERS)])
 
+
 class MiniDumpExceptionStream(vstruct.VStruct):
-    '''
+    """
     Stream Type 6:
         ExceptionStream
-    '''
+    """
+
     def __init__(self):
         vstruct.VStruct.__init__(self)
         self.ThreadId = v_uint32()
@@ -426,17 +478,20 @@ class MiniDumpExceptionStream(vstruct.VStruct):
         self.ExceptionRecored = MiniDumpException()
         self.ThreadContext = MiniDumpLocationDescriptor()
 
+
 class MiniDumpMemoryListStream(vstruct.VStruct):
-    '''
+    """
     Stream Type 5
         MemoryListStream
-    '''
+    """
+
     def __init__(self):
         vstruct.VStruct.__init__(self)
         self.NumberOfMemoryRanges = v_uint32()
 
     def pcb_NumberOfMemoryRanges(self):
         self.MemoryRanges = vstruct.VArray([MiniDumpMemoryDescriptor() for i in range(self.NumberOfMemoryRanges)])
+
 
 class MiniDumpModule(vstruct.VStruct):
     def __init__(self):
@@ -453,17 +508,20 @@ class MiniDumpModule(vstruct.VStruct):
         self.Reserved1 = v_uint64()
         self.Reserved2 = v_uint64()
 
+
 class MiniDumpModuleListStream(vstruct.VStruct):
-    '''
+    """
     Stream Type 4
         ModuleListStream
-    '''
+    """
+
     def __init__(self):
         vstruct.VStruct.__init__(self)
         self.NumberOfModules = v_uint32()
 
     def pcb_NumberOfModules(self):
         self.Modules = vstruct.VArray([MiniDumpModule() for i in range(self.NumberOfModules)])
+
 
 class MiniDumpThread(vstruct.VStruct):
     def __init__(self):
@@ -476,45 +534,55 @@ class MiniDumpThread(vstruct.VStruct):
         self.Stack = MiniDumpMemoryDescriptor()
         self.ThreadContext = MiniDumpLocationDescriptor()
 
+
 class MiniDumpThreadListStream(vstruct.VStruct):
-    '''
+    """
     Stream Type 3:
         ThreadListStream
-    '''
+    """
+
     def __init__(self):
         vstruct.VStruct.__init__(self)
         self.NumberOfThreads = v_uint32()
         self.Threads = MiniDumpThread()
 
+
 class MiniDumpReservedStream1(vstruct.VStruct):
-    '''
+    """
     Stream Type 2:
         ReservedStream1 - Reserved, do not use this value
-    '''
+    """
+
     def __init__(self):
         vstruct.VStruct.__init__(self)
+
 
 class MiniDumpReservedStream0(vstruct.VStruct):
-    '''
+    """
     Stream Type 1:
         ReservedStream0 - Reserved, do not use this value
-    '''
+    """
+
     def __init__(self):
         vstruct.VStruct.__init__(self)
 
+
 class MiniDumpUnusedStream(vstruct.VStruct):
-    '''
+    """
     Stream Type 0:
         UnusedStream - Reserved, do not use this value
-    '''
+    """
+
     def __init__(self):
         vstruct.VStruct.__init__(self)
+
 
 class MiniDumpDirectory(vstruct.VStruct):
     def __init__(self):
         vstruct.VStruct.__init__(self)
         self.StreamType = v_uint32()
         self.Location = MiniDumpLocationDescriptor()
+
 
 class MiniDumpHeader(vstruct.VStruct):
     def __init__(self):
@@ -530,29 +598,31 @@ class MiniDumpHeader(vstruct.VStruct):
     def pcb_Flags(self):
         self.Directory = vstruct.VArray([MiniDumpDirectory() for i in range(self.NumberOfStreams)])
 
-streamsDict = { 0: MiniDumpUnusedStream,
-                1: MiniDumpReservedStream0,
-                2: MiniDumpReservedStream1,
-                3: MiniDumpThreadListStream,
-                4: MiniDumpModuleListStream,
-                5: MiniDumpMemoryListStream,
-                6: MiniDumpExceptionStream,
-                7: MiniDumpSystemInfoStream,
-                8: MiniDumpThreadExListStream,
-                9: MiniDumpMemory64ListStream,
-                10: MiniDumpCommentStreamA,
-                11: MiniDumpCommentStreamW,
-                12: MiniDumpHandleDataStream,
-                13: MiniDumpFunctionTableStream,
-                14: MiniDumpUnloadedModuleListStream,
-                15: MiniDumpMiscInfoStream,
-                16: MiniDumpMemoryInfoListStream,
-                17: MiniDumpThreadInfoListStream,
-                18: MiniDumpHandleOperationListStream,
-                19: MiniDumpTokenInfoListStream,
-                20: MiniDumpJavaScriptDataStream,
-                0xFFFF: MiniDumpLastReservedStream,
-            }
+
+streamsDict = {0: MiniDumpUnusedStream,
+               1: MiniDumpReservedStream0,
+               2: MiniDumpReservedStream1,
+               3: MiniDumpThreadListStream,
+               4: MiniDumpModuleListStream,
+               5: MiniDumpMemoryListStream,
+               6: MiniDumpExceptionStream,
+               7: MiniDumpSystemInfoStream,
+               8: MiniDumpThreadExListStream,
+               9: MiniDumpMemory64ListStream,
+               10: MiniDumpCommentStreamA,
+               11: MiniDumpCommentStreamW,
+               12: MiniDumpHandleDataStream,
+               13: MiniDumpFunctionTableStream,
+               14: MiniDumpUnloadedModuleListStream,
+               15: MiniDumpMiscInfoStream,
+               16: MiniDumpMemoryInfoListStream,
+               17: MiniDumpThreadInfoListStream,
+               18: MiniDumpHandleOperationListStream,
+               19: MiniDumpTokenInfoListStream,
+               20: MiniDumpJavaScriptDataStream,
+               0xFFFF: MiniDumpLastReservedStream,
+               }
+
 
 class MiniDump(object):
     def __init__(self, bytez):
@@ -597,7 +667,7 @@ class MiniDump(object):
             raise Exception('MiniDumpMemoryInfoListStream does not exist. Dump file may not include full memory dump.')
 
         for idx, entry in self.MiniDumpMemoryInfoListStream.Entries:
-            mname =  self.getModuleNameByAddr(entry.AllocationBase)
+            mname = self.getModuleNameByAddr(entry.AllocationBase)
             if mname == None:
                 mname = 'Module Name Not Found'
 
@@ -612,12 +682,14 @@ class MiniDump(object):
         offset = self.MiniDumpMemory64ListStream.BaseRva
         for idx, mrange in self.MiniDumpMemory64ListStream.MemoryRanges:
             if addr == mrange.StartOfMemoryRange:
-                return self.bytez[offset:offset+size]
+                return self.bytez[offset:offset + size]
 
             offset += mrange.DataSize
 
+
 def parseFromBytes(bytez):
     return MiniDump(bytez)
+
 
 def parseFromFname(fname):
     with open(fname, 'rb') as f:

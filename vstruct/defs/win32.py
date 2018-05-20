@@ -1,4 +1,3 @@
-
 # FIXME this is named wrong!
 
 import vstruct
@@ -6,11 +5,13 @@ from vstruct.primitives import *
 
 MAX_PATH = 260
 
+
 class CLIENT_ID(vstruct.VStruct):
     def __init__(self):
         vstruct.VStruct.__init__(self)
         self.UniqueProcess = v_ptr32()
         self.UniqueThread = v_ptr32()
+
 
 class EXCEPTION_RECORD(vstruct.VStruct):
     def __init__(self):
@@ -21,11 +22,13 @@ class EXCEPTION_RECORD(vstruct.VStruct):
         self.ExceptionAddress = v_ptr32()
         self.NumberParameters = v_uint32()
 
+
 class EXCEPTION_REGISTRATION(vstruct.VStruct):
     def __init__(self):
         vstruct.VStruct.__init__(self)
         self.prev = v_ptr32()
         self.handler = v_ptr32()
+
 
 class HEAP(vstruct.VStruct):
     def __init__(self):
@@ -67,6 +70,7 @@ class HEAP(vstruct.VStruct):
         self.FrontEndHeapType = v_uint8()
         self.LastSegmentIndex = v_uint8()
 
+
 class HEAP_SEGMENT(vstruct.VStruct):
     def __init__(self):
         vstruct.VStruct.__init__(self)
@@ -86,6 +90,7 @@ class HEAP_SEGMENT(vstruct.VStruct):
         self.Reserved = v_uint16()
         self.LastEntryInSegment = v_ptr32()
 
+
 class HEAP_ENTRY(vstruct.VStruct):
     def __init__(self):
         vstruct.VStruct.__init__(self)
@@ -96,11 +101,13 @@ class HEAP_ENTRY(vstruct.VStruct):
         self.Unused = v_uint8()
         self.TagIndex = v_uint8()
 
+
 class ListEntry(vstruct.VStruct):
     def __init__(self):
         vstruct.VStruct.__init__(self)
         self.Flink = v_ptr32()
         self.Blink = v_ptr32()
+
 
 class NT_TIB(vstruct.VStruct):
     def __init__(self):
@@ -110,9 +117,10 @@ class NT_TIB(vstruct.VStruct):
         self.StackLimit = v_ptr32()
         self.SubSystemTib = v_ptr32()
         self.FiberData = v_ptr32()
-        #x.Version = v_ptr32() # This is a union field
+        # x.Version = v_ptr32() # This is a union field
         self.ArbitraryUserPtr = v_ptr32()
         self.Self = v_ptr32()
+
 
 class PEB(vstruct.VStruct):
     def __init__(self):
@@ -184,12 +192,14 @@ class PEB(vstruct.VStruct):
         self.SystemAssemblyStorageMap = v_ptr32()
         self.MinimumStackCommit = v_uint32()
 
+
 class SEH3_SCOPETABLE(vstruct.VStruct):
     def __init__(self):
         vstruct.VStruct.__init__(self)
         self.EnclosingLevel = v_int32()
         self.FilterFunction = v_ptr32()
         self.HandlerFunction = v_ptr32()
+
 
 class SEH4_SCOPETABLE(vstruct.VStruct):
     def __init__(self):
@@ -201,6 +211,7 @@ class SEH4_SCOPETABLE(vstruct.VStruct):
         self.EnclosingLevel = v_int32()
         self.FilterFunction = v_ptr32()
         self.HandlerFunction = v_ptr32()
+
 
 class TEB(vstruct.VStruct):
     def __init__(self):
@@ -221,15 +232,18 @@ class TEB(vstruct.VStruct):
         self.CurrentLocale = v_uint32()
         self.FpSoftwareStatusRegister = v_uint32()
 
+
 class CLSID(vstruct.VStruct):
     def __init__(self):
         vstruct.VStruct.__init__(self)
         self.uuid = GUID()
 
+
 class IID(vstruct.VStruct):
     def __init__(self):
         vstruct.VStruct.__init__(self)
         self.uuid = GUID()
+
 
 class SYSTEMTIME(vstruct.VStruct):
     def __init__(self):
@@ -244,13 +258,15 @@ class SYSTEMTIME(vstruct.VStruct):
         self.wMilliseconds = v_uint16()
 
     def __str__(self):
-        #no timezone info
-        return '%04d-%02d-%02d %02d:%02d:%02d.%d' % (self.wYear, self.wMonth, self.wDay, self.wHour, self.wMinute, self.wSecond, self.wMilliseconds)
+        # no timezone info
+        return '%04d-%02d-%02d %02d:%02d:%02d.%d' % (
+        self.wYear, self.wMonth, self.wDay, self.wHour, self.wMinute, self.wSecond, self.wMilliseconds)
+
 
 class OSVERSIONINFOEXA(vstruct.VStruct):
     def __init__(self):
         vstruct.VStruct.__init__(self)
-        self.dwOSVersionInfoSize    = v_uint32() 
+        self.dwOSVersionInfoSize    = v_uint32()
         self.dwMajorVersion         = v_uint32()
         self.dwMinorVersion         = v_uint32()
         self.dwBuildNumber          = v_uint32()
@@ -262,10 +278,11 @@ class OSVERSIONINFOEXA(vstruct.VStruct):
         self.wProductType           = v_uint8()
         self.wReserved              = v_uint8()
 
+
 class OSVERSIONINFOEXW(vstruct.VStruct):
     def __init__(self):
         vstruct.VStruct.__init__(self)
-        self.dwOSVersionInfoSize    = v_uint32() 
+        self.dwOSVersionInfoSize    = v_uint32()
         self.dwMajorVersion         = v_uint32()
         self.dwMinorVersion         = v_uint32()
         self.dwBuildNumber          = v_uint32()
@@ -276,6 +293,7 @@ class OSVERSIONINFOEXW(vstruct.VStruct):
         self.wSuiteMask             = v_uint16()
         self.wProductType           = v_uint8()
         self.wReserved              = v_uint8()
+
 
 class SERVICE_STATUS(vstruct.VStruct):
     def __init__(self):
@@ -288,6 +306,7 @@ class SERVICE_STATUS(vstruct.VStruct):
         self.dwCheckPoint           = v_uint32()
         self.dwWaitHint             = v_uint32()
 
+
 class KEY_EVENT_RECORD(vstruct.VStruct):
     def __init__(self):
         vstruct.VStruct.__init__(self)
@@ -297,6 +316,7 @@ class KEY_EVENT_RECORD(vstruct.VStruct):
         self.wVirtualScanCode       = v_uint16()
         self.unicodeChar            = v_uint16()
         self.dwControlKeyState      = v_uint32()
+
 
 class WIN32_FIND_DATAW(vstruct.VStruct):
     def __init__(self):
@@ -312,6 +332,7 @@ class WIN32_FIND_DATAW(vstruct.VStruct):
         self.cFileName              = v_wstr(MAX_PATH)
         self.cAlternateFileName     = v_wstr(14)
 
+
 class MIB_TCPROW(vstruct.VStruct):
     def __init__(self):
         vstruct.VStruct.__init__(self)
@@ -320,6 +341,7 @@ class MIB_TCPROW(vstruct.VStruct):
         self.dwLocalPort            = v_uint32()
         self.dwRemoteAddr           = v_uint32()
         self.dwRemotePort           = v_uint32()
+
 
 class MIB_UDPROW_OWNER_PID(vstruct.VStruct):
     def __init__(self):
@@ -434,20 +456,20 @@ REG_TYPE.REG_RESOURCE_REQUIREMENTS_LIST  = 10
 REG_TYPE.REG_QWORD                       = 11
 
 FILE_ATTRIBUTE = v_bitmask()
-FILE_ATTRIBUTE.READONLY             = 0x00000001  
-FILE_ATTRIBUTE.HIDDEN               = 0x00000002  
-FILE_ATTRIBUTE.SYSTEM               = 0x00000004  
-FILE_ATTRIBUTE.DIRECTORY            = 0x00000010  
-FILE_ATTRIBUTE.ARCHIVE              = 0x00000020  
-FILE_ATTRIBUTE.DEVICE               = 0x00000040  
-FILE_ATTRIBUTE.NORMAL               = 0x00000080  
-FILE_ATTRIBUTE.TEMPORARY            = 0x00000100  
-FILE_ATTRIBUTE.SPARSE_FILE          = 0x00000200  
-FILE_ATTRIBUTE.REPARSE_POINT        = 0x00000400  
-FILE_ATTRIBUTE.COMPRESSED           = 0x00000800  
-FILE_ATTRIBUTE.OFFLINE              = 0x00001000  
-FILE_ATTRIBUTE.NOT_CONTENT_INDEXED  = 0x00002000  
-FILE_ATTRIBUTE.ENCRYPTED            = 0x00004000  
+FILE_ATTRIBUTE.READONLY             = 0x00000001
+FILE_ATTRIBUTE.HIDDEN               = 0x00000002
+FILE_ATTRIBUTE.SYSTEM               = 0x00000004
+FILE_ATTRIBUTE.DIRECTORY            = 0x00000010
+FILE_ATTRIBUTE.ARCHIVE              = 0x00000020
+FILE_ATTRIBUTE.DEVICE               = 0x00000040
+FILE_ATTRIBUTE.NORMAL               = 0x00000080
+FILE_ATTRIBUTE.TEMPORARY            = 0x00000100
+FILE_ATTRIBUTE.SPARSE_FILE          = 0x00000200
+FILE_ATTRIBUTE.REPARSE_POINT        = 0x00000400
+FILE_ATTRIBUTE.COMPRESSED           = 0x00000800
+FILE_ATTRIBUTE.OFFLINE              = 0x00001000
+FILE_ATTRIBUTE.NOT_CONTENT_INDEXED  = 0x00002000
+FILE_ATTRIBUTE.ENCRYPTED            = 0x00004000
 #INVALID_FILE_ATTRIBUTES             = 0xffffffff
 
 WNET_RESOURCE_SCOPE = v_enum()
@@ -481,14 +503,14 @@ WNET_RESOURCEDISPLAYTYPE.TREE           = 0x0000000A
 WNET_RESOURCEDISPLAYTYPE.NDSCONTAINER   = 0x0000000B
 
 EXIT_WINDOWS = v_bitmask()
-EXIT_WINDOWS.HYBRID_SHUTDOWN  = 0x00400000 
-EXIT_WINDOWS.LOGOFF           = 0 
-EXIT_WINDOWS.POWEROFF         = 0x00000008 
-EXIT_WINDOWS.REBOOT           = 0x00000002 
-EXIT_WINDOWS.RESTARTAPPS      = 0x00000040 
-EXIT_WINDOWS.SHUTDOWN         = 0x00000001 
-EXIT_WINDOWS.FORCE            = 0x00000004 
-EXIT_WINDOWS.FORCEIFHUNG      = 0x00000010 
+EXIT_WINDOWS.HYBRID_SHUTDOWN  = 0x00400000
+EXIT_WINDOWS.LOGOFF           = 0
+EXIT_WINDOWS.POWEROFF         = 0x00000008
+EXIT_WINDOWS.REBOOT           = 0x00000002
+EXIT_WINDOWS.RESTARTAPPS      = 0x00000040
+EXIT_WINDOWS.SHUTDOWN         = 0x00000001
+EXIT_WINDOWS.FORCE            = 0x00000004
+EXIT_WINDOWS.FORCEIFHUNG      = 0x00000010
 
 WTS_CHANGE_EVENT = v_enum()
 WTS_CHANGE_EVENT.WTS_CONSOLE_CONNECT             = 0x1
@@ -700,7 +722,7 @@ VIRTUAL_KEY_CODE.VK_NONAME      = 0xfc
 VIRTUAL_KEY_CODE.VK_PA1         = 0xfd
 VIRTUAL_KEY_CODE.VK_OEM_CLEAR   = 0xfe
 
-#printable keys for US keyboard 
+#printable keys for US keyboard
 # tuples of (base, shift-modified)
 VIRTUAL_KEY_CODE_US_MAPPING = {
     VIRTUAL_KEY_CODE.VK_RETURN  : ('\n', '\n'),
@@ -754,4 +776,3 @@ VIRTUAL_KEY_CODE_US_MAPPING = {
     VIRTUAL_KEY_CODE.VK_Y       : ('y', 'Y'),
     VIRTUAL_KEY_CODE.VK_Z       : ('z', 'Z'),
 }
-

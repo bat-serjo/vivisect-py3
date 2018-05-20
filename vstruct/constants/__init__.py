@@ -16,7 +16,7 @@ class VSConstResolver:
 
             # First lets add the "reverse" lookup
             revs = self.rev_lookup.get(val)
-            if revs == None:
+            if revs is None:
                 revs = []
                 self.rev_lookup[val] = revs
             revs.append(name)
@@ -28,9 +28,9 @@ class VSConstResolver:
         return self.const_lookup.get(name)
 
     def revLookup(self, const):
-        '''
+        """
         Lookup the possible names of a constant based on
         modules added with constAddModule()
-        '''
+        """
         return self.rev_lookup.get(const)
 

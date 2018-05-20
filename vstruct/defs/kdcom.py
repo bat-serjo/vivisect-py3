@@ -184,6 +184,7 @@ ULONG = v_uint32
 ULONG64 = v_uint64
 BOOLEAN = v_uint32
 
+
 class DBGKD_LOAD_SYMBOLS64(vstruct.VStruct):
     def __init__(self):
         vstruct.VStruct.__init__(self)
@@ -195,6 +196,7 @@ class DBGKD_LOAD_SYMBOLS64(vstruct.VStruct):
         self.SizeOfImage = v_uint32()
         #self.UnloadSymbols = v_uint8()
         self.UnloadSymbols = v_uint32() # HACK must be 32 bit aligned
+
 
 class DBGKD_WAIT_STATE_CHANGE64(vstruct.VStruct):
     def __init__(self):

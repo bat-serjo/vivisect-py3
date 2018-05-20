@@ -1,5 +1,6 @@
 import os
 import sys
+import hashlib
 
 import vstruct
 from vstruct.primitives import *
@@ -26,11 +27,11 @@ def getRarOffset(fd):
 
     offset = head.find(RAR5_SIGNATURE)
     if offset != -1:
-        return ((5, 0, 0), offset + 8)
+        return (5, 0, 0), offset + 8
 
     offset = head.find(RAR4_SIGNATURE)
     if offset != -1:
-        return ((4, 0, 0), offset + 7)
+        return (4, 0, 0), offset + 7
 
     return None
 
@@ -251,8 +252,6 @@ class FILE_HEADER(Rar4Block):
     # self.BLOCK_DATA = v_bytes(totsize - hsize)
 
 
-import hashlib
-
 rounds = 0x40000
 roundsdiv = rounds / 16
 
@@ -332,13 +331,13 @@ class Rar:
         self.version = None
         self.mainhead = None
 
-        if fd != None:
+        if fd is not None:
             self.parseRarHeader(fd)
 
     def parseRarHeader(self, fd):
 
         veroff = getRarOffset(fd)
-        if veroff == None:
+        if veroff is None:
             raise MissingRarSig()
 
         self.fd = fd
@@ -353,15 +352,15 @@ class Rar:
             self.salt = self.fd.read(SIZE_SALT30)
 
     def _req_fd(self):
-        if self.fd == None:
+        if self.fd is None:
             raise NoRarFd()
 
     def tryFilePasswd(self, passwd):
-        '''
+        """
         Check the passwd agains the next encrypted header
         ( which should be of type FILE_HEAD )
-        '''
-        if self.trybuf == None:
+        """
+        if self.trybuf is None:
             curloc = self.fd.tell()
             self.trybuf = self.fd.read(16)
             self.fd.seek(curloc)
@@ -375,14 +374,14 @@ class Rar:
         return ctype == FILE_HEAD
 
     def setFilePasswd(self, passwd):
-        '''
+        """
         Used to set the file-wide password for decryption.
-        '''
+        """
         iv, key = initIvKey30(passwd, self.salt)
         self.aes = aesInit(iv, key)
 
     def read(self, size):
-        if self.aes == None:
+        if self.aes is None:
             return self.fd.read(size)
 
         while len(self.clearbuf) < size:
@@ -402,7 +401,7 @@ class Rar:
 
     def iterRar4Files(self):
 
-        if self.salt != None and self.aes == None:
+        if self.salt is not None and self.aes is None:
             raise PasswordRequired()
 
         while True:
@@ -420,12 +419,11 @@ class Rar:
             # print 'PAD',pad.encode('hex')
 
             cls = rar4blocks.get(rar4.HEAD_TYPE)
-            if cls != None:
+            if cls is not None:
                 rar4 = cls()
                 rar4.vsParse(hdr + body)
 
             print(rar4.tree())
-            import sys;
             sys.stdin.readline()
 
             # if ctype == MAIN_HEAD and cflags & MHD_PASSWORD:

@@ -1,6 +1,6 @@
-'''
+"""
 Datalink / Network / Transport layer headers
-'''
+"""
 import string
 import socket
 import struct
@@ -49,16 +49,20 @@ ICMP_ADDRESSREPLY     = 18
 
 GREPROTO_PPTP = 0x880b
 
+
 def reprIPv4Addr(addr):
     bytes = struct.pack('>I', addr)
     return socket.inet_ntoa(bytes)
+
 
 def decIPv4Addr(addrstr):
     bytes = socket.inet_aton(addrstr)
     return struct.unpack('>I', bytes)[0]
 
+
 def reprIPv6Addr(addr):
     return socket.inet_ntop(socket.AF_INET6, addr)
+
 
 class IPv4Address(v_uint32):
 
@@ -68,6 +72,7 @@ class IPv4Address(v_uint32):
     def __repr__(self):
         bytes = struct.pack('>I', self._vs_value)
         return socket.inet_ntop(socket.AF_INET, bytes)
+
 
 class IPv6Address(v_bytes):
 
@@ -83,6 +88,7 @@ class IPv6Address(v_bytes):
         if len(val) != self._vs_length:
             raise Exception('v_bytes field set to wrong length!')
         self._vs_value = val
+
 
 class ETHERII(vstruct.VStruct):
     def __init__(self):
@@ -102,11 +108,13 @@ class ETHERII(vstruct.VStruct):
             ret = vstruct.VStruct.vsParse(self, sbytes, offset=offset)
         return ret
 
+
 class ETHERIIVLAN(ETHERII):
     def __init__(self):
         ETHERII.__init__(self)
         self.vsInsertField('vtag', v_uint16(bigend=True), 'etype')
         self.vsInsertField('vlan', v_uint16(bigend=True), 'etype')
+
 
 class IPv4(vstruct.VStruct):
     def __init__(self):
@@ -128,6 +136,7 @@ class IPv4(vstruct.VStruct):
             return vstruct.VStruct.__len__(self)
         return (self.veriphl & 0x0f) * 4
 
+
 class IPv6(vstruct.VStruct):
     def __init__(self):
         vstruct.VStruct.__init__(self)
@@ -137,6 +146,7 @@ class IPv6(vstruct.VStruct):
         self.hoplimit   = v_uint8()
         self.srcaddr    = IPv6Address()
         self.dstaddr    = IPv6Address()
+
 
 class TCP(vstruct.VStruct):
 
@@ -157,6 +167,7 @@ class TCP(vstruct.VStruct):
             return vstruct.VStruct.__len__(self)
         return self.doff >> 2
 
+
 class UDP(vstruct.VStruct):
     def __init__(self):
         vstruct.VStruct.__init__(self)
@@ -164,6 +175,7 @@ class UDP(vstruct.VStruct):
         self.dstport    = v_uint16(bigend=True)
         self.udplen     = v_uint16(bigend=True)
         self.checksum   = v_uint16(bigend=True)
+
 
 class ICMP(vstruct.VStruct):
     def __init__(self):
@@ -173,11 +185,14 @@ class ICMP(vstruct.VStruct):
         self.checksum   = v_uint16(bigend=True)
         #union field starting at offset 4 not included here
 
+
 if __name__ == '__main__':
     eII = ETHERII()
-    eII.vsParse('AAAAAABBBBBB\x08\x00')
+    eII.vsParse(b'AAAAAABBBBBB\x08\x00')
     print(eII.tree())
     eII = ETHERII()
-    eII.vsParse('AAAAAABBBBBB\x81\x00\x02\x02\x08\x00')
+    eII.vsParse(b'AAAAAABBBBBB\x81\x00\x02\x02\x08\x00')
     print(eII.tree())
-
+    p6 = IPv6()
+    p6.vsParse(b'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
+    print(p6.tree())

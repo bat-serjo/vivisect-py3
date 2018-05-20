@@ -1,6 +1,7 @@
 import vstruct
 from vstruct.primitives import *
 
+
 class BITMAPINFOHEADER(vstruct.VStruct):
     def __init__(self):
         vstruct.VStruct.__init__(self)

@@ -1,4 +1,3 @@
-import socket
 
 import vstruct
 from vstruct.primitives import *
@@ -113,39 +112,43 @@ dns_class_names = {
 
 DNS_NAMETYPE_LABEL        = 0
 DNS_NAMETYPE_RESERVED     = 1
-DNS_NAMETYPE_EXTENDED     = 2 
+DNS_NAMETYPE_EXTENDED     = 2
 DNS_NAMETYPE_POINTER      = 3
 DNS_NAMETYPE_LABELPOINTER = 4
 
 DNS_FLAG_RESP   = 1 << 15
 DNS_FLAG_TRUNC  = 1 << 9
 DNS_FLAG_RECUR  = 1 << 8
-#DNS_FLAG_AA = 1 << 5    # authoritative answer
-#DNS_FLAG_TC = 1 << 6    # truncated response
-#DNS_FLAG_RD = 1 << 7    # recursion desired
-#DNS_FLAG_RA = 1 << 8    # recursion allowed
-#DNS_FLAG_AD = 1 << 10   # authentic data
-#DNS_FLAG_CD = 1 << 11   # checking disabled
+# DNS_FLAG_AA = 1 << 5    # authoritative answer
+# DNS_FLAG_TC = 1 << 6    # truncated response
+# DNS_FLAG_RD = 1 << 7    # recursion desired
+# DNS_FLAG_RA = 1 << 8    # recursion allowed
+# DNS_FLAG_AD = 1 << 10   # authentic data
+# DNS_FLAG_CD = 1 << 11   # checking disabled
 
-#totally arbitrary count value to abort parsing dns records
+# totally arbitrary count value to abort parsing dns records
 DNS_SUSPICIOUS_COUNT = 0x20
+
 
 class DnsParseError(Exception):
     pass
 
+
 def dnsFlagsOp(val):
     return (val >> 11) & 0xf
 
+
 class DnsNameLabel(vstruct.VStruct):
-    '''
+    """
     A DNS Name component.
-    '''
+    """
+
     def __init__(self, label=''):
         vstruct.VStruct.__init__(self)
         self._nametype = 0
-        self._pointer  = 0
-        self.length = v_uint8( len(label) )
-        self.label  = v_bytes( vbytes=label )
+        self._pointer = 0
+        self.length = v_uint8(len(label))
+        self.label = v_bytes(vbytes=label)
 
     def pcb_length(self):
         size = self.length
@@ -157,7 +160,7 @@ class DnsNameLabel(vstruct.VStruct):
         elif labeltype == 0b00:
             self._nametype = DNS_NAMETYPE_LABEL
         elif labeltype == 0b10:
-            raise DnsParseError('Extended labeltype is not supported.') 
+            raise DnsParseError('Extended labeltype is not supported.')
         elif labeltype == 0b01:
             raise DnsParseError('Unrecognized labeltype (reserved).')
         self.vsGetField('label').vsSetLength(size)
@@ -189,26 +192,28 @@ class DnsNameLabel(vstruct.VStruct):
             return True
         return False
 
+
 class DnsName(vstruct.VArray):
-    '''
+    """
     The contiguous labels (DnsNameLabel()) in a DNS Name field.  Note that the
     last label may simply be a pointer to an offset earlier in the DNS message.
-    '''
+    """
+
     def __init__(self, name=None):
         vstruct.VArray.__init__(self)
-        if name != None:
+        if name is not None:
             for part in name.split('.'):
-                self.vsAddElement( DnsNameLabel( part ) )
-            self.vsAddElement( DnsNameLabel('') )
+                self.vsAddElement(DnsNameLabel(part))
+            self.vsAddElement(DnsNameLabel(''))
 
     def getTypeVal(self):
-        '''
+        """
         Return a (nametype, nameval) tuple based on walking the labels.
-        '''
+        """
         nametype = None
         namepointer = None
         labels = []
-        for fname,fobj in self.vsGetFields():
+        for fname, fobj in self.vsGetFields():
             nametype = fobj.getNameType()
             if nametype == DNS_NAMETYPE_LABEL and fobj.length != 0:
                 labels.append(fobj.label)
@@ -219,18 +224,18 @@ class DnsName(vstruct.VArray):
 
         joinedlabels = '.'.join(labels)
         if nametype == DNS_NAMETYPE_LABEL:
-            return nametype,joinedlabels
+            return nametype, joinedlabels
         elif nametype == DNS_NAMETYPE_POINTER:
-            return nametype,namepointer
+            return nametype, namepointer
         elif nametype == DNS_NAMETYPE_LABELPOINTER:
-            return nametype,(joinedlabels,namepointer)
+            return nametype, (joinedlabels, namepointer)
         raise DnsParseError('Unrecognized label.')
 
-    def vsParse(self, bytez, offset=0):
-        while offset < len(bytez):
+    def vsParse(self, sbytes, offset=0, fast=False):
+        while offset < len(sbytes):
             nl = DnsNameLabel()
             labelofs = offset
-            offset = nl.vsParse(bytez, offset=offset)
+            offset = nl.vsParse(sbytes, offset=offset)
             self.vsAddElement(nl)
             if nl.isNamePointer() and nl.getNamePointer() >= labelofs:
                 raise DnsParseError('Label points forward (or to self).')
@@ -238,43 +243,50 @@ class DnsName(vstruct.VArray):
                 break
         return offset
 
+
 class DnsMailboxAsName(DnsName):
-    '''
+    """
     A DNS Name used to encode a mailbox address.
-    '''
+    """
     pass
 
+
 class DnsQuestion(vstruct.VStruct):
-    '''
+    """
     A DNS Question Record (the query).
-    '''
+    """
+
     def __init__(self, name=None, qtype=0, qclass=0):
         vstruct.VStruct.__init__(self)
-        self.qname  = DnsName(name=name)
-        self.qtype  = v_uint16(qtype, bigend=True)
+        self.qname = DnsName(name=name)
+        self.qtype = v_uint16(qtype, bigend=True)
         self.qclass = v_uint16(qclass, bigend=True)
 
+
 class DnsQuestionArray(vstruct.VArray):
-    '''
+    """
     A DNS Question Section.
-    '''
+    """
+
     def __init__(self, reccnt):
         vstruct.VArray.__init__(self)
         for i in range(reccnt):
             self.vsAddElement(DnsQuestion())
 
+
 class DnsResourceRecord(vstruct.VStruct):
-    '''
+    """
     A DNS Resource Record.  Used in the Answer, Authority, and Additional Sections.
-    '''
+    """
+
     def __init__(self):
         vstruct.VStruct.__init__(self)
-        self.dnsname  = DnsName()
-        self.rrtype   = v_uint16(bigend=True)
+        self.dnsname = DnsName()
+        self.rrtype = v_uint16(bigend=True)
         self.dnsclass = v_uint16(bigend=True)
-        self.ttl      = v_uint32(bigend=True)
+        self.ttl = v_uint32(bigend=True)
         self.rdlength = v_uint16(bigend=True)
-        self.rdata    = vstruct.VStruct()
+        self.rdata = vstruct.VStruct()
 
     def pcb_rrtype(self):
         if self.rrtype == DNS_TYPE_A:
@@ -286,19 +298,19 @@ class DnsResourceRecord(vstruct.VStruct):
         elif self.rrtype == DNS_TYPE_CNAME:
             self.rdata.cname = DnsName()
         elif self.rrtype == DNS_TYPE_SOA:
-            self.rdata.mname   = DnsName()
+            self.rdata.mname = DnsName()
             # this is an encoded email address 
-            self.rdata.rname   = DnsMailboxAsName()
-            self.rdata.serial  = v_uint32(bigend=True)
+            self.rdata.rname = DnsMailboxAsName()
+            self.rdata.serial = v_uint32(bigend=True)
             self.rdata.refresh = v_uint32(bigend=True)
-            self.rdata.retry   = v_uint32(bigend=True)
-            self.rdata.expire  = v_uint32(bigend=True)
+            self.rdata.retry = v_uint32(bigend=True)
+            self.rdata.expire = v_uint32(bigend=True)
             self.rdata.minimum = v_uint32(bigend=True)
         elif self.rrtype == DNS_TYPE_PTR:
             self.rdata.ptrdname = DnsName()
         elif self.rrtype == DNS_TYPE_MX:
             self.rdata.preference = v_uint16(bigend=True)
-            self.rdata.exchange   = DnsName()
+            self.rdata.exchange = DnsName()
         elif self.rrtype == DNS_TYPE_TXT:
             self.rdata.txtdata = v_str()
         else:
@@ -313,37 +325,40 @@ class DnsResourceRecord(vstruct.VStruct):
 
 
 class DnsResourceRecordArray(vstruct.VArray):
-    '''
+    """
     A DNS RR Section (Answer, Authority, or Additional).
-    '''
+    """
+
     def __init__(self, reccnt):
         vstruct.VArray.__init__(self)
         for i in range(reccnt):
             self.vsAddElement(DnsResourceRecord())
 
+
 class DnsMessage(vstruct.VStruct):
-    '''
+    """
     A DNS Message.
-    '''
+    """
+
     def __init__(self, tcpdns=False):
         vstruct.VStruct.__init__(self)
         self._tcpdns = tcpdns
         if tcpdns:
             self.length = v_uint16(bigend=True)
-        self.transid  = v_uint16(bigend=True)
-        self.flags    = v_uint16(bigend=True)
-        self.qdcount  = v_uint16(bigend=True)
-        self.ancount  = v_uint16(bigend=True)
-        self.nscount  = v_uint16(bigend=True)
-        self.arcount  = v_uint16(bigend=True)
-        self.section  = vstruct.VStruct()
-        self.section.question   = DnsQuestionArray(0)
-        self.section.answer     = DnsResourceRecordArray(0)
-        self.section.authority  = DnsResourceRecordArray(0)
+        self.transid = v_uint16(bigend=True)
+        self.flags = v_uint16(bigend=True)
+        self.qdcount = v_uint16(bigend=True)
+        self.ancount = v_uint16(bigend=True)
+        self.nscount = v_uint16(bigend=True)
+        self.arcount = v_uint16(bigend=True)
+        self.section = vstruct.VStruct()
+        self.section.question = DnsQuestionArray(0)
+        self.section.answer = DnsResourceRecordArray(0)
+        self.section.authority = DnsResourceRecordArray(0)
         self.section.additional = DnsResourceRecordArray(0)
         self._nptr = {}  # name pointer cache
 
-        #cached question & answers
+        # cached question & answers
         self._cache_qrs = None
         self._cache_ars = None
 
@@ -367,19 +382,19 @@ class DnsMessage(vstruct.VStruct):
             raise RuntimeError('DNS suspicious count threshold hit')
         self.section.additional = DnsResourceRecordArray(self.arcount)
 
-    def vsParse(self, bytez, offset=0):
+    def vsParse(self, sbytes, offset=0, fast=False):
         self._cache_qrs = None
         self._cache_ars = None
-        self._dns_bytes = bytez
-        self._dns_offset = offset       
-        return vstruct.VStruct.vsParse(self, bytez, offset=offset)
+        self._dns_bytes = sbytes
+        self._dns_offset = offset
+        return vstruct.VStruct.vsParse(self, sbytes, offset=offset)
 
     def _getLabelPointerRef(self, msgofs):
-        '''
+        """
         Given an offset relative to the beginning of a message, create a
         DnsName() structure based on the data there, and return the results
         of its getTypeVal() method (a (nametype, nameval) tuple).
-        '''
+        """
         # msgofs is relative to the beginning of the message, not necessarily the stream
         if msgofs not in self._nptr:
             # these are often repeated within a message, so we cache them
@@ -388,12 +403,12 @@ class DnsMessage(vstruct.VStruct):
         return self._nptr[msgofs].getTypeVal()
 
     def getDnsName(self, nametype, nameval):
-        '''
+        """
         Given a nametype (one of the DNS_NAMETYPE_* constants) and nameval
         (depending on the type, either an fqdn, pointer, or partial fqdn and
         a pointer), return an fqdn.  This is meant to be called with the
         results from a DnsName() instance's getTypeVal() method.
-        '''
+        """
         if nametype == DNS_NAMETYPE_LABEL:
             fqdn = nameval
 
@@ -406,38 +421,38 @@ class DnsMessage(vstruct.VStruct):
             fqdn = self.getDnsName(*self._getLabelPointerRef(offset))
 
         elif nametype == DNS_NAMETYPE_LABELPOINTER:
-            beginlabels,offset = nameval
+            beginlabels, offset = nameval
             if self._tcpdns:
                 # if we're a TCP packet, the 'length' field is not included in the pointer offset
                 offset += 2
 
-            ptrtype,ptrval = self._getLabelPointerRef(offset)
+            ptrtype, ptrval = self._getLabelPointerRef(offset)
             endlabels = self.getDnsName(ptrtype, ptrval)
             fqdn = '.'.join((beginlabels, endlabels))
         return fqdn
 
     def getQuestionRecords(self):
-        '''
+        """
         Return a list of Question records as (dnstype, dnsclass, fqdn) tuples.
-        '''
+        """
         if self._cache_qrs:
             return self._cache_qrs
         ret = []
-        for fname,q in self.section.question.vsGetFields():
+        for fname, q in self.section.question.vsGetFields():
             fqdn = self.getDnsName(*q.qname.getTypeVal())
             ret.append((q.qtype, q.qclass, fqdn))
         self._cache_qrs = ret
         return ret
 
     def _getResourceRecords(self, structure):
-        '''
+        """
         Given a DnsResourceRecordArray() structure, return a list of Resource 
         Records as (dnstype, dnsclass, ttl, fqdn, adata) tuples.  If a parser
         is available for the dnsclass, the 'rdata' field will be further parsed 
         into its components (as a tuple if necessary).
-        '''
+        """
         ret = []
-        for fname,rr in structure.vsGetFields():
+        for fname, rr in structure.vsGetFields():
             fqdn = self.getDnsName(*rr.dnsname.getTypeVal())
 
             rdata = None
@@ -454,7 +469,7 @@ class DnsMessage(vstruct.VStruct):
                          self.getDnsName(*rr.rdata.rname.getTypeVal()),
                          rr.rdata.serial,
                          rr.rdata.refresh,
-                         rr.rdata.retry, 
+                         rr.rdata.retry,
                          rr.rdata.expire,
                          rr.rdata.minimum)
             elif rr.rrtype == DNS_TYPE_PTR:
@@ -471,63 +486,69 @@ class DnsMessage(vstruct.VStruct):
         return ret
 
     def getAnswerRecords(self):
-        '''
+        """
         Return a list of Answer records as (rrtype, dnsclass, ttl, fqdn,
         rdata) tuples.  If a parser is available for the dnsclass, the 
         'rdata' field will be further parsed into its components (as a
         tuple if necessary).
-        '''
+        """
         if not self._cache_ars:
             self._cache_ars = self._getResourceRecords(structure=self.section.answer)
         return self._cache_ars
 
     def getAuthorityRecords(self):
-        '''
+        """
         Return a list of Authority records as (rrtype, dnsclass, ttl, 
         fqdn, rdata) tuples.  If a parser is available for the dnsclass, 
         the 'rdata' field will be further parsed into its components 
         (as a tuple if necessary).
-        '''
+        """
         return self._getResourceRecords(structure=self.section.authority)
 
     def getAdditionalRecords(self):
-        '''
+        """
         Return a list of Additional records as (rrtype, dnsclass, ttl, 
         fqdn, rdata) tuples.  If a parser is available for the dnsclass, 
         the 'rdata' field will be further parsed into its components (as 
         a tuple if necessary).
-        '''
+        """
         return self._getResourceRecords(structure=self.section.additional)
 
     def getDnsNames(self):
-        '''
+        """
         Return a list of the DNS names in the message.
-        '''
+        """
         fqdns = set()
-        for ofs,indent,fname,fobj in self.vsGetPrintInfo():
+        for ofs, indent, fname, fobj in self.vsGetPrintInfo():
             if fobj.vsGetTypeName() == 'DnsName':
                 fqdns.add(self.getDnsName(*fobj.getTypeVal()))
         return list(fqdns)
 
     def getIPv4Integers(self):
-        '''
+        """
         Return a list of the IPv4 addresses in the message.
-        '''
+        """
         ips = set()
-        for ofs,indent,fname,fobj in self.vsGetPrintInfo():
+        for ofs, indent, fname, fobj in self.vsGetPrintInfo():
             if fobj.vsGetTypeName() == 'IPv4Address':
                 ips.add(fobj._vs_value)
         return list(ips)
 
     def getEmailAddresses(self):
-        '''
+        """
         Return a list of the email addresses which are encoded as DNS names
         in the message (they are decoded back to email addresses here).
-        '''
+        """
         emails = set()
-        for ofs,indent,fname,fobj in self.vsGetPrintInfo():
+        for ofs, indent, fname, fobj in self.vsGetPrintInfo():
             if fobj.vsGetTypeName() == 'DnsMailboxAsName':
                 mailbox = self.getDnsName(*fobj.getTypeVal())
                 parts = mailbox.split('.', 1)
                 emails.add('@'.join(parts))
         return list(emails)
+
+
+if __name__ == '__main__':
+    dns = DnsMessage()
+    dns.vsParse(b'\x45\x00\x00\x35\x00\x01\x00\x00\x40\x11\x7b\xb5\x7f\x00\x00\x01\x7f\x00\x01\x01\x7e\x4d\x00\x35\x00\x21\x4a\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x04\x61\x61\x61\x61\x02\x61\x61\x00\x00\x0f\x00\x01')
+    print(dns.tree())

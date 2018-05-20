@@ -479,7 +479,7 @@ class LinuxMixin(v_posix.PtraceMixin, v_posix.PosixMixin):
             if v_posix.ptrace(PT_ATTACH, tid, 0, 0) != 0:
                 raise Exception("ERROR ptrace attach failed for thread %d" % tid)
 
-        # We may have already revcieved the stop signal
+        # We may have already received the stop signal
         if not self._stopped_cache.pop(tid, None):
             os.waitpid(tid, 0x40000002)
 

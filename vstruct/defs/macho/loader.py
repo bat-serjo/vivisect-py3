@@ -8,6 +8,7 @@ cpu_type_t = v_uint32
 cpu_subtype_t = v_uint32
 lc_str = v_uint32
 
+
 class mach_header(vstruct.VStruct):
 
     def __init__(self):
@@ -29,6 +30,7 @@ class mach_header(vstruct.VStruct):
             ret = vstruct.VStruct.vsParse(self, bytes, offset=offset)
         return ret
 
+
 class mach_header_64(vstruct.VStruct):
 
     def __init__(self):
@@ -48,8 +50,9 @@ class load_command(vstruct.VStruct):
 
     def __init__(self):
         vstruct.VStruct.__init__(self)
-        self.cmd     = v_uint32() # type of load command
-        self.cmdsize = v_uint32() # total size of command in bytes
+        self.cmd     = v_uint32()  # type of load command
+        self.cmdsize = v_uint32()  # total size of command in bytes
+
 
 class segment_command(vstruct.VStruct):
 
@@ -66,6 +69,7 @@ class segment_command(vstruct.VStruct):
         self.initprot    = vm_prot_t() # initial VM protection
         self.nsects      = v_uint32() # number of sections in segment
         self.flags       = v_uint32() # flags
+
 
 class segment_command_64(vstruct.VStruct):
 
@@ -118,6 +122,7 @@ class section_64(vstruct.VStruct):
         self.reserved2    = v_uint32() # reserved (for count or sizeof)
         self.reserved3    = v_uint32() # reserved
 
+
 class fvmlib_command(vstruct.VStruct):
 
     def __init__(self):
@@ -127,6 +132,7 @@ class fvmlib_command(vstruct.VStruct):
         self.name          = lc_str() # library's target pathname
         self.minor_version = v_uint32() # library's minor version number
         self.header_addr   = v_uint32() # library's header address
+
 
 class dylib_command(vstruct.VStruct):
 
@@ -149,6 +155,7 @@ class dylib_command(vstruct.VStruct):
         self.vsGetField('namedata').vsSetLength(len(name))
         self.namedata = name
         return retoff
+
 
 class sub_framework_command(vstruct.VStruct):
 
@@ -257,6 +264,7 @@ class symtab_command(vstruct.VStruct):
         self.stroff  = v_uint32() # string table offset
         self.strsize = v_uint32() # string table size in bytes
 
+
 class dysymtab_command(vstruct.VStruct):
 
     def __init__(self):
@@ -352,6 +360,7 @@ class twolevel_hint(vstruct.VStruct):
         vstruct.VStruct.__init__(self)
         self.itoc = v_uint32() # index into the table of contents
 
+
 class prebind_cksum_command(vstruct.VStruct):
 
     def __init__(self):
@@ -417,6 +426,7 @@ class ident_command(vstruct.VStruct):
         self.cmd     = v_uint32() # LC_IDENT
         self.cmdsize = v_uint32() # strings that follow this command
 
+
 class fvmfile_command(vstruct.VStruct):
 
     def __init__(self):
@@ -426,11 +436,13 @@ class fvmfile_command(vstruct.VStruct):
         self.name        = lc_str() # files pathname
         self.header_addr = v_uint32() # files virtual address
 
+
 command_classes = {
     LC_SEGMENT:     segment_command,
     LC_SYMTAB:      symtab_command,
     LC_LOAD_DYLIB:  dylib_command,
 }
+
 
 def getCommandClass(cmdtype):
     cls = command_classes.get(cmdtype)

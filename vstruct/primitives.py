@@ -6,12 +6,12 @@ class v_enum(object):
         object.__setattr__(self, '_vs_reverseMap', {})
 
     def __setattr__(self, name, value):
-        '''if duplicate values, last one wins!'''
+        """if duplicate values, last one wins!"""
         self._vs_reverseMap[value] = name
         return object.__setattr__(self, name, value)
 
     def vsReverseMapping(self, val, default=None):
-        '''Maps an integer to its name. Returns default if not found'''
+        """Maps an integer to its name. Returns default if not found"""
         return self._vs_reverseMap.get(val, default)
 
 
@@ -24,7 +24,7 @@ class v_bitmask(object):
         return object.__setattr__(self, name, value)
 
     def vsReverseMapping(self, val, default=None):
-        '''Returns a list of names where apply the AND of the mask and val is non-zero'''
+        """Returns a list of names where apply the AND of the mask and val is non-zero"""
         return [v for k, v in list(self._vs_reverseMap.items()) if (val & k) != 0]
 
 
@@ -67,9 +67,9 @@ class v_prim(v_base):
         return self.__class__.__name__
 
     def vsParse(self, bytes, offset=0):
-        '''
+        """
         Parser for primitives which assumes we are calling parse directly.
-        '''
+        """
         return NotImplemented
 
     def vsParseFd(self, fd):
@@ -81,30 +81,30 @@ class v_prim(v_base):
         self.vsParse(fbytes)
 
     def vsEmit(self):
-        '''
+        """
         Return the actual bytes which represent this field
-        '''
+        """
         return NotImplemented
 
     def vsGetValue(self):
-        '''
+        """
         Get the type specific value for this field.
         (Used by the structure dereference method to return
         a python native for the field by name)
-        '''
+        """
         return self._vs_value
 
     def vsSetValue(self, value):
-        '''
+        """
         Set the type specific value for this field.
-        '''
+        """
         self._vs_value = value
 
     def vsSetLength(self, size):
-        '''
+        """
         Set the length of this primitive type.  This may be used to
         dynamically update the length of string fields, etc...
-        '''
+        """
         return NotImplemented
 
     def __repr__(self):
@@ -150,16 +150,16 @@ class v_number(v_prim):
         return self._vs_value
 
     def vsGetEnum(self):
-        '''
+        """
         Get the v_enum instance used to interpret this number, or None if
           there are no associated enums.
-        '''
+        """
         return self._vs_enum
 
     def vsParse(self, fbytes, offset=0):
-        '''
+        """
         Parse the given numeric type from the given bytes
-        '''
+        """
         sizeoff = offset + self._vs_length
 
         if self._vs_fmt is not None:
@@ -181,9 +181,9 @@ class v_number(v_prim):
         return sizeoff
 
     def vsEmit(self):
-        '''
+        """
         Emit the bytes for this numeric type
-        '''
+        """
         if self._vs_fmt is not None:
             return struct.pack(self._vs_fmt, self._vs_value)
 
@@ -295,40 +295,52 @@ class v_number(v_prim):
 
     # Inplace variants
     def __iadd__(self, other):
-        self.vsSetValue(self + other); return self
+        self.vsSetValue(self + other)
+        return self
 
     def __isub__(self, other):
-        self.vsSetValue(self - other); return self
+        self.vsSetValue(self - other)
+        return self
 
     def __imul__(self, other):
-        self.vsSetValue(self * other); return self
+        self.vsSetValue(self * other)
+        return self
 
     def __idiv__(self, other):
-        self.vsSetValue(self / other); return self
+        self.vsSetValue(self / other)
+        return self
 
     def __ifloordiv__(self, other):
-        self.vsSetValue(self // other); return self
+        self.vsSetValue(self // other)
+        return self
 
     def __imod__(self, other):
-        self.vsSetValue(self % other); return self
+        self.vsSetValue(self % other)
+        return self
 
     def __ipow__(self, other, modulo=None):
-        self.vsSetValue(pow(self, other, modulo)); return self
+        self.vsSetValue(pow(self, other, modulo))
+        return self
 
     def __ilshift__(self, other):
-        self.vsSetValue(self << other); return self
+        self.vsSetValue(self << other)
+        return self
 
     def __irshift__(self, other):
-        self.vsSetValue(self >> other); return self
+        self.vsSetValue(self >> other)
+        return self
 
     def __iand__(self, other):
-        self.vsSetValue(self & other); return self
+        self.vsSetValue(self & other)
+        return self
 
     def __ixor__(self, other):
-        self.vsSetValue(self ^ other); return self
+        self.vsSetValue(self ^ other)
+        return self
 
     def __ior__(self, other):
-        self.vsSetValue(self | other); return self
+        self.vsSetValue(self | other)
+        return self
 
     # operator helpers
     def __neg__(self):
@@ -482,9 +494,9 @@ class v_float(v_prim):
         return self._vs_value
 
     def vsParse(self, fbytes, offset=0):
-        '''
+        """
         Parse the given numeric type from the given bytes
-        '''
+        """
         sizeoff = offset + self._vs_length
 
         if self._vs_fmt is not None:
@@ -506,9 +518,9 @@ class v_float(v_prim):
         return sizeoff
 
     def vsEmit(self):
-        '''
+        """
         Emit the bytes for this numeric type
-        '''
+        """
         if self._vs_fmt is not None:
             return struct.pack(self._vs_fmt, self._vs_value)
 
@@ -608,40 +620,52 @@ class v_float(v_prim):
 
     # Inplace variants
     def __iadd__(self, other):
-        self.vsSetValue(self + other); return self
+        self.vsSetValue(self + other)
+        return self
 
     def __isub__(self, other):
-        self.vsSetValue(self - other); return self
+        self.vsSetValue(self - other)
+        return self
 
     def __imul__(self, other):
-        self.vsSetValue(self * other); return self
+        self.vsSetValue(self * other)
+        return self
 
     def __idiv__(self, other):
-        self.vsSetValue(self / other); return self
+        self.vsSetValue(self / other)
+        return self
 
     def __ifloordiv__(self, other):
-        self.vsSetValue(self // other); return self
+        self.vsSetValue(self // other)
+        return self
 
     def __imod__(self, other):
-        self.vsSetValue(self % other); return self
+        self.vsSetValue(self % other)
+        return self
 
     def __ipow__(self, other, modulo=None):
-        self.vsSetValue(pow(self, other, modulo)); return self
+        self.vsSetValue(pow(self, other, modulo))
+        return self
 
     def __ilshift__(self, other):
-        self.vsSetValue(self << other); return self
+        self.vsSetValue(self << other)
+        return self
 
     def __irshift__(self, other):
-        self.vsSetValue(self >> other); return self
+        self.vsSetValue(self >> other)
+        return self
 
     def __iand__(self, other):
-        self.vsSetValue(self & other); return self
+        self.vsSetValue(self & other)
+        return self
 
     def __ixor__(self, other):
-        self.vsSetValue(self ^ other); return self
+        self.vsSetValue(self ^ other)
+        return self
 
     def __ior__(self, other):
-        self.vsSetValue(self | other); return self
+        self.vsSetValue(self | other)
+        return self
 
     # operator helpers
     def __neg__(self):
@@ -679,9 +703,9 @@ class v_double(v_float):
 
 
 class v_bytes(v_prim):
-    '''
+    """
     v_bytes is used for fixed width byte fields.
-    '''
+    """
 
     _vs_builder = True
 
@@ -720,11 +744,11 @@ class v_bytes(v_prim):
 
 
 class v_str(v_prim):
-    '''
+    """
     A string placeholder class which will automagically return
     up to a null terminator (and will keep it's size by null
     padding when assigned to)
-    '''
+    """
 
     _vs_builder = True
 
@@ -763,10 +787,10 @@ class v_str(v_prim):
 
 
 class v_zstr(v_prim):
-    '''
+    """
     A string placeholder class which will automagically return
     up to a null terminator dynamically.
-    '''
+    """
 
     _vs_builder = True
 
@@ -775,7 +799,7 @@ class v_zstr(v_prim):
         self._vs_align = align
         if isinstance(val, str):
             val = val.encode('ascii')
-        self.vsParse(val + '\x00')
+        self.vsParse(val + b'\x00')
 
     def vsParse(self, fbytes: bytearray, offset=0):
         nulloff = fbytes.find(b'\x00', offset)
@@ -792,7 +816,7 @@ class v_zstr(v_prim):
         return nulloff
 
     def vsParseFd(self, fd):
-        ret = ''
+        ret = b''
         while not ret.endswith(b'\x00'):
             y = fd.read(1)
             if not y:
@@ -820,11 +844,11 @@ class v_zstr(v_prim):
 
 
 class v_wstr(v_str):
-    '''
+    """
     Unicode variant of the above string class
 
     NOTE: the size paramater is in WCHARs!
-    '''
+    """
 
     _vs_builder = True
 
@@ -856,9 +880,9 @@ class v_wstr(v_str):
 
 
 class v_zwstr(v_str):
-    '''
+    """
     Unicode variant of the above zstring class
-    '''
+    """
 
     _vs_builder = True
 

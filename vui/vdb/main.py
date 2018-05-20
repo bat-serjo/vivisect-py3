@@ -411,7 +411,7 @@ class VdbWindow(vq_app.VQMainCmdWindow):
         self.vqRestoreGuiSettings(settings)
 
     def menuViewLayoutsSave(self):
-        fname = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Layout')
+        fname = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Layout')[0]
         if fname is None:
             return
 

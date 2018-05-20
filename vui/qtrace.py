@@ -346,7 +346,7 @@ class VQProcessSelectDialog(QtWidgets.QDialog):
         vlyt.addWidget(hbox)
         self.setLayout(vlyt)
 
-        self.resize(300, 500)
+        self.resize(800, 600)
 
     def dialog_activated(self, idx):
         node = idx.internalPointer()

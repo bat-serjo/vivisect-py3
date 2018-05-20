@@ -85,6 +85,7 @@ class PPTPHeader(VStruct):
         self.ctrltype   = v_uint16(bigend=True)
         self.res0       = v_uint16(bigend=True)
 
+
 class PPTP(VStruct):
 
     def __init__(self):

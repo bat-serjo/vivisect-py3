@@ -3,11 +3,13 @@ import vstruct
 from vstruct.primitives import *
 import vstruct.primitives as vs_prim
 
+
 class fat_header(vstruct.VStruct):
     def __init__(self):
         vstruct.VStruct.__init__(self)
         self.magic = v_uint32(bigend=True)
         self.nfat_arch = v_uint32(bigend=True)
+
 
 class fat_arch(vstruct.VStruct):
     def __init__(self):
