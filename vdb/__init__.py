@@ -1320,7 +1320,7 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
         if port:
             vtrace.port = int(port)
 
-        if self.server == None:
+        if self.server is None:
             self.vprint('Starting vtrace server!')
             self.server = vtrace.startVtraceServer()
             return

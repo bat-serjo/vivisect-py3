@@ -154,7 +154,7 @@ class CodeFlowContext(object):
             try:
                 op = self._mem.parseOpcode(va, arch=arch)
             except Exception as e:
-                logger.warning('\nException at VA: 0x%.8x - %s\n' % (va, e), exc_info=True)
+                logger.warning('\nException at VA: 0x%.8x - %s\n' % (va, e), exc_info=False)
                 continue
 
             branches = op.getBranches()

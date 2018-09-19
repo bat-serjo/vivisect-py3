@@ -35,15 +35,7 @@ class VQDockWidget(vq_hotkeys.HotKeyMixin, QtWidgets.QDockWidget):
         QtWidgets.QDockWidget.setWidget(self, widget)
 
     def closeEvent(self, event):
-
-        self.hide()
-
-        w = self.widget()
-        w.setParent(None)
-        w.close()
-
         self.parent().vqRemoveDockWidget(self)
-
         event.accept()
 
     def _hotkey_undock_maximize(self):
@@ -182,11 +174,18 @@ class VQMainCmdWindow(QtWidgets.QMainWindow, vq_hotkeys.HotKeyMixin):
 
     def vqClearDockWidgets(self):
         for wid in self.vqGetDockWidgets():
-            wid.close()
+            self.vqRemoveDockWidget(wid)
 
-    def vqRemoveDockWidget(self, widget):
-        self._vq_dockwidgets.remove(widget)
-        self.removeDockWidget(widget)
+    def vqRemoveDockWidget(self, dock_widget: QtWidgets.QDockWidget):
+        inner = dock_widget.widget()
+        inner.setParent(None)
+        inner.deleteLater()
+
+        self._vq_dockwidgets.remove(dock_widget)
+        self.removeDockWidget(dock_widget)
+
+        dock_widget.setParent(None)
+        dock_widget.deleteLater()
 
     def vqDockWidget(self, widget, area=QtCore.Qt.TopDockWidgetArea, floating=False):
         d = VQDockWidget(self)
@@ -194,6 +193,4 @@ class VQMainCmdWindow(QtWidgets.QMainWindow, vq_hotkeys.HotKeyMixin):
         d.setFloating(floating)
         self.addDockWidget(area, d)
         self._vq_dockwidgets.append(d)
-        self.restoreDockWidget(d)
-        d.show()
         return d

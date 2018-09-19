@@ -41,10 +41,16 @@ from vivisect.exc import *
 
 
 def guid(size=16):
-    return hexlify(os.urandom(size))
+    return hexlify(os.urandom(size)).decode()
 
 
 class VivWorkspace(e_mem.MemoryObject, viv_base.VivWorkspaceCore):
+    """The work space where everything happens.
+    one workspace ~ equals one project + much more.
+    The much more part is the other embedded vivisect functionality
+    like distributed/shared work space.
+    """
+
     def __init__(self):
 
         e_mem.MemoryObject.__init__(self)
@@ -57,7 +63,10 @@ class VivWorkspace(e_mem.MemoryObject, viv_base.VivWorkspaceCore):
         self.rchan = None
         self.server = None
         self.verbose = False
+
         self.chanids = itertools.count()
+        self.chan_lookup = {}
+        self.nextchanid = 1
 
         self.arch = None  # The placeholder for the Envi architecture module
         self.psize = None  # Used so much, optimization is appropriate
@@ -110,8 +119,6 @@ class VivWorkspace(e_mem.MemoryObject, viv_base.VivWorkspaceCore):
         self.fmods = {}
         self.fmodlist = []
 
-        self.chan_lookup = {}
-        self.nextchanid = 1
 
         self._cached_emus = {}
 

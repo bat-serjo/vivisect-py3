@@ -33,6 +33,7 @@ class VQVivMainWindow(vq_app.VQMainCmdWindow, viv_base.VivEventDist):
     # Child windows may emit this on "navigate" requests...
     # vivNavSignal = QtCore.pyqtSignal(str, name='vivNavSignal')
     vivMemColorSignal = QtCore.pyqtSignal(dict, name='vivMemColorSignal')
+    app = 'vivisect-ui'
 
     def __init__(self, vw):
         self.vw = vw
@@ -206,34 +207,26 @@ class VQVivMainWindow(vq_app.VQMainCmdWindow, viv_base.VivEventDist):
         self.vqAddDockWidgetClass(viv_q_symboliks.VivSymbolikFuncPane, args=(self.vw, self))
 
     def vqRestoreGuiSettings(self, settings):
-        guid = self.vw.getVivGuid()
+        # work around a serious bug under x11 where after restore everything looks ugly
+        self.hide()
+
+        guid = self.app
         dwcls = settings.value('%s/DockClasses' % guid)
         state = settings.value('%s/DockState' % guid)
         geom = settings.value('%s/DockGeometry' % guid)
 
-        if dwcls is None:
-            names = list(self.vw.filemeta.keys())
-            names.sort()
-            name = '+'.join(names)
-            dwcls = settings.value('%s/DockClasses' % name)
-            state = settings.value('%s/DockState' % name)
-            geom = settings.value('%s/DockGeometry' % name)
-
-        if dwcls is None:
-            dwcls = settings.value('DockClasses')
-            state = settings.value('DockState')
-            geom = settings.value('DockGeometry')
-
         if dwcls is not None:
+            self.vqClearDockWidgets()
+
             for i, clsname in enumerate(dwcls):
                 name = 'VQDockWidget%d' % i
                 try:
-                    tup = self.vqBuildDockWidget(str(clsname), floating=True)
+                    tup = self.vqBuildDockWidget(str(clsname))
                     if tup is not None:
                         d, obj = tup
                         d.setObjectName(name)
                         d.vqRestoreState(settings, name)
-                        d.show()
+                        # d.show()
                 except Exception as e:
                     traceback.print_exc()
                     print(('Error Building: %s: %s' % (clsname, e)))
@@ -245,15 +238,14 @@ class VQVivMainWindow(vq_app.VQMainCmdWindow, viv_base.VivEventDist):
         if geom is not None:
             self.restoreGeometry(geom)
 
-        # Just get all the resize activities done...
-        vq_main.eatevents()
         for w in self.vqGetDockWidgets():
+            self.restoreDockWidget(w)
             w.show()
 
+        self.show()
         return True
 
     def vqSaveGuiSettings(self, settings):
-
         dock_classes = []
 
         # Enumerate the current dock windows and set
@@ -266,19 +258,10 @@ class VQVivMainWindow(vq_app.VQMainCmdWindow, viv_base.VivEventDist):
             w.vqSaveState(settings, name)
 
         # first store for this specific workspace
-        guid = self.vw.getVivGuid()
+        guid = self.app
         settings.setValue('%s/DockClasses' % guid, dock_classes)
         settings.setValue('%s/DockGeometry' % guid, self.saveGeometry())
         settings.setValue('%s/DockState' % guid, self.saveState())
-
-        # next store for this filename
-        names = list(self.vw.filemeta.keys())
-        names.sort()
-        name = '+'.join(names)
-        settings.setValue('%s/DockClasses' % name, dock_classes)
-        settings.setValue('%s/DockGeometry' % name, self.saveGeometry())
-        settings.setValue('%s/DockState' % name, self.saveState())
-        # don't store the default.  that should be saved manually
 
     def _menuToolsDebug(self):
         viv_vdbext.runVdb(self)
@@ -306,23 +289,26 @@ class VQVivMainWindow(vq_app.VQMainCmdWindow, viv_base.VivEventDist):
         viv_q_remote.saveToServer(self.vw, parent=self)
 
     def _menuViewLayoutsLoad(self):
-        fname = QtWidgets.QFileDialog.getOpenFileName(self, 'Load Layout')
-        if fname is None:
+        fname = QtWidgets.QFileDialog.getOpenFileName(self, 'Load Layout')[0]
+        if fname == '':
             return
 
         settings = QtCore.QSettings(fname, QtCore.QSettings.IniFormat)
         self.vqRestoreGuiSettings(settings)
 
     def _menuViewLayoutsSave(self):
-        fname = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Layout')
-        if fname is None:
+        fname = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Layout')[0]
+        if fname == '':
             return
 
         settings = QtCore.QSettings(fname, QtCore.QSettings.IniFormat)
         self.vqSaveGuiSettings(settings)
+        settings.sync()
+        # settings.save()
 
     def _menuViewLayoutsSetDefault(self):
-        vq_app.VQMainCmdWindow.vqSaveGuiSettings(self, self._vq_settings)
+        # vq_app.VQMainCmdWindow.vqSaveGuiSettings(self, self._vq_settings)
+        self.vqSaveGuiSettings(self._vq_settings)
 
     def _menuToolsStructNames(self):
         nsinfo = vs_qt.selectStructNamespace()

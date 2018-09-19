@@ -15,6 +15,7 @@ from vivisect.const import *
 
 import envi
 
+
 class InputMonitor(viv_imp_monitor.EmulationMonitor):
 
     def __init__(self):
@@ -24,6 +25,7 @@ class InputMonitor(viv_imp_monitor.EmulationMonitor):
     def apicall(self, emu, op, pc, api, argv):
         self.res.append( (op.va, argv) )
 
+
 def getEmuAtVa(vw, va, maxhit=None):
     """
     Build and run an emulator to the given virtual address
@@ -32,10 +34,10 @@ def getEmuAtVa(vw, va, maxhit=None):
     (most useful for state analysis.  kinda heavy though...)
     """
     fva = vw.getFunction(va)
-    if fva == None:
+    if fva is None:
         return None
 
-    cbva,cbsize,cbfva = vw.getCodeBlock(va)
+    cbva, cbsize, cbfva = vw.getCodeBlock(va)
     fgraph = v_graphutil.buildFunctionGraph(vw, fva)
 
     # Just take the first one off the iterator...
@@ -51,6 +53,7 @@ def getEmuAtVa(vw, va, maxhit=None):
 
         return emu
 
+
 def trackImportInputs(vw, iname, maxhit=None):
     """
     Works just like trackFunctionInputs but finds calls to
@@ -59,7 +62,7 @@ def trackImportInputs(vw, iname, maxhit=None):
     mon = InputMonitor()
     for va in vw.getImportCallers(iname):
         emu = getEmuAtVa(vw, va, maxhit=maxhit)
-        if emu == None:
+        if emu is None:
             continue
 
         # Set an emulation monitor and step over the call
@@ -67,6 +70,7 @@ def trackImportInputs(vw, iname, maxhit=None):
         emu.stepi()
 
     return mon.res
+
 
 def trackFunctionInputs(vw, fva, maxhit=None):
     """
@@ -86,6 +90,7 @@ def trackFunctionInputs(vw, fva, maxhit=None):
         emu.stepi()
 
     return mon.res
+
 
 def trackArgOrigin(vw, fva, argidx):
     """
@@ -127,6 +132,7 @@ def trackArgOrigin(vw, fva, argidx):
 
     return vg_path.getLeafNodes(rootpath)
 
+
 def getCodeFlow(vw, cbva):
     """
     Get a list of the code blocks which are known to flow
@@ -136,20 +142,21 @@ def getCodeFlow(vw, cbva):
     # Get our actual xrefs
     for fromva, tova, xtype, xdata in vw.getXrefsTo(cbva, REF_CODE):
         xcb = vw.getCodeBlock(fromva)
-        if xcb != None:
+        if xcb is not None:
             ret.append(xcb)
 
     # Lets see if the instruction before this was a fallthrough
     ploc = vw.getPrevLocation(cbva)
-    if ploc != None:
+    if ploc is not None:
         pva, psize, ptype, pinfo = ploc
         # If it's an opcode with fallthrough, count this one too...
         if ptype == LOC_OP and not pinfo & envi.IF_NOFALL:
             pblock = vw.getCodeBlock(pva)
-            if pblock != None:
+            if pblock is not None:
                 ret.append(pblock)
 
     return ret
+
 
 def getCodePaths(vw, fromva, tova, trim=True):
     """
@@ -168,9 +175,9 @@ def getCodePaths(vw, fromva, tova, trim=True):
 
     frcb = vw.getCodeBlock(fromva)
     tocb = vw.getCodeBlock(tova)
-    if frcb == None:
+    if frcb is None:
         raise viv_exc.InvalidLocation(fromva)
-    if tocb == None:
+    if tocb is None:
         raise viv_exc.InvalidLocation(tova)
 
     frva = frcb[0] # For compare speed
@@ -187,7 +194,7 @@ def getCodePaths(vw, fromva, tova, trim=True):
         cbva = vg_path.getNodeProp(path, 'cbva')
 
         codeblocks = cbcache.get(cbva)
-        if codeblocks == None:
+        if codeblocks is None:
             codeblocks = getCodeFlow(vw, cbva)
             cbcache[cbva] = codeblocks
 
@@ -201,7 +208,8 @@ def getCodePaths(vw, fromva, tova, trim=True):
 
             # If we have been here before and it's *not* the answer,
             # skip out...
-            if trim and done.get(bva) != None: continue
+            if trim and done.get(bva) is not None:
+                continue
 
             done[bva] = cblock
 

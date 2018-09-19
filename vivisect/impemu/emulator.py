@@ -476,7 +476,7 @@ class WorkspaceEmulator:
 
     def reprVivValue(self, val):
         """
-        Return a humon readable string which is the best description for
+        Return a human readable string which is the best description for
         the given value ( given knowledge of the workspace, emu,
         and taint subsystems ).
         """
