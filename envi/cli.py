@@ -777,7 +777,7 @@ class EnviCli(Cmd):
 
         res = e_mem.memdiff(bytes1, bytes2)
         if len(res) == 0:
-            self.vprint('No Differences!')
+            self.canvas.addText('No Differences!')
             return
 
         for offset, offsize in res:
@@ -786,11 +786,11 @@ class EnviCli(Cmd):
             self.canvas.addText('==== %d byte difference at offset %d\n' % (offsize, offset))
             self.canvas.addVaText("0x%.8x" % diff1, diff1)
             self.canvas.addText(":")
-            self.canvas.addText(bytes1[offset:offset + offsize].encode('hex'))
+            self.canvas.addText(bytes1[offset:offset + offsize].hex())
             self.canvas.addText('\n')
             self.canvas.addVaText("0x%.8x" % diff2, diff2)
             self.canvas.addText(":")
-            self.canvas.addText(bytes2[offset:offset + offsize].encode('hex'))
+            self.canvas.addText(bytes2[offset:offset + offsize].hex())
             self.canvas.addText('\n')
 
     def do_mem(self, line):

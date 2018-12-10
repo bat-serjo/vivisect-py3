@@ -77,11 +77,16 @@ class TraceEmulator(vtrace.Trace, v_base.TracerBase):
         vtrace.Trace.__init__(self, archname)
         v_base.TracerBase.__init__(self)
 
+        self.setMeta('Architecture', archname)
+
         # Fake out being attached
         self.attached = True
         self.pid = 0x56
 
         self.setRegisterInfo(emu.getRegisterInfo())
+
+    def setMode(self, name, value):
+        self.modes[name] = bool(value)
 
     def getPointerSize(self):
         return self.emu.getPointerSize()

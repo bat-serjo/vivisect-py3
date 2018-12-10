@@ -8,6 +8,7 @@ import vtrace
 
 import envi.tests as e_test
 
+
 class VtraceProcessTest(unittest.TestCase):
 
     pypath = os.path.join('vtrace','tests','mains','main.py')
@@ -22,7 +23,7 @@ class VtraceProcessTest(unittest.TestCase):
 
     def tearDown(self):
         if not self.exitrun and self.trace.isAttached():
-            self.trace.setMode('RunForever',True)
+            self.trace.setMode('RunForever', True)
             self.proc.stdin.write('testmod\n')
             self.trace.run()
         self.proc.wait()
@@ -36,16 +37,17 @@ class VtraceProcessTest(unittest.TestCase):
 
     def runUntilExit(self):
         self.exitrun = True
-        self.trace.setMode('RunForever',True)
+        self.trace.setMode('RunForever', True)
         self.trace.setMode('NonBlocking', False)
         self.proc.stdin.write('testmod\n')
         self.trace.run()
 
         self.assertEqual( self.trace.getMeta('ExitCode'), 33)
 
+
 class VtraceExecTest(VtraceProcessTest):
 
-    pypath = os.path.join('vtrace','tests','mains','mainexec.py')
+    pypath = os.path.join('vtrace', 'tests', 'mains', 'mainexec.py')
 
     @e_test.skip('darwin')
     def setUp(self):
@@ -56,14 +58,14 @@ class VtraceExecTest(VtraceProcessTest):
 
     def tearDown(self):
         if self.trace.isAttached():
-            self.trace.setMode('RunForever',True)
+            self.trace.setMode('RunForever', True)
             self.trace.setMode('NonBlocking', False)
             self.trace.run()
         self.trace.release()
 
     def runUntilExit(self):
         self.exitrun = True
-        self.trace.setMode('RunForever',True)
+        self.trace.setMode('RunForever', True)
         self.trace.setMode('NonBlocking', False)
         self.trace.run()
 

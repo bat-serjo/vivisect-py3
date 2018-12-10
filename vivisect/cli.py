@@ -27,6 +27,7 @@ import envi.cli as e_cli
 import envi.expression as e_expr
 import envi.memcanvas.renderers as e_render
 
+from vqt.main import *
 from vivisect.const import *
 import vivisect.renderers as viv_rend
 
@@ -457,7 +458,13 @@ class VivCli(e_cli.EnviCli, vivisect.VivWorkspace):
         trace = vt_envitools.TraceEmulator(emu)
 
         db = vdb.Vdb(trace=trace)
-        db.cmdloop()
+
+        @idlethread
+        def _start_vdb_gui(db):
+            # db.cmdloop()
+            db.do_gui(None)
+
+        _start_vdb_gui(db)
 
     def do_argtrack(self, line):
         """

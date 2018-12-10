@@ -598,7 +598,7 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
         menu.exec_(event.globalPos())
 
     def _menuSaveToHtml(self):
-        fname = QtWidgets.QFileDialog.getSaveFileName(self, 'Save As HTML...')
+        fname = QtWidgets.QFileDialog.getSaveFileName(self, 'Save As HTML...')[0]
 
 
 def getNavTargetNames():

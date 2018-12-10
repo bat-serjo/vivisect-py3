@@ -465,4 +465,4 @@ class VdbWindow(vq_app.VQMainCmdWindow):
             except:
                 print(traceback.format_exc())
 
-        return vq_app.VQMainCmdWindow.closeEvent(self, event)
+        return super(VdbWindow, self).closeEvent(event)

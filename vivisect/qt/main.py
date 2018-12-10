@@ -279,8 +279,8 @@ class VQVivMainWindow(vq_app.VQMainCmdWindow, viv_base.VivEventDist):
         self.vw.vprint('complete!')
 
     def _menuFileSaveAs(self):
-        fname = QtWidgets.QFileDialog.getSaveFileName(self, 'Save As...')
-        if fname is None:
+        fname = QtWidgets.QFileDialog.getSaveFileName(self, 'Save As...')[0]
+        if fname is '':
             return
         self.vw.setMeta('StorageName', fname)
         self._menuFileSave(fullsave=True)

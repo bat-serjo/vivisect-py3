@@ -50,8 +50,9 @@ class MemDumpDialog(QtWidgets.QDialog):
         self.setWindowTitle(title)
 
     def showSaveAsDialog(self):
-        fname = str(QtWidgets.QFileDialog.getSaveFileName(caption='Select file to dump memory to'))
-        self.fname_edit.setText(fname)
+        fname = QtWidgets.QFileDialog.getSaveFileName(caption='Select file to dump memory to')[0]
+        if fname != '':
+            self.fname_edit.setText(fname)
 
     def cancelClicked(self):
         self.close()

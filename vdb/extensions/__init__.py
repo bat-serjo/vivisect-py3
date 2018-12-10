@@ -5,17 +5,22 @@ import traceback
 
 import vdb.ext
 
-__all__ = ['loadExtensions','windows','i386','darwin','amd64','gdbstub','arm','android','winkern',]
+__all__ = ['loadExtensions',
+           'windows', 'i386',
+           'darwin', 'amd64',
+           'gdbstub', 'arm',
+           'android', 'winkern']
 
 '''
 A package to contain all the extended functionality for platform specific
 commands and modules.
 '''
 
+
 def loadExtensions(vdb, trace):
-    '''
+    """
     Actually load all known extensions here.
-    '''
+    """
     plat = trace.getMeta('Platform').lower()
     arch = trace.getMeta('Architecture').lower()
 
@@ -28,7 +33,7 @@ def loadExtensions(vdb, trace):
         mod.vdbExtension(vdb, trace)
 
     extdir = os.getenv('VDB_EXT_PATH')
-    if extdir == None:
+    if extdir is None:
         extdir = os.path.abspath(os.path.join('vdb', 'ext'))
 
     for dirname in extdir.split(';'):

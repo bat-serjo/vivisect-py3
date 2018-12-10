@@ -78,7 +78,7 @@ class MemoryCanvas:
         """
         Set a navigation "callback" that will be called with
         a memory expression as it's first argument anytime the
-        canvas recieves user input which desires nav...
+        canvas receives user input which desires nav...
         """
         self._canv_navcallback = callback
 

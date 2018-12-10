@@ -1270,7 +1270,7 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
         qgui = vdb_q_main.VdbWindow(self)
         qgui.show()
 
-        vq_main.main()
+        # vq_main.main()
 
     def do_waitlib(self, line):
         """

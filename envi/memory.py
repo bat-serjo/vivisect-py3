@@ -506,15 +506,30 @@ def memdiff(bytes1, bytes2):
     size = len(bytes1)
     if size != len(bytes2):
         raise Exception('memdiff *requires* same size bytes')
+
     ret = []
-    offset = 0
-    while offset < size:
-        if bytes1[offset] != bytes2[offset]:
-            beginoff = offset
-            # Gather up all the difference bytes.
-            while (offset < size and
-                           bytes1[offset] != bytes2[offset]):
-                offset += 1
-            ret.append((beginoff, offset - beginoff))
-        offset += 1
+    d_len = 0
+    cur_diff = None
+
+    for i, (b1, b2) in enumerate(zip(bytes1, bytes2)):
+        if b1 != b2:
+            d_len += 1
+            if cur_diff is None:
+                cur_diff = i
+        else:
+            if cur_diff is not None:
+                ret.append((cur_diff, d_len))
+                cur_diff = None
+                d_len = 0
+    #
+    # offset = 0
+    # while offset < size:
+    #     if bytes1[offset] != bytes2[offset]:
+    #         beginoff = offset
+    #         # Gather up all the difference bytes.
+    #         while (offset < size and
+    #                        bytes1[offset] != bytes2[offset]):
+    #             offset += 1
+    #         ret.append((beginoff, offset - beginoff))
+    #     offset += 1
     return ret
