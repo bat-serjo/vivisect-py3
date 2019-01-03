@@ -299,7 +299,7 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
 
             if forward is True:
                 lastva, lastsize = self._canv_rendvas[-1]
-                mapva, mapsize, mperm, mfname = self.vw.getMemoryMap(lastva)
+                mapva, mapsize, mperm, mfname = self.mem.getMemoryMap(lastva)
                 add_size = (mapva + mapsize) - (lastva + lastsize)
                 add_size = min(add_size, 128)
                 if add_size:
@@ -307,7 +307,7 @@ class VQMemoryCanvas(e_memcanvas.MemoryCanvas, QtWidgets.QPlainTextEdit):
                     self.renderMemoryAppend(o_va - lastva)
             else:
                 firstva, firstsize = self._canv_rendvas[0]
-                mapva, mapsize, mperm, mfname = self.vw.getMemoryMap(firstva)
+                mapva, mapsize, mperm, mfname = self.mem.getMemoryMap(firstva)
                 add_size = firstva - mapva
                 add_size = min(add_size, 128)
                 if add_size:

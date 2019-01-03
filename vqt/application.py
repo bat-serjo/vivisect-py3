@@ -72,6 +72,7 @@ class VQMainCmdWindow(QtWidgets.QMainWindow, vq_hotkeys.HotKeyMixin):
         self._vq_dockwidgets = []
 
         self._vq_settings = QtCore.QSettings('invisigoth', application=appname, parent=self)
+
         self._vq_histfile = os.path.join(os.path.expanduser('~'), '.%s_history' % appname)
 
         self._dock_classes = {}

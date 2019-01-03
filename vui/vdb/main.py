@@ -179,7 +179,69 @@ class VdbToolBar(vui.qtrace.VQTraceToolBar):
         self.db.do_stepo('')
 
 
-class VdbWindow(vq_app.VQMainCmdWindow):
+class RecentlyUsedMixin:
+    def __init__(self,
+                 menu_name='File',
+                 entry_name="Recent",
+                 *args, **kwargs):
+        self._name = entry_name
+        self._menu_name = menu_name
+        self._lru = list()
+        self._lru_len = 32
+        self._dyn_callback = ()
+
+        super(RecentlyUsedMixin, self).__init__(*args, **kwargs)
+
+        self._qs = QtCore.QSettings('vivrecent', parent=self)
+        self.load()
+
+    def store(self):
+        self._lru = self._lru[:self._lru_len]
+        self._qs.setValue(self._name, self._lru)
+
+    def load(self):
+        self._lru.clear()
+        self._lru.extend(self._qs.value(self._name))
+        for i in self._lru.copy():
+            if i is None:
+                self._lru.remove(i)
+        self._lru = self._lru[:self._lru_len]
+
+    def add_item(self, value):
+        if value is not None:
+            self._lru.insert(0, value)
+            self.restore_recent()
+            self.store()
+
+    def _recent_pressed(self, value):
+        print(value)
+        self._vq_cli.onecmd('exec "%s"' % value)
+
+    def _populate_recent_menu(self, name=None):
+        # self.vprint("NAME")
+        print('NAME:\n\n\n\n\n')
+
+        if name:
+            self._recent_pressed(name)
+            # pass
+        else:
+            return self._lru
+        for i in range(0, 100):
+            print(i)
+
+    # relies on class having vqAddMenuField
+    def restore_recent(self):
+        self.vqAddDynMenu(
+            '&%s.&%s' % (self._menu_name, self._name),
+            self._populate_recent_menu)
+
+        # for i in self._lru:
+        #     self.vqAddDynMenu(
+        #         '&%s.&%s' % (self._menu_name, self._name),
+        #         self._populate_recent_menu)
+
+
+class VdbWindow(vq_app.VQMainCmdWindow, RecentlyUsedMixin, ):
     __cli_widget_class__ = VdbCmdWidget
 
     def __init__(self, db: vdb.Vdb):
@@ -198,13 +260,19 @@ class VdbWindow(vq_app.VQMainCmdWindow):
 
         db.gui = self  # This must go before VQMainCmdWindow
         vq_app.VQMainCmdWindow.__init__(self, 'Vdb', db)
+        RecentlyUsedMixin.__init__(self)
 
         tbar = VdbToolBar(db, self._db_t, parent=self)
         self.addToolBar(QtCore.Qt.TopToolBarArea, tbar)
 
         self.vqAddMenuField('&File.&Open', self.menuFileOpen)
+
+        self.restore_recent()
+
         self.vqAddMenuField('&File.&Quit', self.menuFileQuit)
+
         self.vqAddMenuField('&Edit.&Preferences', self.menuEditPrefs)
+
         self.vqAddMenuField('&View.&Memory', self.menuViewMemory)
         self.vqAddMenuField('&View.&Memory Maps', self.menuViewMemMaps)
         self.vqAddMenuField('&View.&Threads', self.menuViewThreads)
@@ -214,6 +282,7 @@ class VdbWindow(vq_app.VQMainCmdWindow):
         self.vqAddMenuField('&View.&Layouts.&Load', self.menuViewLayoutsLoad)
         self.vqAddMenuField('&View.&Layouts.&Save', self.menuViewLayoutsSave)
         self.vqAddMenuField('&View.&Layouts.&Clear', self.menuViewLayoutsClear)
+
         self.vqAddMenuField('&Tools.&Python', self.menuToolsPython)
 
         # Map some default keys
@@ -407,7 +476,7 @@ class VdbWindow(vq_app.VQMainCmdWindow):
 
         self.vqClearDockWidgets()
 
-        settings = QtCore.QSettings(fname, QtCore.QSettings.IniFormat)
+        settings = QtCore.QSettings(QtCore.QSettings.IniFormat, fname)
         self.vqRestoreGuiSettings(settings)
 
     def menuViewLayoutsSave(self):
@@ -424,7 +493,11 @@ class VdbWindow(vq_app.VQMainCmdWindow):
     def menuFileOpen(self, *args, **kwargs):
         fname = QtWidgets.QFileDialog.getOpenFileName(parent=self, caption='File to execute and attach to')[0]
         if fname != '':
+            self.add_item(fname)
             self._vq_cli.onecmd('exec "%s"' % fname)
+
+    def menuFileRecent(self, *args, **kwargs):
+        self.addDynMenu(self.menuFileRecent)
 
     def menuFileQuit(self, *args, **kwargs):
         self.close()
@@ -458,11 +531,11 @@ class VdbWindow(vq_app.VQMainCmdWindow):
         for t in threading.enumerate():
             if t == c:
                 continue
-            print(t, t.name)
+
             try:
                 t.stop()
                 t.join(1000)
             except:
-                print(traceback.format_exc())
+                print(t, traceback.format_exc())
 
         return super(VdbWindow, self).closeEvent(event)

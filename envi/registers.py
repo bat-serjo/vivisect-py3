@@ -12,9 +12,13 @@ class InvalidRegisterName(Exception):
 
 class RegisterContext:
     def __init__(self, regdef=(), metas=(), pcindex=None, spindex=None, srindex=None):
-        """
-        Hand in a register definition which consists of
-        a list of (<name>, <width>) tuples.
+        """Hand in a register definition which consists of a list of (<name>, <width>) tuples.
+
+        :param regdef:
+        :param metas:
+        :param pcindex: program counter index
+        :param spindex: stack pointer index
+        :param srindex: stack register index
         """
 
         self._rctx_dirty = False
@@ -40,7 +44,7 @@ class RegisterContext:
         # initialize some of the attributes
         self.loadRegDef(regdef)
         self.loadRegMetas(metas)
-        self.setRegisterIndexes(pcindex, spindex, srindex=srindex)
+        self.setRegisterIndexes(pcindex, spindex, srindex)
 
     def getRegisterSnap(self):
         """
@@ -79,7 +83,7 @@ class RegisterContext:
         A register definition consists of a list of tuples
         with the following format: [(regname, regwidth), ...]
 
-        NOTE: All widths in envi RegisterContexts are in bits.
+        NOTE: All widths in RegisterContexts are in bits.
 
         :param regdef: [(regname, regwidth), ...]
         :param defval: default value for the registers

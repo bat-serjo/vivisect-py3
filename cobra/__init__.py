@@ -566,7 +566,7 @@ class CobraDaemon(ThreadingTCPServer):
         self.sslkey = keyfile
 
     def fireThread(self):
-        self.thr = Thread(target=self.serve_forever)
+        self.thr = Thread(target=self.serve_forever, name="SERVE FOREVER")
         self.thr.setDaemon(True)
         self.thr.start()
 

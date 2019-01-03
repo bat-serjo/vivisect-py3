@@ -1357,7 +1357,7 @@ class WindowsMixin:
         x = self.parseExpression('kernel32.LoadLibraryA')
         memaddr = self.allocateMemory(4096)
         self.writeMemory(memaddr, '%s\x00' % filename)
-        t =  kernel32.CreateRemoteThread(self.phandle, 0, 0, x, memaddr, 0, addressof(tid))
+        t = kernel32.CreateRemoteThread(self.phandle, 0, 0, x, memaddr, 0, addressof(tid))
         self.joinThread(tid.value)
         kernel32.CloseHandle(t)
         kernel32.VirtualFreeEx(self.phandle, memaddr, 0, 0x8000) # MEM_RELEASE 0x8000  MEM_DECOMMIT 0x4000

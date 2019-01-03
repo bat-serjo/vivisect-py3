@@ -713,8 +713,7 @@ class PathGenerator:
         """
         set a watchdog timer for path generation (if it takes too long to get another path)
         """
-        self.wdt = threading.Thread(target=self.__wd, args=[_time])
-        self.wdt.setDaemon = True
+        self.wdt = threading.Thread(target=self.__wd, args=[_time], daemon=True, name='Watchdog')
         self.wdt.start()
 
     def __wd(self, maxsec):

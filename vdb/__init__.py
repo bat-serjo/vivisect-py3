@@ -140,6 +140,7 @@ class WrapExcThread(threading.Thread):
 
     def __init__(self, target=None, args=tuple(), kwargs={}):
         threading.Thread.__init__(self)
+        self.setName('WrapExec %s' % str(target))
         self.queue = Queue()
         self.target = target
         self.args = args
@@ -1381,15 +1382,18 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
             return self.do_help('syms')
 
         for lib in sorted(libs):
-            for sym in self.trace.getSymsForFile(lib):
-                r = repr(sym)
+            try:
+                for sym in self.trace.getSymsForFile(lib):
+                    r = repr(sym)
 
-                if rgx is not None:
-                    match = re.search(rgx, r, re.IGNORECASE)
-                    if match == None:
-                        continue
+                    if rgx is not None:
+                        match = re.search(rgx, r, re.IGNORECASE)
+                        if match is None:
+                            continue
 
-                self.vprint('0x%.8x %s' % (sym.value, r))
+                    self.vprint('0x%.8x %s' % (sym.value, r))
+            except Exception as e:
+                pass
 
     def do_call(self, line):
         """

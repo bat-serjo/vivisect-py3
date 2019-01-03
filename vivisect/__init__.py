@@ -515,8 +515,7 @@ class VivWorkspace(e_mem.MemoryObject, viv_base.VivWorkspaceCore):
         self.importWorkspace(wsevents)
         self.server.vprint('%s connection complete!' % uname)
 
-        thr = threading.Thread(target=self._clientThread)
-        thr.setDaemon(True)
+        thr = threading.Thread(target=self._clientThread, daemon=True, name='initWorkspaceClient')
         thr.start()
 
     def _clientThread(self):

@@ -209,7 +209,7 @@ class ClusterServer:
             dcode.enableDcodeServer(daemon=self.cobrad)
 
         # Fire the timeout monitor thread...
-        thr = threading.Thread(target=self.timerThread)
+        thr = threading.Thread(target=self.timerThread, name='Cluster timer thread')
         thr.setDaemon(True)
         thr.start()
 
@@ -313,7 +313,7 @@ class ClusterServer:
     def runServer(self, firethread=False):
 
         if firethread:
-            thr = threading.Thread(target=self.runServer)
+            thr = threading.Thread(target=self.runServer, name='Cluster run server')
             thr.setDaemon(True)
             thr.start()
 
@@ -532,7 +532,7 @@ class ClusterClient:
             self.fireRunner(uri)
 
     def fireRunner(self, uri):
-        thr = threading.Thread(target=self.threadForker, args=(uri,))
+        thr = threading.Thread(target=self.threadForker, args=(uri,), name='Cluster thread forker')
         thr.setDaemon(True)
         thr.start()
 
@@ -599,10 +599,11 @@ def workThread(server, work):
         traceback.print_exc()
         server.failWork(work)
 
+
 def runAndWaitWork(server, work):
 
     work.touch()
-    thr = threading.Thread(target=workThread, args=(server, work))
+    thr = threading.Thread(target=workThread, args=(server, work), name='Run and wait work')
     thr.setDaemon(True)
     thr.start()
 

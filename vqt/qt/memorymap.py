@@ -61,12 +61,12 @@ class VQMemoryMapView(vq_tree.VQTreeView):
     def menuCopyBytesToClipboard(self, va, size):
         bytez = self.mem.readMemory(va, size)
 
-        clipboard = QtGui.QApplication.clipboard()
-        clipboard.setText(bytez.encode('hex'))
+        clipboard = QtWidgets.QApplication.clipboard()
+        clipboard.setText(bytez.hex())
 
     def menuSaveBytesToFile(self, va, size):
         dlg = vqt.qt.memdump.MemDumpDialog(va, size=size)
-        if dlg.exec_() != QtGui.QDialog.Accepted:
+        if dlg.exec_() != QtWidgets.QDialog.Accepted:
             return
 
         filename, size = dlg.getResults()
@@ -76,7 +76,7 @@ class VQMemoryMapView(vq_tree.VQTreeView):
 
     def menuSearchMaps(self, va, size, allmaps=False):
         dlg = vqt.qt.memsearch.MemSearchDialog()
-        if dlg.exec_() != QtGui.QDialog.Accepted:
+        if dlg.exec_() != QtWidgets.QDialog.Accepted:
             return
 
         pattern, fname = dlg.getResults()

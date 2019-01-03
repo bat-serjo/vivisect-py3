@@ -6,6 +6,7 @@ Linux Platform Module
 import os
 import sys
 import time
+import stat
 import struct
 import signal
 import traceback
@@ -323,24 +324,34 @@ class LinuxMixin(v_posix.PtraceMixin, v_posix.PosixMixin):
 
     @v_base.threadwrap
     def platformExec(self, cmdline):
-        # Very similar to posix, but not
-        # quite close enough...
+        # Very similar to posix, but not quite close enough...
+
         self.execing = True
+
         cmdlist = e_cli.splitargs(cmdline)
-        os.stat(cmdlist[0])
+        i = os.stat(cmdlist[0])
+        m = i.st_mode
+
+        if m & (stat.S_IEXEC | stat.S_IXUSR | stat.S_IXOTH) == 0:
+            raise Exception("File is not executable")
+
         pid = os.fork()
 
         if pid == 0:
             try:
                 # Don't use PT_TRACEME -- on some linux (tested on ubuntu)
-                # it will cause immediate asignment of ptrace slot to parent
+                # it will cause immediate assignment of ptrace slot to parent
                 # without parent having PT_ATTACH'D.... MAKES SYNCHRONIZATION HARD
                 # SIGSTOP our self until parent continues us
                 os.kill(os.getpid(), signal.SIGSTOP)
+
+                # now that we've been continued we execv
                 os.execv(cmdlist[0], cmdlist)
             except Exception as e:
-                print(e)
-            sys.exit(-1)
+                print(traceback.format_exc())
+
+            # way more direct!
+            os._exit(-1)
 
         # Attach to child. should cause SIGSTOP
         if 0 != v_posix.ptrace(PT_ATTACH, pid, 0, 0):
@@ -416,10 +427,13 @@ class LinuxMixin(v_posix.PtraceMixin, v_posix.PosixMixin):
 
     @v_base.threadwrap
     def platformWait(self):
+        # from waitflags.h #define __WALL          0x40000000 /* Wait for any child.  */
+
         # Blocking wait once...
         pid, status = os.waitpid(-1, 0x40000002)
         self.setMeta("ThreadId", pid)
-        # Stop the rest of the threads... 
+
+        # Stop the rest of the threads...
         # why is linux debugging so Ghetto?!?!
         if not self.stepping:  # If we're stepping, only do the one
             for tid in self.pthreads:

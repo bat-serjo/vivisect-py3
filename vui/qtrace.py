@@ -12,6 +12,7 @@ import vqt.qt.memory as envi_qt_memory
 import vqt.qt.memorymap as envi_qt_memmap
 import vqt.tree as vq_tree
 import vtrace
+
 from vqt.main import workthread, idlethread, idlethreadsync
 from vtrace.const import *
 
@@ -381,6 +382,7 @@ class VQFileDescView(VQTraceNotifier, vq_tree.VQTreeView):
     def __init__(self, trace, parent=None):
         VQTraceNotifier.__init__(self, trace)
         vq_tree.VQTreeView.__init__(self, parent=parent)
+
         self.setWindowTitle('File Descriptors')
         self.setModel(FileDescModel(parent=self))
         self.vqLoad()
@@ -520,7 +522,8 @@ class VQMemoryMapView(VQTraceNotifier, envi_qt_memmap.VQMemoryMapView):
             self.setEnabled(False)
             return
 
-        envi_qt_memmap.VQMemoryMapView.vqLoad(self)
+        super(VQMemoryMapView, self).vqLoad()
+        self.vqSizeColumns()
 
 
 class VQThreadListModel(vq_tree.VQTreeModel):
@@ -532,19 +535,25 @@ class VQThreadsView(VQTraceNotifier, vq_tree.VQTreeView):
         # selectthread is an optional endpoint to connect to
         VQTraceNotifier.__init__(self, trace)
         vq_tree.VQTreeView.__init__(self, parent=parent)
+
         self.setWindowTitle('Threads')
         self.setModel(VQThreadListModel(parent=self))
         self.setAlternatingRowColors(True)
         self.vqLoad()
         self.selectthread = selectthread
 
-    def selectionChanged(self, selected, deselected):
-        idx = self.selectedIndexes()[0]
-        node = idx.internalPointer()
-        if node:
-            self.trace.selectThread(node.rowdata[0])
-
-        return vq_tree.VQTreeView.selectionChanged(self, selected, deselected)
+    # def selectionChanged(self, selected, deselected):
+    #     try:
+    #         idx = self.selectedIndexes()[0]
+    #         node = idx.internalPointer()
+    #         if node:
+    #             self.trace.selectThread(node.rowdata[0])
+    #
+    #         # return vq_tree.VQTreeView.selectionChanged(self, selected, deselected)
+    #     except Exception as e:
+    #         traceback.print_exc()
+    #
+    #     return vq_tree.VQTreeView.selectionChanged(self, selected, deselected)
 
     def vqLoad(self):
 

@@ -188,7 +188,7 @@ class CobraEventCore:
         NOTE: This API is *not* cobra proxy call safe.
         '''
         if firethread:
-            thr = threading.Thread(target=self.addEventCallback, args=(callback, qmax, False))
+            thr = threading.Thread(target=self.addEventCallback, args=(callback, qmax, False), name='Devevent add event callback')
             thr.setDaemon(True)
             thr.start()
             return
@@ -224,7 +224,7 @@ class CobraEventCore:
         mreq = struct.pack("4sL", socket.inet_aton(mcast), socket.INADDR_ANY)
         self._ce_ecastsock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
 
-        thr = threading.Thread(target=self._runSocketListener)
+        thr = threading.Thread(target=self._runSocketListener, name='Devevent run socket listener')
         thr.setDaemon(True)
         thr.start()
 
@@ -234,6 +234,7 @@ class CobraEventCore:
             sockdata,sockaddr = sock.recvfrom(4096)
             etup = json.loads(sockdata)
             [ q.put( etup ) for q in self._ce_chans ]
+
 
 if __name__ == '__main__':
 

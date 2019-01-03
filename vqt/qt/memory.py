@@ -280,7 +280,7 @@ class VQMemoryWindow(QtWidgets.QWidget, vq_hotkey.HotKeyMixin, EnviNavMixin, vq_
         try:
             addr = self._mem_obj.parseExpression(expr)
         except Exception as e:
-            traceback.print_exc()
+            # traceback.print_exc()
             self.mem_canvas.addText('Invalid Address: %s (%s)' % (expr, e))
             return None, None
 

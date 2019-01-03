@@ -8,7 +8,7 @@ import sys
 import traceback
 import threading
 
-from queue import Queue
+from queue import Queue, Empty
 from threading import Thread, Lock
 
 import vtrace
@@ -1009,14 +1009,17 @@ def threadwrap(func):
     def trfunc(self, *args, **kwargs):
         if threading.currentThread().__class__ == TracerThread:
             return func(self, *args, **kwargs)
+
         # Proxy the call through a single thread
         q = Queue()
         # FIXME change calling convention!
         args = (self,) + args
         self.thread.queue.put((func, args, kwargs, q))
-        ret = q.get()
+        ret = q.get(block=True)
+
         if issubclass(ret.__class__, Exception):
             raise ret
+
         return ret
 
     return trfunc
@@ -1026,7 +1029,7 @@ class TracerThread(Thread):
     """
     Ok... so here's the catch... most debug APIs do *not* allow
     one thread to do the attach and another to do continue and another
-    to do wait... they just dont.  So there.  I have to make a thread
+    to do wait... they just don't.  So there.  I have to make a thread
     per-tracer (on most platforms) and proxy requests (for *some* trace
     API methods) to it for actual execution.  SUCK!
 
@@ -1036,29 +1039,43 @@ class TracerThread(Thread):
     """
 
     def __init__(self):
-        Thread.__init__(self)
-        self.queue = Queue()
+        super(TracerThread, self).__init__()
+        self._running = False
+
+        self.setName('TracerThread')
         self.setDaemon(True)
+
+        self.queue = Queue()
         self.start()
+
+    def stop(self):
+        self._running = False
 
     def run(self):
         """
         Run in a circle getting requests from our queue and
         executing them based on the thread.
         """
-        while True:
+        self._running = True
+
+        while self._running is True:
             try:
-                qobj = self.queue.get()
+                qobj = self.queue.get(timeout=0.100)
                 if qobj is None:
                     break
+
                 meth, args, kwargs, queue = qobj
+
                 try:
                     queue.put(meth(*args, **kwargs))
                 except Exception as e:
                     queue.put(e)
                     if vtrace.verbose:
                         traceback.print_exc()
-                    continue
-            except:
+
+            except Empty:
+                pass
+
+            except Exception as e:
                 if vtrace.verbose:
                     traceback.print_exc()

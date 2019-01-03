@@ -36,9 +36,11 @@ z80meta = [
 
 e_reg.addLocalMetas(l, z80meta)
 
+
 class z80RegisterContext(e_reg.RegisterContext):
     def __init__(self):
-        e_reg.RegisterContext.__init__(self)
+        super(z80RegisterContext, self).__init__(self)
+
         self.loadRegDef(z80regs)
         self.loadRegMetas(z80meta)
         self.setRegisterIndexes(REG_PC, REG_SP)

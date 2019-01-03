@@ -1,7 +1,7 @@
-
-'''
+"""
 The vdb command / GUI extensions from vivisect!
-'''
+"""
+
 import traceback
 
 import envi.cli as e_cli
@@ -12,9 +12,11 @@ import vui.vdb.main as vdb_qt_main
 from envi.threads import firethread
 from vqt.main import idlethread, idlethreadsync
 
+
 class VivNotif(vtrace.Notifier):
 
     def __init__(self, vivgui):
+        super(VivNotif, self).__init__()
         self.vivgui = vivgui
 
     @idlethreadsync
@@ -29,7 +31,7 @@ class VivNotif(vtrace.Notifier):
 
                 # If there are stalker hits, lets make a color map for them...
                 shits = trace.getMeta('StalkerHits', None)
-                if shits != None:
+                if shits is not None:
                     self.vivgui.vw.vprint('vdb ext found stalker hits!')
                     cmap = viv_color.VivColorMap(self.vivgui.vw)
                     for hit in shits:
@@ -38,8 +40,8 @@ class VivNotif(vtrace.Notifier):
                         except Exception as e:
                             self.vivgui.vw.vprint('WARNING: stalker color map: %s' % e)
 
-                    #self.vivgui.setColorMap(cmap.getColorDict())
-                    #cmap.saveAs('stalker')
+                    # self.vivgui.setColorMap(cmap.getColorDict())
+                    # cmap.saveAs('stalker')
                     cmap.setGuiMap()
 
         except Exception as e:
@@ -54,11 +56,12 @@ def doLoad(db, trace, base):
     db.vw.vprint('...loaded.')
     db.vw.analyze()
 
+
 def vivimport(db, line):
-    '''
+    """
     Import either a library or memory map from the target
     process into the current vivisect workspace.
-    '''
+    """
     vw = db.vw
     trace = db.getTrace()
 
@@ -78,15 +81,18 @@ def vivimport(db, line):
 
     doLoad(db, trace, base)
 
+
 def extendVdb(db, vivgui):
     db.vw = vivgui.vw # Store a ref to the workspace...
     db.vivgui = vivgui # Also a reference to the GUI
     db.registerNotifier(vtrace.NOTIFY_ALL, VivNotif(vivgui))
     db.registerCmdExtension(vivimport)
 
+
 @firethread
 def fireattach(trace, pid):
     trace.attach(pid)
+
 
 @idlethread
 def runVdb(vivgui, pid=None):
@@ -95,7 +101,7 @@ def runVdb(vivgui, pid=None):
         extendVdb(db, vivgui)
         vgui = vdb_qt_main.VdbWindow(db)
         vgui.show()
-        if pid != None:
+        if pid is not None:
             fireattach(db.trace, pid)
     except Exception as e:
         vivgui.vw.vprint('Error Running VDB: %s' % e)

@@ -16,8 +16,7 @@ def firethread(func):
     """
 
     def dothread(*args, **kwargs):
-        thr = threading.Thread(target=func, args=args, kwargs=kwargs)
-        thr.setDaemon(True)
+        thr = threading.Thread(target=func, args=args, kwargs=kwargs, daemon=True, name='Firethread %s' % str(func))
         thr.start()
         return thr
 
@@ -43,8 +42,7 @@ def maintthread(stime):
                 time.sleep(stime)
 
         def dothread(*args, **kwargs):
-            thr = threading.Thread(target=maintloop, args=args, kwargs=kwargs)
-            thr.setDaemon(True)
+            thr = threading.Thread(target=maintloop, args=args, kwargs=kwargs, daemon=True, name="Do thread %s" % str(mainloop))
             thr.start()
 
         functools.update_wrapper(dothread, func)
