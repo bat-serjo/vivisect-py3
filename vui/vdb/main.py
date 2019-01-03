@@ -214,20 +214,13 @@ class RecentlyUsedMixin:
             self.store()
 
     def _recent_pressed(self, value):
-        print(value)
         self._vq_cli.onecmd('exec "%s"' % value)
 
     def _populate_recent_menu(self, name=None):
-        # self.vprint("NAME")
-        print('NAME:\n\n\n\n\n')
-
         if name:
             self._recent_pressed(name)
-            # pass
         else:
             return self._lru
-        for i in range(0, 100):
-            print(i)
 
     # relies on class having vqAddMenuField
     def restore_recent(self):
