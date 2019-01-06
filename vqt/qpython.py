@@ -55,9 +55,9 @@ class VQTerminal(QtWidgets.QPlainTextEdit):
         #
 
         import os
-        os.write(sys.stdin, self.document().toPlainText())
-        sys.stdout.flush()
-        sys.stderr.flush()
+        sys.stdout.write(self.document().toPlainText())
+        # sys.stdout.flush()
+        # sys.stderr.flush()
 
         c = code.InteractiveConsole(locals())
         c.interact()

@@ -29,7 +29,7 @@ dock_top = QtCore.Qt.TopDockWidgetArea
 dock_right = QtCore.Qt.RightDockWidgetArea
 
 
-class VQVivMainWindow(vq_app.VQMainCmdWindow, viv_base.VivEventDist):
+class VQVivMainWindow(RecentlyUsedMixin, vq_app.VQMainCmdWindow, viv_base.VivEventDist ):
     # Child windows may emit this on "navigate" requests...
     # vivNavSignal = QtCore.pyqtSignal(str, name='vivNavSignal')
     vivMemColorSignal = QtCore.pyqtSignal(dict, name='vivMemColorSignal')
@@ -38,11 +38,17 @@ class VQVivMainWindow(vq_app.VQMainCmdWindow, viv_base.VivEventDist):
     def __init__(self, vw):
         self.vw = vw
         vw._viv_gui = self
+        RecentlyUsedMixin.__init__(self, appname='Vivisect', cmd=vw)
         viv_base.VivEventDist.__init__(self, vw)
         vq_app.VQMainCmdWindow.__init__(self, 'Vivisect', vw)
+
+        # super(VQVivMainWindow, self).__init__('Vivisect', vw)
+
         self.vqAddMenuField('&File.Save', self._menuFileSave)
         self.vqAddMenuField('&File.Save As', self._menuFileSaveAs)
         self.vqAddMenuField('&File.Save to Server', self._menuFileSaveServer)
+
+        self.restore_recent()
 
         self.vqAddMenuField('&File.Quit', self.close)
         self.vqAddMenuField('&Edit.&Preferences', self._menuEditPrefs)

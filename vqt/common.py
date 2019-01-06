@@ -2,6 +2,64 @@
 from PyQt5 import QtWidgets, QtCore
 
 
+class RecentlyUsedMixin:
+    def __init__(self,
+                 menu_name='File',
+                 entry_name="Recent",
+                 *args, **kwargs):
+        self._name = entry_name
+        self._menu_name = menu_name
+        self._lru = list()
+        self._lru_len = 32
+        self._dyn_callback = ()
+
+        super(RecentlyUsedMixin, self).__init__(*args, **kwargs)
+
+        self._qs = QtCore.QSettings('vivrecent', parent=self)
+        self.load()
+
+    def store(self):
+        self._lru = self._lru[:self._lru_len]
+        self._qs.setValue(self._name, self._lru)
+
+    def load(self):
+        self._lru.clear()
+        self._lru.extend(self._qs.value(self._name))
+        for i in self._lru.copy():
+            if i is None:
+                self._lru.remove(i)
+        self._lru = self._lru[:self._lru_len]
+
+    def add_item(self, value):
+        if value is not None:
+            self._lru.insert(0, value)
+            self.restore_recent()
+            self.store()
+
+    def _recent_pressed(self, value):
+        self._lru.remove(value)
+        self._lru.insert(0, value)
+        self.store()
+        self._vq_cli.onecmd('exec "%s"' % value)
+
+    def _populate_recent_menu(self, name=None):
+        if name:
+            self._recent_pressed(name)
+        else:
+            return self._lru
+
+    # relies on class having vqAddMenuField
+    def restore_recent(self):
+        self.vqAddDynMenu(
+            '&%s.&%s' % (self._menu_name, self._name),
+            self._populate_recent_menu)
+
+        # for i in self._lru:
+        #     self.vqAddDynMenu(
+        #         '&%s.&%s' % (self._menu_name, self._name),
+        #         self._populate_recent_menu)
+
+
 class ACT:
     def __init__(self, meth, *args, **kwargs):
         self.meth = meth

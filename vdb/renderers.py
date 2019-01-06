@@ -13,24 +13,23 @@ import envi.memcanvas.renderers as e_canvas_rend
 
 class OpcodeRenderer(e_canvas.MemoryRenderer):
     def __init__(self, trace, arch=envi.ARCH_DEFAULT):
+        self._empty_reg = '        '
         self.arch = arch
         self.emu_cache = {}  # arch_num: emu instance
         self.pwidth = trace.getPointerSize()
         self.pformat = '0x%%.%dx' % (self.pwidth * 2)
 
     def _getOpcodePrefix(self, trace, va, op):
-        regs = trace.getRegisters()
-        regs = dict([(rval, rname) for (rname, rval) in list(regs.items()) if rval != 0])
-
         bp = trace.getBreakpointByAddr(va)
         if bp is not None:
             return ('bp[%d]' % bp.id).ljust(8)
 
-        rname = regs.get(va)
-        if rname is not None:
-            return rname[:7].ljust(8)
+        regs = trace.getRegisters()
+        for rname, rval in regs.items():
+            if rval == va:
+                return rname[:7].ljust(8)
 
-        return '        '
+        return self._empty_reg
 
     def _getOpcodeSuffix(self, trace, va, op):
         pc = trace.getProgramCounter()
@@ -50,7 +49,7 @@ class OpcodeRenderer(e_canvas.MemoryRenderer):
                 rova = trace.readMemoryFormat(ova, '<P')[0]
                 sym = trace.getSymByAddr(rova)
 
-            if sym == None:
+            if sym is None:
                 sym = trace.getSymByAddr(ova)
 
             if sym:

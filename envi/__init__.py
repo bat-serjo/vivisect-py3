@@ -268,7 +268,7 @@ class Operand:
     """
     These are the expected methods needed by any implemented operand object
     attached to an envi Opcode.  This does *not* have a constructor of it's
-    pwn on purpose to cut down on memory use and constructor CPU cost.
+    own on purpose to cut down on memory use and constructor CPU cost.
     """
 
     def getOperValue(self, op, emu=None):
@@ -311,7 +311,7 @@ class Operand:
 
     def isDiscrete(self):
         """
-        If the given operand can be completly resolved without an emulator, return True.
+        If the given operand can be completely resolved without an emulator, return True.
         """
         return False
 
@@ -376,13 +376,13 @@ class Opcode:
         """
         constructor for the basic Envi Opcode object.  Arguments as follows:
 
+        va       - The virtual address the instruction lives at (used for PC relative immediates etc...)
         opcode   - An architecture specific numerical value for the opcode
         mnem     - A humon readable mnemonic for the opcode
         prefixes - a bitmask of architecture specific instruction prefixes
         size     - The size of the opcode in bytes
         operands - A list of Operand objects for this opcode
-        iflags   - A list of Envi (architecture independant) instruction flags (see IF_FOO)
-        va       - The virtual address the instruction lives at (used for PC relative immediates etc...)
+        iflags   - A list of Envi (architecture independent) instruction flags (see IF_FOO)
 
         NOTE: If you want to create an architecture spcific opcode, I'd *highly* recommend you
               just copy/paste in the following simple initial code rather than calling the parent

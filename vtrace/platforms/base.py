@@ -572,11 +572,13 @@ class TracerBase(notifiers.Notifier, PlatformMixinInterface):
         """
         if self.regcache is None:
             self.regcache = {}
+
         ret = self.regcache.get(threadid)
         if ret is None:
             ret = self.platformGetRegCtx(threadid)
             ret.setIsDirty(False)
             self.regcache[threadid] = ret
+
         return ret
 
     def _checkForBreakpoint(self):
@@ -921,15 +923,19 @@ class TracerBase(notifiers.Notifier, PlatformMixinInterface):
         Check if a filename has yet to be parsed.  If it has NOT
         been parsed, parse it and return True, otherwise, return False
         """
-        normname = self.normFileName(filename)
-        if not self.libloaded.get(normname, False):
-            address = self.getMeta("LibraryBases").get(normname)
-            if address is None:
-                return False
+        try:
+            normname = self.normFileName(filename)
+            if not self.libloaded.get(normname, False):
+                address = self.getMeta("LibraryBases").get(normname)
+                if address is None:
+                    return False
 
-            self.platformParseBinary(filename, address, normname)
-            self.libloaded[normname] = True
-            return True
+                self.platformParseBinary(filename, address, normname)
+                self.libloaded[normname] = True
+                return True
+        except Exception as e:
+            pass
+
         return False
 
     def _simpleCreateThreads(self):
@@ -1070,8 +1076,8 @@ class TracerThread(Thread):
                     queue.put(meth(*args, **kwargs))
                 except Exception as e:
                     queue.put(e)
-                    if vtrace.verbose:
-                        traceback.print_exc()
+                    # if vtrace.verbose:
+                    #     traceback.print_exc()
 
             except Empty:
                 pass

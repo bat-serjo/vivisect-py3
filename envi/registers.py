@@ -30,6 +30,9 @@ class RegisterContext:
         self._rctx_widths = None
         self._rctx_regdef = None
 
+        self._rctx_physical = None
+        self._rctx_metaphysical = None
+
         # special register for all architectures
         # the program counter
         self._rctx_pcindex = None
@@ -97,12 +100,22 @@ class RegisterContext:
         self._rctx_masks = []
         self._rctx_widths = []
 
+        self._rctx_physical = dict()
+        self._rctx_metaphysical = dict()
+
         for i, (name, width) in enumerate(regdef):
             self._rctx_names[name] = i
             self._rctx_ids[i] = name
             self._rctx_widths.append(width)
             self._rctx_masks.append((2 ** width) - 1)
             self._rctx_vals.append(defval)
+
+        for name, idx in list(self._rctx_names.items()):
+            # Skip meta registers
+            if (idx & 0xffff) != idx:
+                self._rctx_metaphysical[name] = idx
+            else:
+                self._rctx_physical[name] = idx
 
     def getRegDef(self) -> list:
         """
@@ -178,13 +191,19 @@ class RegisterContext:
         """
         # On import from a structure, we are clean again.
         self._rctx_dirty = False
-        for name, idx in list(self._rctx_names.items()):
-            # Skip meta registers
-            if (idx & 0xffff) != idx:
-                continue
+
+        for name, idx in self._rctx_physical.items():
             x = getattr(sobj, name, None)
-            if x is not None:
+            if x:
                 self._rctx_vals[idx] = x
+
+        # for name, idx in list(self._rctx_names.items()):
+        #     # Skip meta registers
+        #     if (idx & 0xffff) != idx:
+        #         continue
+        #     x = getattr(sobj, name, None)
+        #     if x is not None:
+        #         self._rctx_vals[idx] = x
 
     def _rctx_Export(self, sobj: object):
         """
@@ -192,12 +211,19 @@ class RegisterContext:
         registers in our context, set the ones he has to match
         our values.
         """
-        for name, idx in list(self._rctx_names.items()):
+        for name, idx in self._rctx_physical.items():
             # Skip meta registers
             if (idx & 0xffff) != idx:
                 continue
             if hasattr(sobj, name):
                 setattr(sobj, name, self._rctx_vals[idx])
+
+        # for name, idx in list(self._rctx_names.items()):
+        #     # Skip meta registers
+        #     if (idx & 0xffff) != idx:
+        #         continue
+        #     if hasattr(sobj, name):
+        #         setattr(sobj, name, self._rctx_vals[idx])
 
     def getRegisterInfo(self, meta=False) -> tuple:
         """

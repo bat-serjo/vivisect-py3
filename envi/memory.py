@@ -296,8 +296,16 @@ class IMemory:
 
         Example: op = m.parseOpcode(0x7c773803)
         """
-        b = self.readMemory(va, 16)
-        return self.imem_archs[arch >> 16].archParseOpcode(b, 0, va)
+        from vcap import vbridge
+        return vbridge.parseOpcode(self, va, arch)
+
+        try:
+            b = self.readMemory(va, 16)
+            return self.imem_archs[arch >> 16].archParseOpcode(b, 0, va)
+        except envi.InvalidInstruction:
+            # fallback to capstone bridge
+            from vcap import vbridge
+            return vbridge.parseOpcode(self, va, arch)
 
 
 class MemoryCache(IMemory):

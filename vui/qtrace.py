@@ -29,7 +29,6 @@ class VQTraceNotifier(vtrace.Notifier):
         self.trace.registerNotifier(NOTIFY_ALL, self)
 
     @idlethreadsync
-    # FIXME this should be part of a shared API!
     def notify(self, event, trace):
         if event in [NOTIFY_CONTINUE, NOTIFY_DETACH, NOTIFY_EXIT]:
             self.setEnabled(False)

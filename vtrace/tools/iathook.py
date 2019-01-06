@@ -74,7 +74,7 @@ def hookIat(trace, libname, implib='*', impfunc='*', fast=False):
         if ilib != implib and implib != '*':
             continue
 
-        if ifunc.lower() != impfunc and impfunc!='*':
+        if ifunc.lower() != impfunc and impfunc != '*':
             continue
 
         iatname = '%s.%s.%s' % (libname, ilib, ifunc)

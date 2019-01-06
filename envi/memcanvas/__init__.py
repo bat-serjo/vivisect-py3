@@ -370,8 +370,9 @@ class MemoryCanvas:
                     self._endRenderVa(va, rsize)
                     va += rsize
                 except Exception as e:
-                    traceback.print_exc()
-                    self.addText("\nRender Exception At %s: %s\n" % (hex(va), e))
+                    # traceback.print_exc()
+                    # self.addText("\nRender Exception At %s: %s\n" % (hex(va), e))
+                    self.addText("\nRender Exception At %s\n" % (hex(va)))
                     self._endRenderVa(va, 1)
                     break
 

@@ -918,7 +918,12 @@ class VivWorkspace(e_mem.MemoryObject, viv_base.VivWorkspaceCore):
             if loctup is not None and loctup[L_TINFO] and loctup[L_LTYPE] == LOC_OP:
                 arch = loctup[L_TINFO]
 
-        return self.imem_archs[(arch & envi.ARCH_MASK) >> 16].archParseOpcode(b, off, va)
+        try:
+            return self.imem_archs[(arch & envi.ARCH_MASK) >> 16].archParseOpcode(b, off, va)
+        except envi.InvalidInstruction:
+            # fall back to capstone bridge
+            print("CAPSTOOOONE !!!!")
+            pass
 
     def makeOpcode(self, va, op=None, arch=envi.ARCH_DEFAULT):
         """

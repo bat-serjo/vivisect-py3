@@ -320,7 +320,7 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
         self.trace = oldtrace.buildNewTrace()
         oldtrace.release()
 
-        self.bpcmds = {}
+        self.bpcmds.clear()
         self.manageTrace(self.trace)
         return self.trace
 
@@ -392,12 +392,12 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
         tid = trace.getCurrentThread()
 
         # Any kind of event resets the runcache
-        self.runcache = {}
+        self.runcache.clear()
 
         if event == vtrace.NOTIFY_ATTACH:
             self.vprint("Attached to : %d" % pid)
             self.waitlib = None
-            self.difftracks = {}
+            self.difftracks.clear()
 
             if self.windows_jit_event:
                 trace._winJitEvent(self.windows_jit_event)
@@ -418,7 +418,7 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
             pass
 
         elif event == vtrace.NOTIFY_DETACH:
-            self.difftracks = {}
+            self.difftracks.clear()
             self.vprint("Detached from %d" % pid)
 
         elif event == vtrace.NOTIFY_SIGNAL:
@@ -426,7 +426,7 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
             thr = trace.getCurrentThread()
             signo = trace.getCurrentSignal()
 
-            self.vprint("Process Recieved Signal %d (0x%.8x) (Thread: %d (0x%.8x))" % (signo, signo, thr, thr))
+            self.vprint("Process Received Signal %d (0x%.8x) (Thread: %d (0x%.8x))" % (signo, signo, thr, thr))
 
             faddr, fperm = trace.getMemoryFault()
             if faddr is not None:
@@ -1888,7 +1888,7 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
                 self.difftracks[va] = bytez
 
             elif opt == '-C':
-                self.difftracks = {}
+                self.difftracks.clear()
 
             elif opt == '-D':
                 difs = self._getDiffs()
@@ -1904,7 +1904,7 @@ class Vdb(e_cli.EnviMutableCli, v_notif.Notifier, v_util.TraceManager):
             elif opt == '-M':
                 va = self.parseExpression(optarg)
                 mmap = self.trace.getMemoryMap(va)
-                if mmap == None:
+                if mmap is None:
                     self.vprint('No Memory Map At: 0x%.8x' % va)
                     return
                 mva, msize, mperm, mfile = mmap
