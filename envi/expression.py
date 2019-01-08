@@ -20,7 +20,7 @@ class ExpressionLocals(dict):
     """
 
     def __init__(self, symobj=None):
-        dict.__init__(self)
+        super(ExpressionLocals, self).__init__(self)
         self.symobj = symobj
 
     def __getitem__(self, name):

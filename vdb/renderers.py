@@ -97,6 +97,7 @@ class OpcodeRenderer(e_canvas.MemoryRenderer):
             if suffix:
                 mcanv.addText(' ;' + suffix)
         except Exception as e:
+            import traceback
             mcanv.addText('; suffix error: %s' % e)
 
         mcanv.addText("\n")

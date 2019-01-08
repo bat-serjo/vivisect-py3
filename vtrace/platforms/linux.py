@@ -16,6 +16,7 @@ import envi.cli as e_cli
 import envi.const
 import envi.memory as e_mem
 import envi.registers as e_reg
+import envi.symstore.resolver as e_sym_resolv
 
 import vtrace
 
@@ -28,6 +29,7 @@ import vtrace.platforms.posix as v_posix
 
 from ctypes import *
 import ctypes.util as cutil
+
 
 if os.getenv('ANDROID_ROOT'):
     libc = CDLL('/system/lib/libc.so')
@@ -521,10 +523,52 @@ class LinuxMixin(v_posix.PtraceMixin, v_posix.PosixMixin):
                 ret.append(int(pidstr))
         return ret
 
+    import vparsers.elf
+
+    def _findLibraryMaps(self, magic=vparsers.elf.MAGIC, always=False):
+        done = {}
+        mlen = len(magic)
+
+        for addr, size, perms, fname in self.getMemoryMaps():
+            if not fname:
+                continue
+
+            if done.get(fname):
+                continue
+
+            try:
+                if self.readMemory(addr, mlen) == magic:
+                    done[fname] = True
+
+                    normname = self.normFileName(fname)
+                    if normname not in self.getMeta("LibraryBases"):
+
+                        self.getMeta("LibraryPaths")[addr] = fname
+                        self.getMeta("LibraryBases")[normname] = addr
+                        self.setMeta("LatestLibrary", fname)
+                        self.setMeta("LatestLibraryNorm", normname)
+
+                        # Only actually do library work with a file or force
+                        if os.path.exists(fname) or always:
+                            width = self.arch.getPointerSize()
+                            sym = e_sym_resolv.FileSymbol(normname, addr, 0, width=width)
+                            sym.casesens = self.casesens
+                            self.addSymbol(sym)
+
+                        self.libpaths[normname] = fname
+                        # self.fireNotifiers(vtrace.NOTIFY_LOAD_LIBRARY)
+
+            except Exception as e:
+                # traceback.print_exc()
+                # print("%X %s %s" % (addr, fname, str(e)), file=sys.stderr)
+                pass
+
     def platformProcessEvent(self, event):
         # Skim some linux specific events before passing to posix
         tid, status = event
         if os.WIFSTOPPED(status):
+            self._findLibraryMaps()
+
             sig = status >> 8  # Cant use os.WSTOPSIG() here...
             # print('STOPPED: %d %d %.8x %d' % (self.pid, tid, status, sig))
 
